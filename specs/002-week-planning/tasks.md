@@ -405,7 +405,7 @@ description: "Task list for Week Planning"
 
 ### Tests for User Story 4
 
-- [ ] T060 [P] [US4] Write `tests/ui/week-page.test.tsx` (key interaction) with `FixedClock('2026-11-04')`:
+- [X] T060 [P] [US4] Write `tests/ui/week-page.test.tsx` (key interaction) with `FixedClock('2026-11-04')`:
   - The title is "2–8 lis 2026" and the Wednesday row has `day-today`.
   - Tapping "Następny tydzień" shows "9–15 lis 2026" and a Meal seeded on `2026-11-10`.
   - Tapping "Poprzedni tydzień" twice shows "26 paź – 1 lis 2026".
@@ -413,7 +413,7 @@ description: "Task list for Week Planning"
 
 ### Implementation for User Story 4
 
-- [ ] T061 [US4] Extend `src/ui/pages/WeekPage.tsx`:
+- [X] T061 [US4] Extend `src/ui/pages/WeekPage.tsx`:
   - A `Navbar` with ordered `NavLeft` / `NavTitle` / `NavRight` (research R11):
     - ← `Link` with `iconF7="chevron_left"` and `aria-label="Poprzedni tydzień"` → `setWeekStart(addDays(weekStart, -7))`
     - → `Link` with `iconF7="chevron_right"` and `aria-label="Następny tydzień"` → `+7`
@@ -421,7 +421,7 @@ description: "Task list for Week Planning"
   - The live query depends on `weekStart`.
 
   Make T060 pass.
-- [ ] T062 [US4] Confirm in `src/ui/pages/WeekPage.tsx` that going back from the Day page keeps `weekStart`: the Framework7 page stack keeps `WeekPage` mounted. Extend `tests/ui/week-page.test.tsx`: → once, open a day, go back, and the title is still "9–15 lis 2026" (FR-007).
+- [X] T062 [US4] Confirm in `src/ui/pages/WeekPage.tsx` that going back from the Day page keeps `weekStart`: the Framework7 page stack keeps `WeekPage` mounted. Extend `tests/ui/week-page.test.tsx`: → once, open a day, go back, and the title is still "9–15 lis 2026" (FR-007).
 
 **Checkpoint**: US1–US4 work. Quickstart rows 9–10 pass.
 
