@@ -21,6 +21,15 @@ DAY_NAMES: readonly string[]                   // 'Poniedziałek' … 'Niedziela
 MONTH_ABBREVIATIONS: readonly string[]         // 'sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'
 dayLabel(date: IsoDate): { dayName: string; dateText: string } // { 'Czwartek', '5 lis' }
 weekRangeLabel(weekStart: IsoDate): string
+weekRange(weekStart: IsoDate): { start: IsoDate; end: IsoDate } // Monday to Sunday
+
+// Added by the 2026-11-04 redesign (research R14):
+SHORT_DAY_NAMES: readonly string[]              // 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'
+MONTH_NAMES: readonly string[]                  // 'styczeń' … 'grudzień' (nominative)
+weekMonthLabel(weekStart: IsoDate): string      // "Listopad 2026", "Listopad – grudzień 2026",
+                                                // "Grudzień 2026 – styczeń 2027"
+dayOfMonth(date: IsoDate): number
+sameWeekday(date: IsoDate, weekStart: IsoDate): IsoDate // that weekday in the given Week
 ```
 
 ## numbers.ts (extended)
@@ -94,6 +103,7 @@ decideMealSave(meal: Meal, source: MealSource, value: ValidMealValue):
   | { kind: 'save'; meal: Meal; detachedNow: boolean } // detachedNow: was linked, now detached
 restoreMeal(meal: Meal): Meal                  // detached = null, servings kept
 servingsWord(servings: number): 'porcja' | 'porcje' | 'porcji'
+mealsWord(count: number): 'posiłek' | 'posiłki' | 'posiłków' // 1; 2–4 (not 12–14); else (redesign)
                                                // 1 → porcja; 2–4 (not 12–14), whole → porcje; else porcji
 ```
 

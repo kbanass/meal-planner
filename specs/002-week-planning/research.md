@@ -209,6 +209,24 @@ Phase 0 output for [plan.md](plan.md). Terms follow [GLOSSARY.md](../../GLOSSARY
     - the Stepper changes the number of Slots shown
 - **Rationale**: Same split as feature 001, and the constitution's coverage gate applies unchanged.
 
+## R14. Week view redesign: custom components where the user gives a look (2026-11-04)
+
+- **Decision**:
+  - The Tydzień tab becomes one designed screen built from custom components inside a Framework7 `Page`:
+    - a Week card with the month label and round ← / → buttons
+    - a 7-day strip with a filled pill for the selected day
+    - the selected day's Slots as Meal cards with the Dish photo on the left
+  - The separate Day page is removed.
+  - Colours, radii and shadows are CSS variables in `app.css`, scoped to the Tydzień tab, so the Shopping List and Settings can adopt them later.
+  - The tabbar, sheets, dialogs and inputs stay Framework7's, because their iOS behaviour (safe areas, swipe-to-close, keyboard handling) is the hard part and already works.
+- **Rationale**:
+  - The user shared a reference screenshot and said the UI does not have to be built only from Framework7 components.
+  - Putting the day on the Week page saves a navigation step for every day planned (SC-001), and keeps the Week in view while planning.
+- **Alternatives considered**:
+  - Restyling Framework7 lists with CSS overrides: fights Framework7's iOS styles, which is what made feature 001's first UI look wrong.
+  - Keeping the Day page and only restyling it: the reference shows the day on the same screen, and an extra screen per day slows planning.
+  - A floating add button as in the reference: adding needs a Slot, so it would have to guess one.
+
 ## Sources
 
 - Howard Hinnant, "chrono-Compatible Low-Level Date Algorithms" (`days_from_civil`, `civil_from_days`): https://howardhinnant.github.io/date_algorithms.html

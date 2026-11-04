@@ -12,7 +12,7 @@ Framework7 structure follows research R11.
 
 | Tab | Before | Now |
 |---|---|---|
-| Tydzień | Placeholder | Week page, then the Day page |
+| Tydzień | Placeholder | Week page: Week card with day strip, then the selected day's Slots |
 | Ustawienia | Placeholder | Settings page with "Liczba slotów". The rest of the screen comes in later features |
 
 Lista zakupów stays a placeholder.
@@ -21,47 +21,67 @@ Lista zakupów stays a placeholder.
 
 | Route | Screen |
 |---|---|
-| `/` | Week page |
-| `/day/:date/` | Day page. An invalid `date` (`isIsoDate` false) shows "Nie ma takiego dnia." with a back link |
+| `/` | Week page (the only page of the Tydzień tab since the 2026-11-04 redesign) |
 
-## Week page
+The `/day/:date/` Day page from the first build is removed. Its Slots now show on the Week page (spec Revisions, FR-007).
 
-- **Navbar**:
-  - `NavLeft`: link with icon `chevron_left`, `aria-label` "Poprzedni tydzień".
-  - `NavTitle`: `weekRangeLabel`, e.g. "2–8 lis 2026".
-  - `NavRight`: link with icon `chevron_right`, `aria-label` "Następny tydzień".
-- **Copy action**: an outlined `Button` "Skopiuj do następnego tygodnia" in a `Block`, disabled when the viewed Week has no plan (FR-036).
-- **Day list**: a `List` `mediaList` with 7 rows in order, each linking to `/day/:date/`:
+## Week page (redesigned 2026-11-04)
 
-  | Part | Content |
-  |---|---|
-  | title | day name, e.g. "Poniedziałek" |
-  | subtitle | date, e.g. "2 lis" |
-  | after | "1850 kcal", or "brak posiłków" when the day has no Meals |
-  | today | the row gets class `day-today` (accent left border) and the subtitle "2 lis · dziś" |
+The layout follows the reference screenshot in spec.md Revisions. It is built from custom components (`WeekCard`, `DayStrip`, `MealCard`) inside a Framework7 `Page`. The tabbar, sheets, dialogs and inputs stay Framework7's (research R14).
 
-- **Copy flow**:
-  1. If the next Week has a plan, confirm with "Następny tydzień ma już plan. Zastąpić go planem z tego tygodnia?"
-  2. On success, show the toast "Skopiowano do następnego tygodnia." and stay on the viewed Week (FR-037).
-  3. On failure, show the alert "Nie udało się skopiować tygodnia. Następny tydzień nie został zmieniony."
+**Look** (CSS variables in `src/ui/styles/app.css`, scoped to the Tydzień tab):
+
+| Token | Value | Use |
+|---|---|---|
+| `--planner-page-bg` | warm off-white, about `#F5F1EC` | page background |
+| `--planner-card-bg` | `#FFFFFF` | Week card and Meal cards |
+| `--planner-card-radius` | `24px` | cards. Day pill `16px` |
+| `--planner-card-shadow` | `0 8px 24px rgba(60, 30, 20, 0.08)` | cards |
+| `--planner-accent` | see the open question below | selected-day pill, today's mark, primary actions |
+| `--planner-muted` | `#8E8A86` | short day names, secondary text |
+
+Headings use the system font at weight 700, with a larger size than Framework7's defaults: about 28 px for the month, 22 px for the day heading.
+
+**Open question: the accent colour.** The app's theme colour is green `#2f6f4f` (PWA manifest, tabbar). The reference uses a deep burgundy. The proposal is a deep burgundy, about `#8C1D40`, for the whole app: `--f7-theme-color` and the manifest `theme_color`, so the tabbar matches. The alternative keeps green and changes only the layout. To be decided by the user.
+
+**Structure, top to bottom:**
+
+1. **Page title**: "Tydzień", large and left-aligned (no Framework7 navbar, matching the reference). On iOS it respects the top safe area.
+2. **Week card** (`WeekCard`):
+   - **Top row**: the month label on the left, `weekMonthLabel`: "Listopad 2026", "Listopad – grudzień 2026", "Grudzień 2026 – styczeń 2027". On the right, two round 44 px buttons with `arrow_left` / `arrow_right` icons, `aria-label` "Poprzedni tydzień" / "Następny tydzień".
+   - **Day strip** (`DayStrip`): 7 equal columns, each a `button` with `aria-pressed` for the selected day:
+
+     | Line | Content | Style |
+     |---|---|---|
+     | 1 | short name: Pn, Wt, Śr, Cz, Pt, So, Nd | muted, 15 px. Today: accent colour |
+     | 2 | day of the month | 20 px, weight 700 |
+     | 3 | Planned kcal, e.g. "1850", empty when no Meals | 11 px, muted |
+
+     The selected day is a filled accent pill (radius 16 px, white text, a soft accent shadow).
+   - **Bottom row**: a text button with a `doc_on_doc` icon, "Skopiuj do następnego tygodnia", in the accent colour. Disabled (muted) when the viewed Week has no plan (FR-036).
+3. **Day heading row**: "Czwartek, 5 lis" on the left (22 px, 700). The summary on the right, muted: "2 posiłki · 875 kcal", "1 posiłek · 350 kcal", "5 posiłków · …", or "brak posiłków".
+4. **Slots**: for each Slot, a small muted label with just its number, then:
+   - **Meal cards** (`MealCard`), in the order added. Each is a white card, about 112 px tall:
+     - On the left, a square photo or placeholder filling the card height (`DishAvatar` with square corners).
+     - On the right, the name (17 px, 700, at most 2 lines) and "1,5 porcji · 525 kcal" (muted).
+     - At the bottom, a "zmieniony" chip for a Detached Meal: rounded, light accent background.
+     - In the top-right corner, a `pencil` icon.
+
+     Tapping the card opens the Meal sheet.
+   - **Empty Slot**: one outlined card, dashed 1.5 px border in the muted colour, with a `plus` icon and "Dodaj posiłek". Tapping it opens the Dish picker for that Slot.
+   - **Slot with Meals**: below its cards, a small text action "+ Dodaj posiłek" that opens the same picker.
+5. **"dodaj kolejny"**: a dashed outlined card like the empty Slot, labelled "dodaj kolejny" (FR-010).
+
+**Behaviour:**
+- `weekStart` and the selected date are React state of the Week page.
+- On open, the selected date is today (FR-002, FR-007).
+- ← / → move `weekStart` by 7 days and keep the selected weekday.
+- Resuming after midnight moves the today mark only (research R2).
+- The copy flow, confirm text, toast and failure alert are unchanged.
 
 ## Day page
 
-- **Navbar**: back link, title "{dayName}, {dateText}", e.g. "Czwartek, 5 lis".
-- **Each Slot**, in order:
-  - A `BlockTitle` with just the number, e.g. "1".
-  - A `List` `mediaList` with one row per Meal, in the order added:
-
-    | Part | Content |
-    |---|---|
-    | media | `DishAvatar` (40 px): the Dish photo, or the placeholder for the Meal's displayed name |
-    | title | Meal name, or "Nieznane danie" when the Dish is missing |
-    | subtitle | "{servings} {porcja/porcje/porcji} · {kcal} kcal", e.g. "1 porcja · 350 kcal", "1,5 porcji · 525 kcal" |
-    | after | a small `Badge` "zmieniony" for a Detached Meal |
-    | tap | opens the Meal sheet |
-
-  - The last row of the list is "Dodaj posiłek" (plus icon) and opens the Dish picker for that Slot. In an empty Slot it is the only row (FR-013).
-- **Below the last Slot**: a `List` with one list button "dodaj kolejny" (FR-010).
+Removed in the 2026-11-04 redesign. The day title ("Czwartek, 5 lis"), the Slots and the "dodaj kolejny" action moved to the Week page (above). The picker and the Meal sheet are rendered once on the Week page.
 
 ## Dish picker (Sheet)
 
@@ -112,6 +132,6 @@ Lista zakupów stays a placeholder.
 
 ## Desktop (≥ 1024 px)
 
-- The Week, Day and Settings pages use the existing `.page-wide` column (at most 640 px, centred) (FR-041).
+- The Week and Settings pages use the existing `.page-wide` column (at most 640 px, centred) (FR-041). The Week card and Meal cards keep their mobile proportions inside it.
 - The sheets keep Framework7's default sheet behaviour.
 - No grid, side panel or drag and drop (spec Assumptions).

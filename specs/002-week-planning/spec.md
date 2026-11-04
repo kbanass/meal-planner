@@ -10,11 +10,24 @@
 
 Domain terms in **bold** are defined in [GLOSSARY.md](../../GLOSSARY.md). The product contract is [docs/SPEC.md](../../docs/SPEC.md). This feature builds on [feature 001](../001-shell-products-dishes/spec.md) (app shell, Products, Dishes).
 
+## Revisions
+
+### 2026-11-04: Week view redesign
+
+The user shared a reference screenshot from another meal app and asked for the Week view to look more like it, without being limited to Framework7's standard components. The screen becomes one designed page instead of two Framework7 lists:
+
+- **Week card** at the top: a white rounded card with the viewed Week's month and year (e.g. "Listopad 2026") and round ← / → buttons.
+- **Day strip** inside the card: seven columns, Monday to Sunday, each with a short day name ("Pn" … "Nd"), the day of the month and the day's Planned kcal. The selected day is a filled pill in the accent colour, and today is marked in the accent colour when it is not selected.
+- **The selected day's plan** below the card, on the same screen: a heading with the day ("Czwartek, 5 lis") and its summary ("2 posiłki · 875 kcal"), then its Slots, with each Meal shown as a card with the Dish photo or placeholder on the left. **Tapping a day selects it. There is no separate Day view any more.**
+- **Look**: a warm off-white page background, white cards with large rounded corners and a soft shadow, and one accent colour.
+
+Changed requirements: US1, FR-001, FR-003, FR-004, FR-005, FR-007, FR-008 and FR-041. New: FR-042, FR-043. docs/SPEC.md's Tydzień screen description was updated to match. Nothing else about planning changes: Slots, the Dish picker, the Meal sheet, scaling, detaching and copying work as before.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Plan a Week from Dishes (Priority: P1)
 
-The user opens the **Tydzień** tab and sees the current **Week**, Monday to Sunday, as seven day cards. They tap a day, see its numbered **Slots**, tap an empty Slot and pick a **Dish** from a horizontally scrolling picker. The Dish lands in the Slot as a **Meal** with 1 **Serving**. They repeat this until the Week is planned, and can put several Meals in one Slot (e.g. a main dish and a side).
+The user opens the **Tydzień** tab and sees the current **Week**, Monday to Sunday, as a strip of seven days with today selected, and that day's numbered **Slots** below. They tap another day in the strip to plan it, tap an empty Slot and pick a **Dish** from a horizontally scrolling picker. The Dish lands in the Slot as a **Meal** with 1 **Serving**. They repeat this until the Week is planned, and can put several Meals in one Slot (e.g. a main dish and a side).
 
 **Why this priority**: Placing Meals in a Week is the core of the app. The Shopping List and the Goal summaries in later features are both computed from the planned Week.
 
@@ -22,13 +35,13 @@ The user opens the **Tydzień** tab and sees the current **Week**, Monday to Sun
 
 **Acceptance Scenarios**:
 
-1. **Given** today is Wednesday 2026-11-04, **When** the user opens the Tydzień tab, **Then** it shows the Week of Monday 2026-11-02 to Sunday 2026-11-08 as seven day cards in order, each with the Polish day name and date, and Wednesday is marked as today.
-2. **Given** the Week view, **When** the user taps the Thursday card, **Then** the Day view for Thursday shows the default number of Slots, labelled 1, 2, 3…, followed by a "dodaj kolejny" placeholder.
+1. **Given** today is Wednesday 2026-11-04, **When** the user opens the Tydzień tab, **Then** the Week card reads "Listopad 2026", the strip shows Pn 2 to Nd 8 in order, Wednesday 4 is selected, and below it "Środa, 4 lis" shows that day's Slots.
+2. **Given** the Week view, **When** the user taps Thursday 5 in the strip, **Then** Thursday becomes the selected day, and below the card "Czwartek, 5 lis" shows the default number of Slots, labelled 1, 2, 3…, followed by a "dodaj kolejny" placeholder. The screen does not change.
 3. **Given** an empty Slot 2 on Thursday, **When** the user taps it, **Then** a horizontally scrolling picker of all non-archived Dishes appears at the bottom of the screen, each shown with its photo or placeholder and name.
 4. **Given** the picker is open for Thursday Slot 2, **When** the user taps "Owsianka", **Then** a Meal "Owsianka" with 1 Serving appears in Thursday Slot 2 and the picker closes.
 5. **Given** Thursday Slot 2 already holds "Owsianka", **When** the user adds another Meal to that Slot and picks "Banan", **Then** Slot 2 shows both Meals, in the order they were added.
 6. **Given** a Meal in Thursday Slot 2, **When** the user opens it and chooses to remove it from the Slot and confirms, **Then** the Meal disappears and Slot 2 is empty again.
-7. **Given** the Day view, **When** the user goes back, **Then** the Week view is shown and Thursday's card reflects the Meals now planned for it.
+7. **Given** Thursday is selected, **When** a Meal is added to or removed from it, **Then** Thursday's kcal in the strip and the "posiłki · kcal" summary above its Slots update at once.
 
 ---
 
@@ -154,17 +167,17 @@ When the coming Week should look much like this one, the user taps "Skopiuj do n
 
 **Week view**
 
-- **FR-001**: The Tydzień tab MUST show one Week at a time, Monday to Sunday, as seven day cards in that order, each with the Polish day name and the date.
+- **FR-001**: The Tydzień tab MUST show one Week at a time as a strip of seven days, Monday to Sunday, each with a short Polish day name ("Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd") and the day of the month.
 - **FR-002**: The Tydzień tab MUST open on the Week that contains today, every time the app starts.
-- **FR-003**: The day card for today MUST be visibly marked.
-- **FR-004**: Each day card MUST show that day's Planned kcal as a number. A day with no Meals MUST show that it is empty.
-- **FR-005**: The top of the Tydzień tab MUST show the viewed Week's date range, a ← control that shows the previous Week, a → control that shows the next Week, and the "Skopiuj do następnego tygodnia" action.
+- **FR-003**: In the strip, the selected day MUST be shown as selected, and today MUST be visibly marked when it is not the selected day.
+- **FR-004**: Each day in the strip MUST show that day's Planned kcal as a number, and nothing when the day has no Meals. Above the selected day's Slots, a summary MUST give its number of Meals and Planned kcal ("2 posiłki · 875 kcal"), or "brak posiłków" when it has none.
+- **FR-005**: A Week card at the top of the Tydzień tab MUST show the viewed Week's month and year in Polish ("Listopad 2026", or "Listopad – grudzień 2026" when the Week spans two months, with both years when it spans two years), a ← control that shows the previous Week, a → control that shows the next Week, the day strip, and the "Skopiuj do następnego tygodnia" action.
 - **FR-006**: Users MUST be able to move to any earlier or later Week without limit. Meals of every Week MUST be kept until the user removes them.
-- **FR-007**: Tapping a day card MUST open the Day view for that day, and going back MUST return to the same Week.
+- **FR-007**: Tapping a day in the strip MUST select it and show its Slots below the Week card, on the same screen. The app MUST open with today selected. Moving to another Week MUST keep the same weekday selected (Thursday stays Thursday).
 
-**Day view and Slots**
+**Selected day and Slots**
 
-- **FR-008**: The Day view MUST show the day's Slots in order, labelled only with their numbers (1, 2, 3…), each listing its Meals in the order they were added, followed by a "dodaj kolejny" placeholder below the last Slot.
+- **FR-008**: Below the Week card, the selected day's Slots MUST be shown in order, labelled only with their numbers (1, 2, 3…), each listing its Meals in the order they were added, followed by a "dodaj kolejny" placeholder below the last Slot.
 - **FR-009**: Each day MUST show as many Slots as the largest of: the default number of Slots, the highest Slot number holding a Meal that day, and the Slot count the day was raised to with "dodaj kolejny". Example: with a default of 4, one tap raises the day to 5 and two taps to 6. If the default is later set to 6, that day shows 6.
 - **FR-010**: Tapping "dodaj kolejny" MUST add one Slot after the last shown Slot, to that day only, and the added Slot MUST be kept while empty.
 - **FR-011**: The Ustawienia tab MUST offer a "Liczba slotów" setting for the default number of Slots per day: a whole number from 1 to 10, initially 4. A change MUST apply at once to every day of every Week, past ones included, following FR-009. The rest of the Ustawienia tab stays a placeholder until later features.
@@ -212,7 +225,9 @@ When the coming Week should look much like this one, the user taps "Skopiuj do n
 
 - **FR-039**: All functions of this feature MUST work offline and keep their data on the device, across app restarts.
 - **FR-040**: All user-facing text MUST be in Polish. Day names, month abbreviations and decimal commas MUST follow Polish conventions.
-- **FR-041**: On screens about 1024 px wide or wider, the Tydzień tab and Day view MUST use a wider layout with the same functions as on mobile.
+- **FR-041**: On screens about 1024 px wide or wider, the Tydzień tab MUST use a wider layout with the same functions as on mobile.
+- **FR-042**: Each Meal MUST be shown as a card: the Dish photo or placeholder filling its left side, the Meal name, "{Servings} {porcja/porcje/porcji} · {kcal} kcal", and the "zmieniony" marker as a small chip when it is a Detached Meal. Tapping the card opens the Meal sheet. An empty Slot MUST be shown as an outlined "Dodaj posiłek" card, and a Slot with Meals ends with a smaller "Dodaj posiłek" action.
+- **FR-043**: The Tydzień tab MUST use the app's designed look: a warm off-white page background, white cards with large rounded corners and a soft shadow, and one accent colour for the selected day, today's mark and the primary actions. The standard parts (tabbar, sheets, dialogs, inputs) stay Framework7's.
 
 ### Key Entities
 
@@ -238,9 +253,11 @@ When the coming Week should look much like this one, the user taps "Skopiuj do n
 
 ## Assumptions
 
-- **Feature scope**: "Feature 2" covers what the input lists: the Week view and navigation, the Day view with Slots and "dodaj kolejny", adding Meals from Dishes, Servings scaling, Linked and Detached Meals with "przywróć z Dania", and copying to the next Week.
-- **Goals and summaries come later**: Daily and Weekly Goals, the Week summary, day summary bars and the kcal bar on day cards belong to a later feature. Until then a day card shows Planned kcal as a plain number (FR-004), and the Day view has no summary bars.
+- **Feature scope**: "Feature 2" covers what the input lists: the Week view and navigation, the selected day's Slots with "dodaj kolejny", adding Meals from Dishes, Servings scaling, Linked and Detached Meals with "przywróć z Dania", and copying to the next Week.
+- **Goals and summaries come later**: Daily and Weekly Goals, the Week summary, day summary bars and a kcal bar in the day strip belong to a later feature. Until then the strip shows Planned kcal as a plain number (FR-004), and the Day view has no summary bars.
 - **Shopping List comes later**: When it arrives, it must be computed from the Meals defined here. "Nothing else about the following Week may change" (FR-033) already covers its future Adjustments, Extras and checks.
+- **Reference screenshot (2026-11-04)**: The redesign follows the layout and look of a screenshot from another meal app that the user shared: the Week card, the day pill, and the Meal cards with a photo on the left. It does not copy that app's name, wordmark, icons, Meal times, hunger chips, emoji ratings or camera button, which have no counterpart in this app.
+- **No floating add button**: Adding a Meal needs a Slot, so it stays a per-Slot action. A floating "+" would have to guess the Slot.
 - **Desktop layout comes later**: The desktop Tydzień grid (7 columns × Slots with an 8th summary column), the side panel with the Dish library and search, drag and drop of Dishes and Meals, and Meal editing in a popover belong to a later feature (decided 2026-11-04). This feature shows the mobile screens in a wider layout (FR-041).
 - **Only the Slot count setting in Ustawienia**: This feature adds the "Liczba slotów" setting (decided 2026-11-04). The 1–10 range and the initial value of 4 are defaults chosen here, since docs/SPEC.md gives neither. Daily Goal and backup export/import come in later features.
 - **No moving Meals on mobile**: docs/SPEC.md moves Meals only by drag and drop on desktop. On mobile a Meal is moved by removing it and adding it again.
@@ -249,5 +266,5 @@ When the coming Week should look much like this one, the user taps "Skopiuj do n
 - **Servings yield of a Detached Meal is not editable**: docs/SPEC.md lists name, Ingredients and Macros as editable on a Meal. The copied Servings yield is kept only for scaling.
 - **Confirmations**: Removing a Meal and "przywróć z Dania" ask for confirmation because both lose data with no undo. Adding a Meal and "dodaj kolejny" do not.
 - **No jump to today**: There is no "back to current Week" control. The app opens on the current Week at each start (FR-002).
-- **Day view stays within its day**: The Day view has no controls for moving to the previous or next day. The user goes back to the Week view.
+- **One screen**: Since the 2026-11-04 redesign the selected day's Slots show on the Week page itself, so moving between days is a tap in the strip.
 - **Glossary**: This spec adds one domain term, **Added Slot** (added to GLOSSARY.md on 2026-11-04). docs/SPEC.md used to call these "extra Slots", but that clashes with **Extra**, a free-text Shopping List entry, so docs/SPEC.md now says "added Slots" too. The "modified" marker and the picker are UI concepts.
