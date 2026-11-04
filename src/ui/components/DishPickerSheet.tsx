@@ -28,9 +28,8 @@ export function DishPickerSheet({ opened, onClose, onPick }: DishPickerSheetProp
       style={{ height: 'auto' }}
     >
       <Toolbar>
-        <div className="left">
-          <strong className="sheet-title">Wybierz danie</strong>
-        </div>
+        <div className="left" />
+        <div className="title">Wybierz danie</div>
         <div className="right">
           <Link sheetClose>Zamknij</Link>
         </div>

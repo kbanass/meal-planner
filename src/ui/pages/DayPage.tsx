@@ -58,7 +58,7 @@ export function DayPage({ f7route }: DayPageProps) {
         {model.slots.map((slot) => (
           <div key={slot.number} data-slot={slot.number}>
             <BlockTitle>{slot.number}</BlockTitle>
-            <List mediaList inset>
+            <List mediaList strong inset dividersIos>
               {slot.rows.map((row) => (
                 <ListItem
                   key={row.id}

@@ -1,26 +1,29 @@
+import {
+  fieldReader,
+  readIngredients,
+  readMacros,
+  type FieldError,
+  type FieldErrors,
+  type IngredientDraft,
+  type MacrosDraft,
+} from './drafts';
 import { compareIds, compareNames, normalizeName } from './names';
-import { formatDecimal, parseDecimal, roundTo2 } from './numbers';
-import type { Dish, Ingredient, Product } from './types';
+import { formatDecimal } from './numbers';
+import type { Dish, Product } from './types';
 
 /** The Dish form's state. Numbers stay as the text the user typed until validation. */
 export interface DishDraft {
   name: string;
   servingsYield: string;
-  ingredients: { productId: string; amount: string }[];
-  macros: { kcal: string; protein: string; fat: string; carbs: string };
+  ingredients: IngredientDraft[];
+  macros: MacrosDraft;
   notes: string;
 }
 
-export type DishFieldError =
-  | 'required'
-  | 'notANumber'
-  | 'notPositive'
-  | 'negative'
-  | 'duplicateProduct'
-  | 'unknownProduct';
+export type DishFieldError = FieldError;
 
 /** Field path (`name`, `macros.kcal`, `ingredients[2].amount`, …) → error code. */
-export type DishFieldErrors = Record<string, DishFieldError>;
+export type DishFieldErrors = FieldErrors;
 
 export type DishValue = Omit<Dish, 'id' | 'photo' | 'archived'>;
 
@@ -70,56 +73,18 @@ export function removeIngredient(draft: DishDraft, index: number): DishDraft {
   return { ...draft, ingredients: draft.ingredients.filter((_, i) => i !== index) };
 }
 
-type NumberRule = 'positive' | 'nonNegative';
-
-function parseField(text: string, rule: NumberRule): number | DishFieldError {
-  if (text.trim() === '') return 'required';
-  const parsed = parseDecimal(text);
-  if (parsed === null) return 'notANumber';
-  const value = roundTo2(parsed);
-  if (rule === 'positive') return value > 0 ? value : 'notPositive';
-  // Math.abs turns a typed "-0" into 0.
-  return parsed < 0 ? 'negative' : Math.abs(value);
-}
-
 export function validateDishDraft(
   draft: DishDraft,
   productsById: ReadonlyMap<string, Product>,
 ): { ok: true; value: DishValue } | { ok: false; errors: DishFieldErrors } {
   const errors: DishFieldErrors = {};
-  // Returns NaN for an invalid field. It never escapes, because errors is then non-empty.
-  const read = (path: string, text: string, rule: NumberRule): number => {
-    const result = parseField(text, rule);
-    if (typeof result === 'number') return result;
-    errors[path] = result;
-    return Number.NaN;
-  };
+  const read = fieldReader(errors);
 
   const name = normalizeName(draft.name);
   if (name === '') errors.name = 'required';
   const servingsYield = read('servingsYield', draft.servingsYield, 'positive');
-
-  const seen = new Set<string>();
-  const ingredients: Ingredient[] = draft.ingredients.map((ingredient, index) => {
-    const path = `ingredients[${index}]`;
-    if (!productsById.has(ingredient.productId)) {
-      errors[`${path}.productId`] = 'unknownProduct';
-    } else if (seen.has(ingredient.productId)) {
-      errors[`${path}.productId`] = 'duplicateProduct';
-    }
-    seen.add(ingredient.productId);
-    return {
-      productId: ingredient.productId,
-      amount: read(`${path}.amount`, ingredient.amount, 'positive'),
-    };
-  });
-
-  const macros = {
-    kcal: read('macros.kcal', draft.macros.kcal, 'nonNegative'),
-    protein: read('macros.protein', draft.macros.protein, 'nonNegative'),
-    fat: read('macros.fat', draft.macros.fat, 'nonNegative'),
-    carbs: read('macros.carbs', draft.macros.carbs, 'nonNegative'),
-  };
+  const ingredients = readIngredients(draft.ingredients, productsById, read, errors);
+  const macros = readMacros(draft.macros, read);
 
   if (Object.keys(errors).length > 0) return { ok: false, errors };
   return {

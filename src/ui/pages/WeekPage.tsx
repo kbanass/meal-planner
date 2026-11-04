@@ -18,7 +18,7 @@ export function WeekPage() {
     <Page>
       <Navbar title={model.title} />
       <div className="page-wide">
-        <List mediaList inset>
+        <List mediaList strong inset dividersIos>
           {model.days.map((day) => (
             <ListItem
               key={day.date}

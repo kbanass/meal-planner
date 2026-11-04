@@ -289,7 +289,7 @@ description: "Task list for Week Planning"
 
 ### Tests for User Story 2
 
-- [ ] T043 [P] [US2] Extend `tests/domain/meals.test.ts` (draft part):
+- [X] T043 [P] [US2] Extend `tests/domain/meals.test.ts` (draft part):
   - `draftFromMeal` for "Owsianka" at 1,5 Servings: `servings: "1,5"`, `basisServings: 1.5`, amounts `"75"` and `"225"`, Macros `"525"`, `"18,75"`, `"11,25"` and `"82,5"` (`formatDecimal`, 2 decimals).
   - `rescaleMealDraft(draft, source, "2")` recomputes untouched fields from the source (100, 300, 700…) and sets `basisServings: 2`.
   - `rescaleMealDraft` with `"0"`, `"abc"` or `""` returns the draft with only `servings` text updated and the numbers unchanged.
@@ -304,12 +304,12 @@ description: "Task list for Week Planning"
     - Each of these detaches: a name change, an added Ingredient, a removed Ingredient, and a change to each Macro.
     - A change to an already Detached Meal updates its copy, with `detachedNow: false`.
     - Servings and a field changed together → the copy is converted back at the new Servings.
-- [ ] T044 [P] [US2] Write `tests/app/save-meal.test.ts` (Servings part):
+- [X] T044 [P] [US2] Write `tests/app/save-meal.test.ts` (Servings part):
   - `saveMeal` with Servings 1 → 1,5 stores `servings: 1.5` and leaves `detached` `null`, returning `{ kind: 'saved', detachedNow: false }`.
   - An unchanged draft → `{ kind: 'unchanged' }`, and the stored record is deep-equal to before.
   - Invalid Servings → `invalid` with nothing written.
   - A removed Meal → `gone`.
-- [ ] T045 [P] [US2] Write `tests/ui/meal-sheet-vm.test.ts` for `src/ui/view-models/meal-sheet.ts`:
+- [X] T045 [P] [US2] Write `tests/ui/meal-sheet-vm.test.ts` for `src/ui/view-models/meal-sheet.ts`:
   - `mealFieldDomId('ingredients[1].amount')` → `"meal-ingredients-1-amount"`.
   - `mealErrorMessage('duplicateProduct')` → "Ten produkt jest już w posiłku.", and the other codes give the feature 001 messages.
   - `goneMessage` → "Ten posiłek już nie istnieje.".
@@ -317,8 +317,8 @@ description: "Task list for Week Planning"
 
 ### Implementation for User Story 2
 
-- [ ] T046 [US2] Create `src/domain/drafts.ts` with the shared field parser now private to `dishes.ts` (`parseField(text, 'positive' | 'nonNegative')`, returning a number or a `DishFieldError`). Make `dishes.ts` use it, with its public API and tests unchanged. Export `type FieldError = DishFieldError` from `meals.ts`.
-- [ ] T047 [US2] Extend `src/domain/meals.ts` with `MealDraft`, `ValidMealValue`, `draftFromMeal`, `rescaleMealDraft`, `validateMealDraft` and the complete `decideMealSave`, per [contracts/domain-api.md](contracts/domain-api.md) and research R7:
+- [X] T046 [US2] Create `src/domain/drafts.ts` with the shared field parser now private to `dishes.ts` (`parseField(text, 'positive' | 'nonNegative')`, returning a number or a `DishFieldError`). Make `dishes.ts` use it, with its public API and tests unchanged. Export `type FieldError = DishFieldError` from `meals.ts`.
+- [X] T047 [US2] Extend `src/domain/meals.ts` with `MealDraft`, `ValidMealValue`, `draftFromMeal`, `rescaleMealDraft`, `validateMealDraft` and the complete `decideMealSave`, per [contracts/domain-api.md](contracts/domain-api.md) and research R7:
   - A **real change** is checked in this order: the name via `normalizeName`, then the Product id list in order, then each amount and Macro vs `roundTo2(scaled source)` at the saved Servings. No real change → `unchanged`, or a Servings-only `save`.
   - **Detach branch**:
     - The copy starts from the source's whole-recipe values.
@@ -328,9 +328,9 @@ description: "Task list for Week Planning"
   - `addMealIngredient`, `removeMealIngredient` and `restoreMeal` come in US3 (T055), together with their tests.
 
   This makes T043 pass at 100% coverage.
-- [ ] T048 [US2] Add `saveMeal(deps: { week }, { mealId, draft, dishesById, productsById })` to `src/app/week.ts`, following the order in [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md): load → `gone`, source → `gone`, validate → `invalid`, `decideMealSave`, then `putMeal`. This makes T044 pass.
-- [ ] T049 [P] [US2] Create `src/ui/view-models/meal-sheet.ts` with `mealFieldDomId`, `mealErrorMessage`, `goneMessage`, `sheetValues` and `detachToast` ("Posiłek zmieniony – nie będzie już śledził zmian w daniu.", used in US3). This makes T045 pass.
-- [ ] T050 [US2] Extend `src/ui/components/MealSheet.tsx`:
+- [X] T048 [US2] Add `saveMeal(deps: { week }, { mealId, draft, dishesById, productsById })` to `src/app/week.ts`, following the order in [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md): load → `gone`, source → `gone`, validate → `invalid`, `decideMealSave`, then `putMeal`. This makes T044 pass.
+- [X] T049 [P] [US2] Create `src/ui/view-models/meal-sheet.ts` with `mealFieldDomId`, `mealErrorMessage`, `goneMessage`, `sheetValues` and `detachToast` ("Posiłek zmieniony – nie będzie już śledził zmian w daniu.", used in US3). This makes T045 pass.
+- [X] T050 [US2] Extend `src/ui/components/MealSheet.tsx`:
   - Draft state from `draftFromMeal` when the sheet opens.
   - A "Porcje" outlined `ListInput` (`inputmode="decimal"`, id `mealFieldDomId('servings')`). Its change handler calls `rescaleMealDraft`.
   - Read-only lists of the Ingredients (`name`, `formatAmount`, unit label) and the four Macros (`formatKcal` / `formatMacro`) under "Składniki (w tym posiłku)" and "Makro (ten posiłek)".
@@ -340,7 +340,7 @@ description: "Task list for Week Planning"
     - otherwise the sheet closes
   - "Anuluj" or swipe-to-close discards the draft (FR-018).
   - Set the sheet height through Framework7's sheet CSS variable in `src/ui/styles/app.css`.
-- [ ] T051 [US2] Write `tests/ui/meal-sheet.test.tsx` (key interaction): open "Owsianka" from the Day page, type "1,5" into "Porcje" and tap "Zapisz". The Day page row reads "1,5 porcji · 525 kcal" with no "zmieniony" badge. Typing "0" and tapping "Zapisz" keeps the sheet open with "Wartość musi być większa od zera.".
+- [X] T051 [US2] Write `tests/ui/meal-sheet.test.tsx` (key interaction): open "Owsianka" from the Day page, type "1,5" into "Porcje" and tap "Zapisz". The Day page row reads "1,5 porcji · 525 kcal" with no "zmieniony" badge. Typing "0" and tapping "Zapisz" keeps the sheet open with "Wartość musi być większa od zera.".
 
 **Checkpoint**: US1 and US2 work together. Quickstart rows 1–5 pass.
 

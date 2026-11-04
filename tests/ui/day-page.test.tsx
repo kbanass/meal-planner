@@ -27,8 +27,13 @@ describe('DayPage', () => {
     await screen.findByText('Czwartek, 5 lis');
 
     await userEvent.click(within(slotList(container, 2)).getByText('Dodaj posiłek'));
-    const picker = await screen.findByText('Wybierz danie');
-    const sheet = picker.closest('.sheet-modal') as HTMLElement;
+    // Framework7 keeps closed sheets of earlier tests in the app root, so pick the open one.
+    const sheet = await waitFor(() => {
+      const open = document.querySelector<HTMLElement>('.dish-picker-sheet.modal-in');
+      if (!open) throw new Error('Dish picker not open');
+      return open;
+    });
+    expect(within(sheet).getByText('Wybierz danie')).toBeInTheDocument();
     expect(within(sheet).queryByText('Stare danie')).not.toBeInTheDocument();
     await userEvent.click(within(sheet).getByText('Owsianka'));
 

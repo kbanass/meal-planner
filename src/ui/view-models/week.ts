@@ -62,7 +62,7 @@ export function removeMealConfirmMessage(name: string): string {
   return `Usunąć posiłek „${name}”?`;
 }
 
-function indexDishes(dishes: readonly Dish[]): ReadonlyMap<string, Dish> {
+export function indexDishes(dishes: readonly Dish[]): ReadonlyMap<string, Dish> {
   return new Map(dishes.map((dish) => [dish.id, dish]));
 }
 

@@ -67,8 +67,11 @@ afterEach(() => {
   // because Vitest globals are off.
   cleanup();
   if (showInApp) act(() => showInApp?.(null));
-  // Toasts and dialogs are created imperatively, outside React.
-  appRoot?.querySelectorAll('.toast, .dialog, .dialog-backdrop').forEach((el) => el.remove());
+  // Toasts and dialogs are created imperatively, outside React. Framework7 also moves sheets
+  // to the app root, so an unmounted page can leave its sheet and backdrop behind.
+  appRoot
+    ?.querySelectorAll('.toast, .dialog, .dialog-backdrop, .sheet-modal, .sheet-backdrop')
+    .forEach((el) => el.remove());
 });
 
 /** Mounts `ui` the way `main.tsx` does: inside `<DepsProvider>` and the Framework7 `<App>`. */

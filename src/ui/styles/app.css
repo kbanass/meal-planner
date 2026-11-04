@@ -174,9 +174,6 @@ html {
 
 /* Dish picker: a horizontal strip of tiles (research R11). Framework7 has no horizontal
    list, so this is the one custom layout. */
-.dish-picker-sheet .sheet-title {
-  font-size: 17px;
-}
 .dish-picker-strip {
   display: flex;
   gap: 16px;
@@ -208,4 +205,9 @@ html {
   font-size: 13px;
   line-height: 1.25;
   text-align: center;
+}
+
+/* The Meal sheet holds a whole form, so it is taller than Framework7's default 260 px. */
+.meal-sheet {
+  --f7-sheet-height: 85%;
 }
