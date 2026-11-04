@@ -74,7 +74,7 @@ Editing a Meal:
 
 ### Week
 - Always Monday–Sunday.
-- Past weeks are kept. Navigate with ← / → arrows.
+- Past weeks are kept. On phones, navigate by swiping the Week card; on desktop with ← / → buttons.
 - **"Skopiuj do następnego tygodnia"** copies all Meals (with servings and their linked/detached state) and per-day added Slots from the viewed Week into the next one, **replacing** the next Week's Meals and added Slots. If the next Week is not empty, ask for confirmation first. The next Week's Shopping List layer (Adjustments, Extras, checks) is left as it is.
 
 ## Summaries
@@ -105,11 +105,11 @@ Tabs: **Tydzień**, **Dania**, **Lista zakupów**, **Ustawienia**.
 
 ### Mobile
 - **Tydzień:** one screen.
-  - At the top, a Week card holds the month and year with ← / → buttons, "skopiuj do następnego tygodnia", and a strip of 7 days (short name, date, kcal). Today is selected when the app opens, and tapping a day selects it.
+  - At the top, with no page title, a Week card holds the month and year, a strip of 7 days (short name, date, kcal), the selected day's kcal, protein, fat and carbs (each with an icon; bars once goals exist), and "skopiuj do następnego tygodnia". Swipe the card to change Weeks. Today is selected when the app opens, and tapping a day selects it.
   - Then the Week summary.
-  - Then the selected day: day summary bars, its Slots with their Meals as cards (Dish photo on the left), and the "dodaj kolejny" placeholder.
-  - Look: warm off-white background, white rounded cards with a soft shadow, one accent colour. Standard parts (tabbar, sheets, dialogs, inputs) stay Framework7's.
-  - Tapping an empty Slot card opens a horizontally scrolling dish picker at the bottom of the screen. Tapping a Dish adds a Meal (1 serving). Filters come later.
+  - Then the selected day: its Slots as cards, each with its own kcal and macro totals and its Meals inside (Dish photo on the left), and, set apart below them, the "dodaj kolejny" placeholder.
+  - Look (all tabs): warm off-white background, white rounded cards with a soft shadow, the app's green as the accent everywhere, input borders with good contrast. Standard parts (tabbar, sheets, dialogs, inputs) stay Framework7's.
+  - Tapping an empty Slot card opens a horizontally scrolling dish picker at the bottom of the screen: small cards with photo, name, and kcal and macros for one serving. Tapping a Dish adds a Meal (1 serving). Filters come later.
   - Tapping a Meal opens a bottom sheet for editing (servings, fields, restore, remove).
 - **Dania:** Dish library (list, create, edit, archive) and a separate **Produkty** section.
 - **Produkty:** list with usage count. Rename, **merge** duplicates (all Dishes and Meals switch to the kept Product), delete only unused Products, change the unit only on unused Products.

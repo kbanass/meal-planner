@@ -610,6 +610,52 @@ The Day page goes away. Behaviour and data are unchanged.
 
 ---
 
+## Phase 11: Week view refinements (spec Revisions, later 2026-11-04)
+
+**Goal**: the refinements the user asked for after the one-screen redesign. See spec.md Revisions, FR-004, FR-005, FR-011 and FR-042–FR-045.
+
+**Independent Test**: At 390×844 (iOS user agent):
+- There is no page title.
+- Swiping the Week card changes the Week.
+- The day totals with icons show under the strip.
+- Each Slot is a card with its own totals, and "dodaj kolejny" stands apart.
+- Picker tiles show photo, name, kcal and macros.
+- Every tab has the warm background and green elements, and input borders are clearly visible.
+- "Liczba slotów" opens a sheet.
+
+At 1280 px the ← / → buttons are visible.
+
+- [ ] T098 [P] Domain, test-first, in `tests/domain/week.test.ts`, `tests/domain/meals.test.ts`, `src/domain/week.ts` and `src/domain/meals.ts`:
+  - `plannedMacros(meals, dishesById)`: an unrounded sum of the four Macros, skipping a missing Dish.
+  - `DayView.macros` and `SlotView.macros`.
+  - `perServing(source)`: Macros ÷ Servings yield.
+
+  100% coverage.
+- [ ] T099 [P] View-model in `src/ui/view-models/week.ts` with `tests/ui/week-vm.test.ts`:
+  - `weekPage` adds `dayTotals` (four `{ key, label, value, unit, icon }`: `flame_fill` kcal, `cube_fill` białko, `drop_fill` tłuszcz, `hexagon_fill` węglowodany, with values rounded as in spec Edge Cases).
+  - Each Slot gets `totals` in the same shape.
+  - `summary` becomes the Meal count only ("2 posiłki" / "brak posiłków").
+  - Add `pickerTile(dish)`, with the per-Serving values in the same shape.
+  - Add `swipeWeekDelta(dx, dy)`, a pure gesture rule: `|dx| ≥ 50` and `|dx| > 1.5·|dy|` gives `dx < 0 → 7`, `dx > 0 → −7`, otherwise 0.
+- [ ] T100 Week page in `src/ui/pages/WeekPage.tsx` and `src/ui/components/`:
+  - Remove the large navbar, and pad the top by the safe area.
+  - Add `MacroTotals` (icon plus number per Macro) under the strip.
+  - Make `SlotCard` hold its number, its totals, its Meals as rows (64 px rounded photo) and "Dodaj posiłek". Remove the standalone `MealCard`/`SlotAddCard` styles that no longer apply.
+  - Make "dodaj kolejny" a separate accent-tinted button after a gap.
+  - Swipe: `onTouchStart`/`onTouchEnd` on the Week card call `swipeWeekDelta`, with a short slide-in animation in the swipe direction.
+  - The ← / → buttons are visually hidden below 1024 px, and visible at 1024 px and up.
+- [ ] T101 [P] Dish picker in `src/ui/components/DishPickerSheet.tsx`: tiles become small white cards (photo on top, name, then the `pickerTile` icons and numbers).
+- [ ] T102 [P] App-wide theme in `src/ui/App.tsx` and `src/ui/styles/app.css`:
+  - `<App colors={{ primary: '#2f6f4f' }}>`, Framework7's documented theme-colour setting, so links, icons, the tabbar and dialogs turn green.
+  - Move the warm background, the navbar background and the card tokens from `#view-week` to all views.
+  - `--f7-input-outline-border-color` at least 3:1 against white (about `#7a746e`), and green when focused.
+  - Update `tests/ui/render.tsx` if the shared test `<App>` needs the same colours.
+- [ ] T103 Settings in `src/ui/pages/SettingsPage.tsx`: "Liczba slotów" becomes a link row with the value as `after`. Tapping it opens a `Sheet` titled "Liczba slotów" with radio rows 1–10. Picking one saves it and closes the sheet. Rewrite `tests/ui/settings-page.test.tsx`.
+- [ ] T104 Tests in `tests/ui/week-page.test.tsx` and `tests/ui/meal-sheet.test.tsx`: Slot totals and day totals visible, swipe left and right changes the Week (dispatched touch events), the picker tile shows per-Serving kcal, and no "Tydzień" title.
+- [ ] T105 Check at 390×844 and 1280 px with the headless-Chrome screenshots, on all four tabs. Record as-built details in [contracts/ui.md](contracts/ui.md) and [quickstart.md](quickstart.md).
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase dependencies

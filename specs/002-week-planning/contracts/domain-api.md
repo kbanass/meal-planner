@@ -103,6 +103,7 @@ decideMealSave(meal: Meal, source: MealSource, value: ValidMealValue):
   | { kind: 'save'; meal: Meal; detachedNow: boolean } // detachedNow: was linked, now detached
 restoreMeal(meal: Meal): Meal                  // detached = null, servings kept
 servingsWord(servings: number): 'porcja' | 'porcje' | 'porcji'
+perServing(source: MealSource): Macros          // Macros of 1 Serving, for the Dish picker
 mealsWord(count: number): 'posiłek' | 'posiłki' | 'posiłków' // 1; 2–4 (not 12–14); else (redesign)
                                                // 1 → porcja; 2–4 (not 12–14), whole → porcje; else porcji
 ```
@@ -133,6 +134,8 @@ interface MealView {
 }
 
 plannedKcal(meals: readonly Meal[], dishesById: ReadonlyMap<string, Dish>): number
+plannedMacros(meals: readonly Meal[], dishesById: ReadonlyMap<string, Dish>): Macros // unrounded sum
+// Refinements (2026-11-04): DayView and SlotView also carry `macros: Macros` (unrounded sums)
 selectWeekDays(weekStart: IsoDate, today: IsoDate, meals: readonly Meal[],
   dishesById: ReadonlyMap<string, Dish>): DayView[]   // always 7
 selectDay(date: IsoDate, meals: readonly Meal[], daySlots: DaySlots | undefined,
