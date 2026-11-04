@@ -421,25 +421,25 @@ description: "Task list for App Shell, Products and Dishes"
 
 ### Tests for User Story 4
 
-- [ ] T072 [US4] Add tests to `tests/domain/dishes.test.ts`: `decideDishRemoval(0) === 'delete'`, `decideDishRemoval(1) === 'archive'`, `decideDishRemoval(7) === 'archive'`.
-- [ ] T073 [P] [US4] Add tests to `tests/data/dish-repository.test.ts`: `archive(id)` sets `archived: true` and keeps every other field, and `deletePermanently(id)` removes the record.
-- [ ] T074 [P] [US4] Write `tests/app/delete-dish.test.ts` before the implementation:
+- [X] T072 [US4] Add tests to `tests/domain/dishes.test.ts`: `decideDishRemoval(0) === 'delete'`, `decideDishRemoval(1) === 'archive'`, `decideDishRemoval(7) === 'archive'`.
+- [X] T073 [P] [US4] Add tests to `tests/data/dish-repository.test.ts`: `archive(id)` sets `archived: true` and keeps every other field, and `deletePermanently(id)` removes the record.
+- [X] T074 [P] [US4] Write `tests/app/delete-dish.test.ts` before the implementation:
   - with `countMealsUsingDish: async () => 0`, a Dish with a photo → `{ kind: 'deleted' }`, the record is gone, the photo file is gone, and its Products still exist
   - with `async () => 1` → `{ kind: 'archived' }`, the record has `archived: true`, the photo file is kept, and `selectLibrary` no longer returns it (SC-008)
 
 ### Implementation for User Story 4
 
-- [ ] T075 [P] [US4] Add `decideDishRemoval(mealCountUsingDish: number): 'delete' | 'archive'` to `src/domain/dishes.ts`. Make T072 pass.
-- [ ] T076 [P] [US4] Add `archive(id)` (via `db.dishes.update(id, { archived: true })`) and `deletePermanently(id)` to `src/data/dish-repository.ts`. Make T073 pass.
-- [ ] T077 [US4] Implement `deleteDish(deps: { dishes; photos; countMealsUsingDish }, dishId)` in `src/app/dishes.ts`:
+- [X] T075 [P] [US4] Add `decideDishRemoval(mealCountUsingDish: number): 'delete' | 'archive'` to `src/domain/dishes.ts`. Make T072 pass.
+- [X] T076 [P] [US4] Add `archive(id)` (via `db.dishes.update(id, { archived: true })`) and `deletePermanently(id)` to `src/data/dish-repository.ts`. Make T073 pass.
+- [X] T077 [US4] Implement `deleteDish(deps: { dishes; photos; countMealsUsingDish }, dishId)` in `src/app/dishes.ts`:
   - `decideDishRemoval(await countMealsUsingDish(dishId))`
   - for `delete`: `deletePermanently`, then `photos.delete(photo)` if one exists, swallowing photo errors
   - for `archive`: `archive`
   - return the kind
 
   Make T074 pass.
-- [ ] T078 [US4] In `src/app/deps.ts`, add `countMealsUsingDish: (dishId: string) => Promise<number>`, wired to `async () => 0`, with a comment: "No Meals exist until the Week planning feature; see specs/001-shell-products-dishes/research.md R13". Add the same default in `tests/ui/render.tsx`.
-- [ ] T079 [US4] In `src/ui/pages/DishFormPage.tsx` (edit mode only), add a red "Usuń danie" button at the bottom. It opens `f7.dialog.confirm("Usunąć danie „{nazwa}”?")` with Framework7's default buttons. On confirm it calls `deleteDish`, then `router.back()`. On cancel nothing changes (US4-3).
+- [X] T078 [US4] In `src/app/deps.ts`, add `countMealsUsingDish: (dishId: string) => Promise<number>`, wired to `async () => 0`, with a comment: "No Meals exist until the Week planning feature; see specs/001-shell-products-dishes/research.md R13". Add the same default in `tests/ui/render.tsx`.
+- [X] T079 [US4] In `src/ui/pages/DishFormPage.tsx` (edit mode only), add a red "Usuń danie" button at the bottom. It opens `f7.dialog.confirm("Usunąć danie „{nazwa}”?")` with Framework7's default buttons. On confirm it calls `deleteDish`, then `router.back()`. On cancel nothing changes (US4-3).
 
 **Checkpoint**: All five stories work. Quickstart row 9 passes.
 

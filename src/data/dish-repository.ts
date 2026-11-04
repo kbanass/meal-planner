@@ -7,6 +7,8 @@ export interface DishRepository {
   get(id: string): Promise<Dish | undefined>;
   /** Creates or replaces. */
   put(dish: Dish): Promise<void>;
+  archive(id: string): Promise<void>;
+  deletePermanently(id: string): Promise<void>;
 }
 
 export function createDishRepository(db: PlannerDb): DishRepository {
@@ -16,5 +18,9 @@ export function createDishRepository(db: PlannerDb): DishRepository {
     async put(dish) {
       await db.dishes.put(dish);
     },
+    async archive(id) {
+      await db.dishes.update(id, { archived: true });
+    },
+    deletePermanently: (id) => db.dishes.delete(id),
   };
 }

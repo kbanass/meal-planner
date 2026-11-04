@@ -46,3 +46,26 @@ describe('DishRepository', () => {
     expect(await repo.get('missing')).toBeUndefined();
   });
 });
+
+describe('archive and deletePermanently', () => {
+  it('archives a Dish and keeps every other field', async () => {
+    await repo.put({ ...owsianka, photo: { id: 'photo-1', mimeType: 'image/webp' } });
+
+    await repo.archive('d-1');
+
+    expect(await repo.get('d-1')).toEqual({
+      ...owsianka,
+      photo: { id: 'photo-1', mimeType: 'image/webp' },
+      archived: true,
+    });
+  });
+
+  it('deletes a Dish for good', async () => {
+    await repo.put(owsianka);
+
+    await repo.deletePermanently('d-1');
+
+    expect(await repo.get('d-1')).toBeUndefined();
+    expect(await db.dishes.count()).toBe(0);
+  });
+});

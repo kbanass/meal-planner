@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   addIngredient,
+  decideDishRemoval,
   draftFromDish,
   emptyDishDraft,
   removeIngredient,
@@ -256,5 +257,13 @@ describe('selectLibrary', () => {
     ]);
 
     expect(selectLibrary(dishes).map((d) => d.id)).toEqual(['d-2', 'd-5', 'd-1', 'd-3']);
+  });
+});
+
+describe('decideDishRemoval', () => {
+  it('deletes a Dish no Meal uses and archives one that Meals use', () => {
+    expect(decideDishRemoval(0)).toBe('delete');
+    expect(decideDishRemoval(1)).toBe('archive');
+    expect(decideDishRemoval(7)).toBe('archive');
   });
 });

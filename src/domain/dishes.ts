@@ -134,3 +134,8 @@ export function selectLibrary(dishes: readonly Dish[]): Dish[] {
     .filter((dish) => !dish.archived)
     .sort((a, b) => compareNames(a.name, b.name) || compareIds(a.id, b.id));
 }
+
+/** A Dish that Meals use is archived, so the plan keeps its data (FR-034, FR-035). */
+export function decideDishRemoval(mealCountUsingDish: number): 'delete' | 'archive' {
+  return mealCountUsingDish === 0 ? 'delete' : 'archive';
+}

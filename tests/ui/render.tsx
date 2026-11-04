@@ -26,6 +26,9 @@ export function createTestDeps(): Deps {
     dishes: createDishRepository(db),
     photos: new InMemoryPhotoStore(),
     compressor: new FakeImageCompressor(),
+    // No Meals exist until the Week planning feature; see
+    // specs/001-shell-products-dishes/research.md R13
+    countMealsUsingDish: async () => 0,
   };
 }
 

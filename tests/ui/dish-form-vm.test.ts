@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { DishFieldError } from '../../src/domain/dishes';
 import {
+  deleteDishConfirmMessage,
   errorMessage,
   firstInvalidField,
   photoErrorMessage,
@@ -101,5 +102,11 @@ describe('photoSection', () => {
       pickLabel: 'Dodaj zdjęcie',
       canRemove: false,
     });
+  });
+});
+
+describe('deleteDishConfirmMessage', () => {
+  it('names the Dish', () => {
+    expect(deleteDishConfirmMessage('Owsianka')).toBe('Usunąć danie „Owsianka”?');
   });
 });

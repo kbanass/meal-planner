@@ -14,6 +14,7 @@ export interface Deps {
   dishes: DishRepository;
   photos: PhotoStore;
   compressor: ImageCompressor;
+  countMealsUsingDish: (dishId: string) => Promise<number>;
 }
 
 export function createDeps(): Deps {
@@ -26,5 +27,8 @@ export function createDeps(): Deps {
     dishes: createDishRepository(db),
     photos: createOpfsPhotoStore(),
     compressor: createCanvasImageCompressor(),
+    // No Meals exist until the Week planning feature; see
+    // specs/001-shell-products-dishes/research.md R13
+    countMealsUsingDish: async () => 0,
   };
 }

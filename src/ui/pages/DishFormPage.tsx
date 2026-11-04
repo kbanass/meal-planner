@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
+  Block,
   BlockTitle,
   Button,
   f7,
@@ -12,7 +13,7 @@ import {
 } from 'framework7-react';
 import type { Router } from 'framework7/types';
 import { useRef, useState } from 'react';
-import { saveDish, type PhotoChange } from '../../app/dishes';
+import { deleteDish, saveDish, type PhotoChange } from '../../app/dishes';
 import {
   addIngredient,
   draftFromDish,
@@ -28,6 +29,7 @@ import { ProductPicker } from '../components/ProductPicker';
 import { useDeps } from '../hooks/useDeps';
 import { useBlobUrl } from '../hooks/usePhotoUrl';
 import {
+  deleteDishConfirmMessage,
   errorMessage,
   fieldDomId,
   firstInvalidField,
@@ -120,6 +122,14 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
     } finally {
       setSaving(false);
     }
+  }
+
+  function confirmDelete() {
+    if (!stored) return;
+    f7.dialog.confirm(deleteDishConfirmMessage(stored.name), async () => {
+      await deleteDish(deps, stored.id);
+      f7router.back();
+    });
   }
 
   return (
@@ -254,6 +264,14 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
               onInput={(event) => setDraft({ ...draft, notes: event.target.value })}
             />
           </List>
+
+          {stored && (
+            <Block>
+              <Button type="button" large tonal color="red" onClick={confirmDelete}>
+                Usuń danie
+              </Button>
+            </Block>
+          )}
         </div>
       )}
     </Page>

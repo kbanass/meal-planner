@@ -84,3 +84,7 @@ export function photoSection(
     canRemove: shows !== 'none',
   };
 }
+
+export function deleteDishConfirmMessage(name: string): string {
+  return `Usunąć danie „${name}”?`;
+}
