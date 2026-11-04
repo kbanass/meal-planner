@@ -82,4 +82,6 @@ Still to check: Android (Chrome), the performance spot checks on the reference d
 - Photo format on iOS: assumed `.jpg`, not checked directly.
 - Seeding did not work on the first try. It runs only in `npm run dev`, and the preview is a production build. Fixed with the seeded test deploy described under Performance spot checks.
 
-Still open: Android (Chrome), and the SC-002/SC-003 spot checks on the reference phones through `npm run deploy:seed`.
+- SC-002 and SC-003 spot checks on the seeded test deploy: approved by the user.
+
+Still open: Android (Chrome).
