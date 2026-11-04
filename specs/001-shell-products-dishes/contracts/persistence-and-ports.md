@@ -92,7 +92,7 @@ sweepOrphanPhotos(deps: { dishes; photos }): Promise<number>      // returns the
 Order of operations in `saveDish` with `photoChange: set`:
 
 1. Validate the draft. If it is invalid, return `invalid` without touching storage.
-2. Compress and write the new photo. On `PhotoDecodeError` or `PhotoQuotaError`, record `photoError` and keep the old reference.
+2. Compress and write the new photo under a new `DishPhotoRef` whose id comes from the injected `deps.ids.next()` (Principle IV). On `PhotoDecodeError` or `PhotoQuotaError`, record `photoError` and keep the old reference.
 3. Put the Dish.
 4. If the reference changed, delete the old photo file. A failure here is ignored, because the sweep removes it later.
 

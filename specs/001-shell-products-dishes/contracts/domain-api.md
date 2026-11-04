@@ -15,6 +15,14 @@ compareNames(a: string, b: string): number     // Intl.Collator('pl', { sensitiv
 ```ts
 parseDecimal(text: string): number | null      // "1,5" | "1.5" | " 2 " | "-1,5" → number. Invalid → null
 roundTo2(value: number): number                // half away from zero
+formatDecimal(value: number): string           // up to 2 decimals, comma separator, no trailing zeros: 1.5 → "1,5"
+```
+
+## units.ts
+
+```ts
+UNITS: readonly Unit[]                         // ['g', 'ml', 'pcs'], in form order
+isUnit(value: unknown): value is Unit          // guard at the persistence boundary
 ```
 
 ## products.ts

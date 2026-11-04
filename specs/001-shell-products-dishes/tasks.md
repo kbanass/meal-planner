@@ -447,18 +447,18 @@ description: "Task list for App Shell, Products and Dishes"
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T080 [P] Create `src/dev/seed.ts`. It is imported only behind `if (import.meta.env.DEV)` in `src/main.tsx`. It reads `?seed=products-N` or `?seed=dishes-N-photos-M` and replaces local data with deterministic fixtures:
+- [X] T080 [P] Create `src/dev/seed.ts`. It is imported only behind `if (import.meta.env.DEV)` in `src/main.tsx`. It reads `?seed=products-N` or `?seed=dishes-N-photos-M` and replaces local data with deterministic fixtures:
   - Product names `Produkt 001…`, with the unit cycling g/ml/pcs.
   - Dish names `Danie 001…`, each with 5 Ingredients.
   - Photos drawn as solid-colour 1200×900 canvases passed through the real compressor.
   - Ids from a counter-based generator.
 
   Verify that `npm run build` output contains no `seed` code (SC-002, SC-003 spot checks).
-- [ ] T081 [P] Review the ≥ 1024 px layout of `DishLibraryPage`, `DishFormPage` and `ProductsPage` against [contracts/ui.md](contracts/ui.md): the tabbar is at the top, the library is a card grid, forms and lists are centred in `.page-wide`, and no function is lost (FR-009, US5-5). Fix any gaps in `src/ui/styles/app.css`.
-- [ ] T082 [P] Run `grep -rniE "\b(item|recipe|przepis|template|entry)\b" src/` and rename any domain identifier that matches (Principle II). Confirm every user-facing string written in `src/ui/**` is Polish (Principle I). Framework7's default labels are exempt (plan.md deviation).
-- [ ] T083 Run `npm run lint`, `npm run typecheck`, `npm test`, `npm run coverage` (100% on `src/domain/**`) and `npm run build`. Fix anything that fails.
+- [X] T081 [P] Review the ≥ 1024 px layout of `DishLibraryPage`, `DishFormPage` and `ProductsPage` against [contracts/ui.md](contracts/ui.md): the tabbar is at the top, the library is a card grid, forms and lists are centred in `.page-wide`, and no function is lost (FR-009, US5-5). Fix any gaps in `src/ui/styles/app.css`.
+- [X] T082 [P] Run `grep -rniE "\b(item|recipe|przepis|template|entry)\b" src/` and rename any domain identifier that matches (Principle II). Confirm every user-facing string written in `src/ui/**` is Polish (Principle I). Framework7's default labels are exempt (plan.md deviation).
+- [X] T083 Run `npm run lint`, `npm run typecheck`, `npm test`, `npm run coverage` (100% on `src/domain/**`) and `npm run build`. Fix anything that fails.
 - [ ] T084 Run every manual and performance check in [quickstart.md](quickstart.md) on an iPhone (current iOS Safari) and an Android phone (Chrome), plus a desktop browser. Record the results, and any deviations, at the bottom of `specs/001-shell-products-dishes/quickstart.md`.
-- [ ] T085 Resolve the open documentation and spec-wording items in [analysis-followups.md](analysis-followups.md): M5, L6 and L7 in `contracts/` and `plan.md`; L1, L3, L4 and L5 in `spec.md`. Tick each item there with a note on how it was resolved. Leave L2 open, because it carries over to the Week planning feature. Change only documentation, plus `src/app/dishes.ts` if L7 shows the photo reference id is not taken from `deps.ids.next()`.
+- [X] T085 Resolve the open documentation and spec-wording items in [analysis-followups.md](analysis-followups.md): M5, L6 and L7 in `contracts/` and `plan.md`; L1, L3, L4 and L5 in `spec.md`. Tick each item there with a note on how it was resolved. Leave L2 open, because it carries over to the Week planning feature. Change only documentation, plus `src/app/dishes.ts` if L7 shows the photo reference id is not taken from `deps.ids.next()`.
 
 ---
 

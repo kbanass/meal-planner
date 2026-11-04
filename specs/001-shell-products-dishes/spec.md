@@ -106,7 +106,7 @@ The user opens the app on their phone, adds it to the home screen and from then 
 
 ### Edge Cases
 
-- **Name normalisation**: Product and Dish names are trimmed of leading and trailing spaces. An empty name after trimming is rejected.
+- **Name normalisation**: Product and Dish names are trimmed of leading and trailing spaces, and repeated spaces inside a name count as one. An empty name after trimming is rejected.
 - **Product name uniqueness**: Two Products cannot have names that differ only by letter case or surrounding spaces. Changing only the letter case of a Product's own name (e.g. "mleko" → "Mleko") is allowed.
 - **Polish characters**: Autocomplete matching is case-insensitive for Polish letters too ("ŁOSOŚ" matches "łosoś"). Diacritics are not ignored: "losos" does not match "łosoś".
 - **Exact match while typing**: If the typed text matches an existing Product name exactly (ignoring case), the "add new Product" option is not offered.
@@ -117,7 +117,7 @@ The user opens the app on their phone, adds it to the home screen and from then 
 - **Dish with no Ingredients**: Allowed (e.g. a meal eaten out). It has Macros but adds nothing to the Shopping List later.
 - **Decimal amounts**: Ingredient amounts and Servings yield accept decimal values (e.g. 0.5 pcs, 2.5 Servings), with either a comma or a dot as the decimal separator.
 - **Unreadable or unsupported photo file**: The user sees an error in Polish, and the Dish keeps its previous photo or placeholder.
-- **Device storage full when saving a photo**: The user sees an error in Polish, and the Dish's other changes can still be saved without the photo.
+- **Device storage full when saving a photo**: The user sees an error in Polish, and the Dish's other changes can still be saved without the new photo; the previous photo, if any, is kept.
 - **Names with one word or with symbols**: Placeholder initials use the first letter of the first two words that start with a letter or digit ("Owsianka" → "O", "Leczo z kiełbasą" → "LZ", "  2 jajka" → "2J"). A name with no letters or digits shows a neutral symbol instead of initials.
 - **Archived Dish that no Meal uses anymore**: Stays archived (hidden). It is not brought back into the library automatically.
 
@@ -173,9 +173,8 @@ The user opens the app on their phone, adds it to the home screen and from then 
 
 - **Product**: A named shopping item with a fixed unit (g, ml or pcs) and no nutrition data. Unique by name ignoring case. Referenced by Ingredients in Dishes and, later, in Meals.
 - **Ingredient**: A Product with an amount in that Product's unit. Belongs to one Dish (or, later, one Detached Meal). At most one Ingredient per Product within a Dish.
-- **Dish**: A reusable template with a name, Servings yield, Ingredients, Macros for the whole Dish, optional notes and an optional photo. Can be in the archived state.
+- **Dish**: A reusable template with a name, Servings yield, Ingredients, Macros for the whole Dish, optional notes and an optional photo, stored on the device in reduced size and removed when the Dish is removed for good. Can be in the archived state.
 - **Archived Dish**: A Dish deleted while Meals still used it. Hidden from the library and from choosing a Dish, but kept intact.
-- **Dish photo**: An image belonging to one Dish, stored on the device in reduced size. Removed when its Dish is removed for good.
 
 ## Success Criteria *(mandatory)*
 
@@ -183,11 +182,11 @@ The user opens the app on their phone, adds it to the home screen and from then 
 
 - **SC-001**: A user who has the Macros ready can create a Dish with 5 Ingredients, all of them existing Products, in under 2 minutes on a phone.
 - **SC-002**: With 500 Products in the list, autocomplete suggestions update within 100 ms of each keystroke as perceived by the user.
-- **SC-003**: With 200 Dishes, half with photos, the Dish library opens in under 1 second on a mid-range phone and scrolls without visible stutter.
+- **SC-003**: With 200 Dishes, half with photos, the Dish library opens in under 1 second and scrolls without visible stutter on the reference devices: the oldest iPhone and the oldest Android phone the user owns.
 - **SC-004**: After one online load, 100% of this feature's functions work in airplane mode, including after the app is closed and restarted.
 - **SC-005**: The same Dish name produces the same placeholder colour and initials in 100% of cases, across sessions, reinstalls and devices.
 - **SC-006**: After any merge, 0 Dishes or Detached Meals still reference the merged Product, and the total amount of each affected Dish's Ingredients for that Product is unchanged.
-- **SC-007**: No stored photo exceeds about 800 px on its longest edge, and a typical phone photo is stored at under 10% of its original file size.
+- **SC-007**: No stored photo exceeds about 800 px on its longest edge, and a reference photo (a 12 MP JPEG straight from the phone camera) is stored at under 10% of its original file size.
 - **SC-008**: Deleting a Dish never leaves a Meal that cannot show its Dish's name, Ingredients and Macros.
 
 ## Assumptions

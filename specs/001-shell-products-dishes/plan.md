@@ -97,7 +97,9 @@ index.html                 # viewport-fit, apple-touch-icon, apple-mobile-web-ap
 vite.config.ts             # react + vite-plugin-pwa (generateSW, prompt, manifest)
 vitest.config.ts           # jsdom for ui tests, 100% coverage thresholds on src/domain/**
 eslint.config.js           # domain boundary rules (R2)
+pwa-assets.config.ts       # icon generation from public/icons/icon.svg
 public/icons/              # 180, 192, 512, 512-maskable
+public/_headers            # Cloudflare Pages: no-cache for sw.js, index.html, manifest
 
 src/
 ├── main.tsx               # requestPersistentStorage, sweepOrphanPhotos, render <App/>
@@ -105,6 +107,7 @@ src/
 │   ├── types.ts
 │   ├── names.ts
 │   ├── numbers.ts
+│   ├── units.ts           # UNITS, isUnit
 │   ├── products.ts
 │   ├── dishes.ts
 │   ├── placeholder.ts
@@ -128,6 +131,7 @@ src/
 │   ├── App.tsx            # Framework7 App, Views tabs, tabbar
 │   ├── routes.ts
 │   ├── hooks/             # useDeps, useMediaQuery, usePhotoUrl (lazy, object-URL lifecycle)
+│   ├── styles/app.css     # desktop layout (≥ 1024 px), avatars, ingredient rows
 │   ├── view-models/       # error-code → Polish message, plural forms, product action hints
 │   ├── components/        # DishAvatar, ProductPicker, IngredientRow, PlaceholderPage
 │   └── pages/
@@ -137,11 +141,12 @@ src/
 └── dev/seed.ts            # DEV-only fixture seeding (quickstart)
 
 tests/
+├── setup.ts               # fake-indexeddb, jest-dom matchers, jsdom stand-ins
 ├── domain/                # one file per domain module
 ├── data/                  # repositories on fake-indexeddb
 ├── app/                   # use cases on fake-indexeddb + fakes
 ├── ui/                    # view-models + key component interactions
-└── fakes/                 # FixedIdGenerator, InMemoryPhotoStore, FakeImageCompressor
+└── fakes/                 # FixedIdGenerator, InMemoryPhotoStore, FakeImageCompressor, test-db.ts
 ```
 
 **Structure Decision**: A single client-only Vite project. Code is split into layers in dependency order: `domain` (pure) ← `data` / `app` ← `ui`, with `adapters` injected through `app/deps.ts`. This is the smallest layout that keeps the functional core isolated and enforceable by lint (Principle IV) without a monorepo (Principle V).
