@@ -34,7 +34,7 @@ describe('AppShell', () => {
     ]);
   });
 
-  it('opens on Tydzień with the placeholder notice', async () => {
+  it('opens on Tydzień with the current Week', async () => {
     renderShell();
 
     expect(screen.getByText('Tydzień', { selector: '.tab-link *' }).closest('.tab-link')).toHaveClass(
@@ -42,7 +42,9 @@ describe('AppShell', () => {
     );
     const week = document.getElementById('view-week')!;
     expect(week).toHaveClass('tab-active');
-    expect(await within(week).findByText(NOTICE)).toBeInTheDocument();
+    // createTestDeps fixes today at Wednesday 2026-11-04.
+    expect(await within(week).findByText('2–8 lis 2026')).toBeInTheDocument();
+    expect(within(week).queryByText(NOTICE)).not.toBeInTheDocument();
   });
 
   it('switches to Lista zakupów when its tab is tapped', async () => {

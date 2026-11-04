@@ -1,0 +1,121 @@
+import { describe, expect, it } from 'vitest';
+import { plannedKcal, selectDay, selectWeekDays } from '../../src/domain/week';
+import { byId, dish, meal, owsianka } from '../fakes/dishes';
+
+const third = dish({
+  id: 'd-third',
+  name: 'Jogurt',
+  macros: { kcal: 33.333, protein: 0, fat: 0, carbs: 0 },
+});
+const photo = { id: 'photo-1', mimeType: 'image/webp' } as const;
+const banan = dish({ id: 'd-banan', name: 'Banan', photo, macros: { kcal: 100, protein: 1, fat: 0, carbs: 25 } });
+const dishes = byId([owsianka, third, banan]);
+
+describe('plannedKcal', () => {
+  it('adds unrounded values (3 × 33.333 is 99.999, not 99)', () => {
+    const meals = [1, 2, 3].map((n) => meal({ id: `m-${n}`, dishId: third.id }));
+    expect(plannedKcal(meals, dishes)).toBeCloseTo(99.999, 10);
+  });
+
+  it('skips a Meal whose Dish is missing', () => {
+    expect(plannedKcal([meal({ id: 'm-1', dishId: 'gone' }), meal({ id: 'm-2' })], dishes)).toBe(350);
+  });
+});
+
+describe('selectWeekDays', () => {
+  const meals = [
+    meal({ id: 'm-mon', date: '2026-11-02' }),
+    meal({ id: 'm-wed-1', date: '2026-11-04', servings: 1.5 }),
+    meal({ id: 'm-wed-2', date: '2026-11-04', slot: 2, dishId: banan.id }),
+    meal({ id: 'm-next-week', date: '2026-11-09' }),
+  ];
+
+  it('always lists 7 days, Monday to Sunday, with today marked', () => {
+    const days = selectWeekDays('2026-11-02', '2026-11-04', meals, dishes);
+
+    expect(days.map((d) => d.date)).toEqual([
+      '2026-11-02',
+      '2026-11-03',
+      '2026-11-04',
+      '2026-11-05',
+      '2026-11-06',
+      '2026-11-07',
+      '2026-11-08',
+    ]);
+    expect(days.filter((d) => d.isToday).map((d) => d.date)).toEqual(['2026-11-04']);
+  });
+
+  it('counts Meals and Planned kcal per day, ignoring other Weeks', () => {
+    const days = selectWeekDays('2026-11-02', '2026-11-04', meals, dishes);
+
+    expect(days[0]).toEqual({ date: '2026-11-02', isToday: false, mealCount: 1, plannedKcal: 350 });
+    expect(days[2]).toEqual({ date: '2026-11-04', isToday: true, mealCount: 2, plannedKcal: 625 });
+    expect(days[6]).toEqual({ date: '2026-11-08', isToday: false, mealCount: 0, plannedKcal: 0 });
+  });
+
+  it('marks no day when today is in another Week', () => {
+    const days = selectWeekDays('2026-11-09', '2026-11-04', meals, dishes);
+    expect(days.some((d) => d.isToday)).toBe(false);
+  });
+});
+
+describe('selectDay', () => {
+  const settings = { slotsPerDay: 4 };
+
+  it('shows the default Slots, empty ones included', () => {
+    const slots = selectDay('2026-11-05', [], undefined, dishes, settings);
+    expect(slots.map((s) => s.number)).toEqual([1, 2, 3, 4]);
+    expect(slots.every((s) => s.meals.length === 0)).toBe(true);
+  });
+
+  it('orders Meals in a Slot by position, then id', () => {
+    const meals = [
+      meal({ id: 'm-b', slot: 2, position: 1 }),
+      meal({ id: 'm-c', slot: 2, position: 0 }),
+      meal({ id: 'm-a', slot: 2, position: 1 }),
+    ];
+    const slot2 = selectDay('2026-11-05', meals, undefined, dishes, settings)[1];
+    expect(slot2?.meals.map((m) => m.meal.id)).toEqual(['m-c', 'm-a', 'm-b']);
+  });
+
+  it('shows a Meal in Slot 6, the Added Slots, and only that day', () => {
+    const meals = [meal({ id: 'm-6', slot: 6 }), meal({ id: 'm-other-day', date: '2026-11-06', slot: 9 })];
+    expect(selectDay('2026-11-05', meals, undefined, dishes, settings)).toHaveLength(6);
+    expect(
+      selectDay('2026-11-05', [], { date: '2026-11-05', slotCount: 7 }, dishes, settings),
+    ).toHaveLength(7);
+  });
+
+  it('describes each Meal for display', () => {
+    const copy = { ...owsianka, name: 'Owsianka na wodzie' };
+    const meals = [
+      meal({ id: 'm-linked', servings: 1.5 }),
+      meal({ id: 'm-detached', position: 1, detached: copy }),
+      meal({ id: 'm-photo', position: 2, dishId: banan.id }),
+      meal({ id: 'm-missing', position: 3, dishId: 'gone' }),
+    ];
+    const [linked, detached, withPhoto, missing] =
+      selectDay('2026-11-05', meals, undefined, dishes, settings)[0]?.meals ?? [];
+
+    expect(linked).toEqual({
+      meal: meals[0],
+      name: 'Owsianka',
+      missingDish: false,
+      photo: null,
+      servings: 1.5,
+      kcal: 525,
+      detached: false,
+    });
+    expect(detached).toMatchObject({ name: 'Owsianka na wodzie', detached: true, kcal: 350 });
+    expect(withPhoto).toMatchObject({ name: 'Banan', photo });
+    expect(missing).toMatchObject({ name: '', missingDish: true, photo: null, kcal: 0 });
+  });
+
+  it('takes a Detached Meal photo from its Dish', () => {
+    const copy = { ...banan, name: 'Banan z masłem orzechowym' };
+    const [view] =
+      selectDay('2026-11-05', [meal({ id: 'm-1', dishId: banan.id, detached: copy })], undefined, dishes, settings)[0]
+        ?.meals ?? [];
+    expect(view).toMatchObject({ name: 'Banan z masłem orzechowym', photo });
+  });
+});

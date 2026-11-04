@@ -166,3 +166,46 @@ html {
   font-size: 12px;
   color: var(--f7-input-error-text-color, #ff3b30);
 }
+
+/* Week page: today's row gets an accent edge (FR-003). */
+.day-today {
+  box-shadow: inset 4px 0 0 var(--f7-theme-color);
+}
+
+/* Dish picker: a horizontal strip of tiles (research R11). Framework7 has no horizontal
+   list, so this is the one custom layout. */
+.dish-picker-sheet .sheet-title {
+  font-size: 17px;
+}
+.dish-picker-strip {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 16px 16px calc(16px + var(--f7-safe-area-bottom, 0px));
+  -webkit-overflow-scrolling: touch;
+}
+.dish-picker-tile {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 88px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  scroll-snap-align: start;
+  cursor: pointer;
+}
+.dish-picker-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.25;
+  text-align: center;
+}

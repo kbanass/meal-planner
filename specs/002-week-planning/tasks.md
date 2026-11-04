@@ -194,7 +194,7 @@ description: "Task list for Week Planning"
 
 ### Tests for User Story 1
 
-- [ ] T029 [P] [US1] Write `tests/domain/meals.test.ts` (resolution and scaling part):
+- [X] T029 [P] [US1] Write `tests/domain/meals.test.ts` (resolution and scaling part):
   - `mealSource`:
     - Linked → the Dish.
     - A Dish with `archived: true` → still the Dish.
@@ -205,7 +205,7 @@ description: "Task list for Week Planning"
     - at 1.5 Servings → 75, 225, 525 / 18.75 / 11.25 / 82.5, unrounded
   - `isDetached`.
   - `servingsWord`: 1 → porcja, 2 → porcje, 4 → porcje, 5 → porcji, 12 → porcji, 22 → porcje, 1.5 → porcji.
-- [ ] T030 [P] [US1] Write `tests/domain/week.test.ts` (selectors part):
+- [X] T030 [P] [US1] Write `tests/domain/week.test.ts` (selectors part):
   - `plannedKcal` of three Meals at 33.333 kcal each is the unrounded sum, not the sum of rounded values.
   - `selectWeekDays('2026-11-02', '2026-11-04', meals, dishesById)`:
     - always 7 days, Mon → Sun
@@ -217,11 +217,11 @@ description: "Task list for Week Planning"
     - Meals ordered by `position`, then `id`
     - a Meal in Slot 6 makes 6 Slots
   - `MealView`: `missingDish: true` and `name: ''` for a missing Dish. A Detached Meal takes its name from the copy and its `photo` from the Dish.
-- [ ] T031 [P] [US1] Write `tests/app/week-meals.test.ts`:
+- [X] T031 [P] [US1] Write `tests/app/week-meals.test.ts`:
   - `addMealFromDish` stores a Linked Meal with 1 Serving at the given date and Slot.
   - Two adds to the same Slot get positions 0 and 1.
   - `removeMeal` deletes the record.
-- [ ] T032 [P] [US1] Write `tests/ui/week-vm.test.ts` for `src/ui/view-models/week.ts`:
+- [X] T032 [P] [US1] Write `tests/ui/week-vm.test.ts` for `src/ui/view-models/week.ts`:
   - `dayRow(dayView)`:
     - title "Czwartek", subtitle "5 lis"
     - for today, subtitle "4 lis · dziś" and `isToday: true`
@@ -232,7 +232,7 @@ description: "Task list for Week Planning"
     - `badge: 'zmieniony' | null`
   - `dayTitle('2026-11-05')` → "Czwartek, 5 lis".
   - `pickerEmptyMessage` text.
-- [ ] T033 [P] [US1] Write `tests/ui/day-page.test.tsx` (key interaction):
+- [X] T033 [P] [US1] Write `tests/ui/day-page.test.tsx` (key interaction):
   - Render `DayPage` for `2026-11-05` with one Dish "Owsianka" seeded.
   - Tap Slot 2's "Dodaj posiłek", then the "Owsianka" tile in the picker.
   - Slot 2 lists "Owsianka" with "1 porcja · 350 kcal", and the picker is closed.
@@ -240,23 +240,23 @@ description: "Task list for Week Planning"
 
 ### Implementation for User Story 1
 
-- [ ] T034 [US1] Extend `src/domain/meals.ts` with `isDetached`, `mealSource`, `scaleMeal` and `servingsWord` per [contracts/domain-api.md](contracts/domain-api.md). This makes T029 pass.
+- [X] T034 [US1] Extend `src/domain/meals.ts` with `isDetached`, `mealSource`, `scaleMeal` and `servingsWord` per [contracts/domain-api.md](contracts/domain-api.md). This makes T029 pass.
   - `servingsWord`: 1 → 'porcja'; a whole number whose last digit is 2–4 and whose last two digits are not 12–14 → 'porcje'; otherwise, fractions included → 'porcji'.
-- [ ] T035 [US1] Create `src/domain/week.ts` with the `DayView`, `SlotView` and `MealView` types, `plannedKcal`, `selectWeekDays` and `selectDay`, using `weekDates`, `mealSource`, `scaleMeal` and `slotCountForDay`. This makes T030 pass.
-- [ ] T036 [US1] Create `src/app/week.ts` with `addMealFromDish(deps: { week }, { date, slot, dishId })` and `removeMeal(deps: { week }, mealId)`. This makes T031 pass.
-- [ ] T037 [P] [US1] Create `src/ui/view-models/week.ts` with `dayRow`, `mealRow`, `dayTitle`, `pickerEmptyMessage` ("Nie masz jeszcze żadnych dań. Dodaj je w zakładce Dania."), `removeMealConfirmMessage(name)` ("Usunąć posiłek „{nazwa}”?") and `invalidDayMessage` ("Nie ma takiego dnia."). Use `formatKcal` and `formatServings`. This makes T032 pass.
-- [ ] T038 [P] [US1] Create `src/ui/components/DishPickerSheet.tsx`:
+- [X] T035 [US1] Create `src/domain/week.ts` with the `DayView`, `SlotView` and `MealView` types, `plannedKcal`, `selectWeekDays` and `selectDay`, using `weekDates`, `mealSource`, `scaleMeal` and `slotCountForDay`. This makes T030 pass.
+- [X] T036 [US1] Create `src/app/week.ts` with `addMealFromDish(deps: { week }, { date, slot, dishId })` and `removeMeal(deps: { week }, mealId)`. This makes T031 pass.
+- [X] T037 [P] [US1] Create `src/ui/view-models/week.ts` with `dayRow`, `mealRow`, `dayTitle`, `pickerEmptyMessage` ("Nie masz jeszcze żadnych dań. Dodaj je w zakładce Dania."), `removeMealConfirmMessage(name)` ("Usunąć posiłek „{nazwa}”?") and `invalidDayMessage` ("Nie ma takiego dnia."). Use `formatKcal` and `formatServings`. This makes T032 pass.
+- [X] T038 [P] [US1] Create `src/ui/components/DishPickerSheet.tsx`:
   - A Framework7 `Sheet` with `backdrop` and `swipeToClose`, and props `opened`, `onClose()` and `onPick(dish)`.
   - A title row "Wybierz danie" with a "Zamknij" link.
   - A horizontally scrolling strip of tiles (`DishAvatar` at 72 px plus the name, clamped to 2 lines) from `selectLibrary(dishes)`, or `pickerEmptyMessage` when it is empty.
   - Add `.dish-picker-strip` (`display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap`) and the tile styles to `src/ui/styles/app.css`.
-- [ ] T039 [US1] Create `src/ui/components/MealSheet.tsx` (minimal for US1):
+- [X] T039 [US1] Create `src/ui/components/MealSheet.tsx` (minimal for US1):
   - A Framework7 `Sheet` with `backdrop` and `swipeToClose`, and props `meal`, `opened` and `onClose()`.
   - A `Toolbar` with "Anuluj" and the Meal name.
   - A red list button "Usuń posiłek", which confirms with `removeMealConfirmMessage`, then calls `removeMeal` and closes the sheet.
 
   US2 and US3 add the fields and "Zapisz".
-- [ ] T040 [US1] Create `src/ui/pages/DayPage.tsx` for route `/day/:date/`:
+- [X] T040 [US1] Create `src/ui/pages/DayPage.tsx` for route `/day/:date/`:
   - An invalid `date` (`!isIsoDate`) shows `invalidDayMessage`.
   - Otherwise, a `Navbar` with a back link and `dayTitle`.
   - Live queries: `deps.week.listMeals({ start: date, end: date })`, `deps.week.listDaySlots(...)`, `deps.dishes.list()` and `deps.settings.get()`.
@@ -269,13 +269,13 @@ description: "Task list for Week Planning"
   - Wrap the content in `.page-wide` (FR-041).
 
   This makes T033 pass.
-- [ ] T041 [US1] Create `src/ui/pages/WeekPage.tsx`:
+- [X] T041 [US1] Create `src/ui/pages/WeekPage.tsx`:
   - `weekStart` state = `weekStartOf(deps.clock.today())` on mount (FR-002), and `today` state from the same read.
   - Live queries for the Week's Meals and all Dishes. `selectWeekDays` produces seven `dayRow`s in a `List mediaList`, each linking to `/day/{date}/`.
   - A `Navbar` titled `weekRangeLabel(weekStart)`. US4 adds the arrows, US6 the copy button.
   - The today row gets the class `day-today`. Add its accent left-border style to `src/ui/styles/app.css`.
   - `.page-wide` wrapper.
-- [ ] T042 [US1] In `src/ui/routes.ts`, set `weekRoutes = [{ path: '/', component: WeekPage }, { path: '/day/:date/', component: DayPage }]`. Update `tests/ui/app-shell.test.tsx`: the Tydzień tab no longer shows the placeholder notice (assert the Week range label "2–8 lis 2026" instead, with `FixedClock('2026-11-04')`), while Lista zakupów still does.
+- [X] T042 [US1] In `src/ui/routes.ts`, set `weekRoutes = [{ path: '/', component: WeekPage }, { path: '/day/:date/', component: DayPage }]`. Update `tests/ui/app-shell.test.tsx`: the Tydzień tab no longer shows the placeholder notice (assert the Week range label "2–8 lis 2026" instead, with `FixedClock('2026-11-04')`), while Lista zakupów still does.
 
 **Checkpoint**: Meals can be planned for the current Week, and they survive a restart. Quickstart rows 1–3 pass on an iPhone-sized viewport.
 
