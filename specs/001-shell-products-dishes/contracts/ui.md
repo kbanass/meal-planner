@@ -12,17 +12,19 @@ All user-facing text we write is Polish and inline (Principle I). Framework7's o
 | 4 | Ustawienia | `gear` | Placeholder |
 
 - Placeholder text (FR-003): title = the tab label, body = "Ten ekran pojawi się w kolejnej wersji."
-- Mobile: bottom tabbar. At ≥ 1024 px the tabbar moves to the top, and content uses the wider layout (FR-009, research R10).
+- Mobile: bottom tabbar. At ≥ 1024 px the tabbar moves to the top, and content uses the wider layout (FR-009, research R10):
+  - The app sits in a centred column at most 960 px wide.
+  - Forms and lists (`.page-wide`) are centred and at most 640 px wide. The Dish library's card grid (`.page-wide-grid`) uses the full column.
 - Unit labels (FR-010): `g` → "g", `ml` → "ml", `pcs` → "szt.".
 
 ## Dania tab routes
 
 | Route | Screen | Key elements |
 |---|---|---|
-| `/dishes/` | Dish library | Navbar "Dania", with a link "Produkty" to `/products/` and a "+" button to `/dishes/new/`. A list of Dishes (avatar 48 px plus name), which becomes a card grid at ≥ 1024 px. Empty state: "Nie masz jeszcze żadnych dań. Dodaj pierwsze przyciskiem +." |
-| `/dishes/new/` | Dish form (create) | See the form below |
-| `/dishes/:dishId/` | Dish form (edit) | Same form, plus "Usuń danie" at the bottom |
-| `/products/` | Produkty | Rows: name, unit, "używany: N". Tapping a row opens the actions sheet |
+| `/dishes/` | Dish library | Navbar "Dania", with a link "Produkty" to `/products/` and a "+" button to `/dishes/new/` (accessible label "Dodaj danie"). A list of Dishes (avatar 48 px plus name), which becomes a card grid at ≥ 1024 px. Empty state: "Nie masz jeszcze żadnych dań. Dodaj pierwsze przyciskiem +." |
+| `/dishes/new/` | Dish form (create) | Navbar "Nowe danie". See the form below |
+| `/dishes/:dishId/` | Dish form (edit) | Navbar "Edycja dania". Same form, plus "Usuń danie" at the bottom |
+| `/products/` | Produkty | Rows: name, unit, "używany: N". Tapping a row opens the actions sheet. Empty state: "Nie masz jeszcze żadnych produktów." |
 
 ## Dish form
 
@@ -33,7 +35,7 @@ Fields, top to bottom:
 | Photo | Zdjęcie | The avatar, or the photo at 160 px. Buttons "Dodaj zdjęcie" or "Zmień zdjęcie", and "Usuń zdjęcie". The file input uses `accept="image/*"` |
 | Name | Nazwa | Text |
 | Servings yield | Liczba porcji | Decimal (`inputmode="decimal"`) |
-| Ingredients | Składniki | Rows of: Product name, an amount input, the unit label as a suffix, a remove button. Below them the ProductPicker, with placeholder "Dodaj składnik…" |
+| Ingredients | Składniki | Rows of: Product name, an amount input, the unit label as a suffix, a remove button (accessible label "Usuń składnik"). Below them the ProductPicker, with placeholder "Dodaj składnik…" |
 | Macros | Makro (całe danie) | kcal, Białko (g), Tłuszcz (g), Węglowodany (g), all decimal |
 | Notes | Notatki | Textarea |
 
@@ -62,7 +64,7 @@ Fields, top to bottom:
 
 ## Produkty actions sheet
 
-| Action | Label | Availability (from `productActions`, `canMerge`) | Disabled hint |
+| Action | Label | Availability (view-model `productMenu`, from `productActions` and `mergeCandidates`) | Disabled hint |
 |---|---|---|---|
 | Rename | Zmień nazwę | always | n/a |
 | Change unit | Zmień jednostkę | usage = 0 | "Produkt jest używany w {N} daniach – jednostki nie można zmienić." |
@@ -71,9 +73,12 @@ Fields, top to bottom:
 
 The "{N} daniach" text is produced in a view-model with correct Polish plural forms: "1 daniu", "2 daniach", "5 daniach". A future Detached Meal count extends the same function.
 
+- Rename: a standard prompt titled "Zmień nazwę" with the text "Nowa nazwa produktu", prefilled with the current name.
+- Change unit: a second actions sheet labelled "Jednostka", listing the unit labels with the current one in bold, and "Anuluj".
 - Rename conflict: "Produkt „{nazwa}” już istnieje." If merging is allowed, a standard confirm dialog adds "Scalić „{from}” z „{nazwa}”?", and confirming merges. Otherwise it is a standard alert.
-- Merge: a picker lists the other Products with the same unit. The confirmation reads "Scalić „{from}” z „{into}”? Wszystkie dania będą używać „{into}”." (standard confirm dialog).
+- Merge: a popup with the navbar title "Scal „{from}” z…" and a "Zamknij" link lists the other Products with the same unit. The confirmation reads "Scalić „{from}” z „{into}”? Wszystkie dania będą używać „{into}”." (standard confirm dialog).
 - Delete confirmation: "Usunąć produkt „{nazwa}”?"
+- A merge refused inside the transaction because the units no longer match: "Nie można scalić produktów o różnych jednostkach." (standard alert).
 
 ## PWA manifest (FR-005)
 

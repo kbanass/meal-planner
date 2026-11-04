@@ -38,7 +38,7 @@ interface DishRepository {
 Rules:
 
 - `changeUnit`, `delete` and `merge` run in one Dexie `rw` transaction over `products` and `dishes`. They recompute usage inside it, using `countProductUsage` with `[]` as the Meal input in this feature.
-- `merge` rewrites every Dish whose Ingredients contain `fromId` using `mergeIngredients`, then deletes `fromId`, in the same transaction.
+- `merge` rewrites every Dish whose Ingredients contain `fromId` using `mergeIngredients`, then deletes `fromId`, in the same transaction. `dishesUpdated` is the number of Dishes it rewrote, which are the Dishes that used `fromId`. Dishes that used only `intoId` are not counted. In the US3-1 example it is 1, not 3.
 - `createFromName` and `changeUnit` check the unit with `isUnit` before writing, so a value that is not a Unit never reaches storage, even from untyped data.
 - `nameKey` is always derived inside the repository. A unique-index `ConstraintError` maps to `exists` or `conflict`.
 - Live UI reads use `useLiveQuery(() => repo.list())`. There is no other state store.

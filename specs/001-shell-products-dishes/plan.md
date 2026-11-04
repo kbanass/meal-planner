@@ -138,7 +138,8 @@ src/
 │       ├── DishLibraryPage.tsx
 │       ├── DishFormPage.tsx
 │       └── ProductsPage.tsx
-└── dev/seed.ts            # DEV-only fixture seeding (quickstart)
+└── dev/seed.ts            # fixture seeding (quickstart): `npm run dev`, or the seeded test deploy
+                           # (`npm run deploy:seed` builds with VITE_SEED=true to the Pages branch `seed`)
 
 tests/
 ├── setup.ts               # fake-indexeddb, jest-dom matchers, jsdom stand-ins

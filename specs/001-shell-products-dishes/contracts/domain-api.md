@@ -8,6 +8,7 @@ These are pure functions with no I/O, no clock, no randomness and no implicit lo
 normalizeName(input: string): string           // NFC, trim, collapse whitespace
 nameKey(input: string): string                 // normalizeName + toLowerCase()
 compareNames(a: string, b: string): number     // Intl.Collator('pl', { sensitivity: 'base', numeric: true })
+compareIds(a: string, b: string): number       // code-unit order; breaks name ties so sorts are total
 ```
 
 ## numbers.ts
@@ -38,6 +39,7 @@ countProductUsage(
 ): ReadonlyMap<string, number>                 // productId → count. Absent = 0
 productActions(usage: number): { canDelete: boolean; canChangeUnit: boolean }
 canMerge(from: Product, into: Product): boolean
+mergeCandidates(products: readonly Product[], from: Product): Product[] // canMerge targets, by name
 mergeIngredients(list: readonly Ingredient[], fromId: string, intoId: string): Ingredient[]
 selectProductRows(products: readonly Product[], usage: ReadonlyMap<string, number>):
   { product: Product; usage: number }[]
