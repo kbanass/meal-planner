@@ -6,7 +6,7 @@ description: "Task list for App Shell, Products and Dishes"
 
 **Input**: Design documents from `specs/001-shell-products-dishes/`
 
-**Prerequisites**: [plan.md](plan.md), [spec.md](spec.md), [research.md](research.md), [data-model.md](data-model.md), [contracts/](contracts/), [quickstart.md](quickstart.md)
+**Prerequisites**: [plan.md](plan.md), [spec.md](spec.md), [research.md](research.md), [data-model.md](data-model.md), [contracts/](contracts/), [quickstart.md](quickstart.md), [analysis-followups.md](analysis-followups.md)
 
 **Tests**: Required. Constitution Principle IV requires domain tests in every feature's `tasks.md`, written together with or before the implementation, plus a 100% coverage gate on `src/domain/**`. Repository tests use `fake-indexeddb`. Component tests cover only key interactions.
 
@@ -458,6 +458,7 @@ description: "Task list for App Shell, Products and Dishes"
 - [ ] T082 [P] Run `grep -rniE "\b(item|recipe|przepis|template|entry)\b" src/` and rename any domain identifier that matches (Principle II). Confirm every user-facing string written in `src/ui/**` is Polish (Principle I). Framework7's default labels are exempt (plan.md deviation).
 - [ ] T083 Run `npm run lint`, `npm run typecheck`, `npm test`, `npm run coverage` (100% on `src/domain/**`) and `npm run build`. Fix anything that fails.
 - [ ] T084 Run every manual and performance check in [quickstart.md](quickstart.md) on an iPhone (current iOS Safari) and an Android phone (Chrome), plus a desktop browser. Record the results, and any deviations, at the bottom of `specs/001-shell-products-dishes/quickstart.md`.
+- [ ] T085 Resolve the open documentation and spec-wording items in [analysis-followups.md](analysis-followups.md): M5, L6 and L7 in `contracts/` and `plan.md`; L1, L3, L4 and L5 in `spec.md`. Tick each item there with a note on how it was resolved. Leave L2 open, because it carries over to the Week planning feature. Change only documentation, plus `src/app/dishes.ts` if L7 shows the photo reference id is not taken from `deps.ids.next()`.
 
 ---
 
@@ -541,3 +542,4 @@ Task: "T057 src/app/photos.ts"
 - Replace `countMealsUsingDish` in `src/app/deps.ts` with a Meal repository query.
 - Replace the `[]` Detached Meal input in `src/data/product-repository.ts` (the `TODO(week-planning)` comment) and in `ProductsPage`.
 - Extend the merge transaction to the `meals` table.
+- Count Detached Meals in the Produkty usage hints (`src/ui/view-models/products.ts`), per item L2 in [analysis-followups.md](analysis-followups.md).
