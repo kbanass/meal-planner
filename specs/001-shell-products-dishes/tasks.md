@@ -66,18 +66,18 @@ description: "Task list for App Shell, Products and Dishes"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T006 [P] Write `tests/domain/names.test.ts` before the implementation. Cases:
+- [X] T006 [P] Write `tests/domain/names.test.ts` before the implementation. Cases:
   - `normalizeName("  Mleko  ") === "Mleko"`
   - internal whitespace runs collapse to one space
   - `nameKey("ŁOSOŚ") === "łosoś"`
   - composed `"ś"` and decomposed `"ś"` give equal `nameKey`
   - with `compareNames`, `"ćma" < "dynia"`, `"łosoś" < "mąka"` and `"jajko 2" < "jajko 10"`
-- [ ] T007 [P] Write `tests/domain/numbers.test.ts` before the implementation. Cases:
+- [X] T007 [P] Write `tests/domain/numbers.test.ts` before the implementation. Cases:
   - `parseDecimal`: `"1,5"→1.5`, `"1.5"→1.5`, `" 2 "→2`, `"-1,5"→-1.5`, `"1,5,3"→null`, `"+1"→null`, `"--1"→null`, `""→null`, `"1e3"→null`, `"1 000"→null`, `"abc"→null`
   - `roundTo2(0.1 + 0.2) === 0.3`, `roundTo2(1.005) === 1.01`, `roundTo2(2.675) === 2.68`
   - `formatDecimal(1.5) === "1,5"`, `formatDecimal(2) === "2"`, `formatDecimal(0.25) === "0,25"`
-- [ ] T008 [P] Write `tests/domain/units.test.ts`: `isUnit('g'|'ml'|'pcs') === true`, and `isUnit('kg')`, `isUnit('')` and `isUnit(undefined)` are false.
-- [ ] T009 Create `src/domain/types.ts`, copying the types from [data-model.md](data-model.md) exactly:
+- [X] T008 [P] Write `tests/domain/units.test.ts`: `isUnit('g'|'ml'|'pcs') === true`, and `isUnit('kg')`, `isUnit('')` and `isUnit(undefined)` are false.
+- [X] T009 Create `src/domain/types.ts`, copying the types from [data-model.md](data-model.md) exactly:
   - `Unit = 'g' | 'ml' | 'pcs'`
   - `Product { id; name; unit }`
   - `Ingredient { productId; amount }`, where amount is "> 0, rounded to 2 decimals, in the Product's unit"
@@ -87,34 +87,34 @@ description: "Task list for App Shell, Products and Dishes"
     - `ingredients` are "ordered as entered, unique by productId"
     - `notes` is `''` when none
   - `DishPhotoRef { id; mimeType: 'image/webp' | 'image/jpeg' }`
-- [ ] T010 [P] Implement `src/domain/names.ts`, making T006 pass:
+- [X] T010 [P] Implement `src/domain/names.ts`, making T006 pass:
   - `normalizeName(input)` = `input.normalize('NFC').trim().replace(/\s+/gu, ' ')`
   - `nameKey(input)` = `normalizeName(input).toLowerCase()`
   - `compareNames(a, b)`, using one module-level `new Intl.Collator('pl', { sensitivity: 'base', numeric: true })`
-- [ ] T011 [P] Implement `src/domain/numbers.ts`, making T007 pass (research R4):
+- [X] T011 [P] Implement `src/domain/numbers.ts`, making T007 pass (research R4):
   - `parseDecimal(text)`: trims the input, matches `/^-?\d+([.,]\d+)?$/`, replaces `,` with `.`, then `Number(...)`, returning `null` otherwise.
   - `roundTo2(value)`: half away from zero, `Math.sign(v) * Math.round((Math.abs(v) + Number.EPSILON) * 100) / 100`.
   - `formatDecimal(value)`: up to 2 decimals, comma separator, no trailing zeros, built without `toLocaleString`.
-- [ ] T012 [P] Implement `src/domain/units.ts` with `UNITS: readonly Unit[] = ['g', 'ml', 'pcs']` and `isUnit(value: unknown): value is Unit`, making T008 pass. Create `src/domain/ports.ts` exporting `interface IdGenerator { next(): string }`.
-- [ ] T013 Create `src/data/db.ts`:
+- [X] T012 [P] Implement `src/domain/units.ts` with `UNITS: readonly Unit[] = ['g', 'ml', 'pcs']` and `isUnit(value: unknown): value is Unit`, making T008 pass. Create `src/domain/ports.ts` exporting `interface IdGenerator { next(): string }`.
+- [X] T013 Create `src/data/db.ts`:
   - Class `PlannerDb extends Dexie` with tables `products: Table<Product & { nameKey: string }, string>` and `dishes: Table<Dish, string>`.
   - Schema `db.version(1).stores({ products: 'id, &nameKey', dishes: 'id' })`.
   - Factory `createDb(name = 'planner', dexieOptions?: DexieOptions)`, so tests can pass a fresh `indexedDB: new IDBFactory()` and `IDBKeyRange` from `fake-indexeddb` per test.
-- [ ] T014 [P] Create `src/data/ports.ts` exactly as in [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md):
+- [X] T014 [P] Create `src/data/ports.ts` exactly as in [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md):
   - `PhotoStore { write(ref, blob); read(ref); delete(ref); listIds() }`
   - `ImageCompressor { compress(file, maxEdge) }`, returning `{ blob, mimeType }`
   - `type RequestPersistentStorage = () => Promise<boolean>`
   - error classes `PhotoDecodeError` and `PhotoQuotaError` (both `extends Error`, with `name` set)
-- [ ] T015 Create the test fakes in `tests/fakes/` (after T013 and T014, which provide `createDb` and the photo error classes):
+- [X] T015 Create the test fakes in `tests/fakes/` (after T013 and T014, which provide `createDb` and the photo error classes):
   - `fixed-id-generator.ts`: `FixedIdGenerator` returns `00000000-0000-4000-8000-` followed by a 12-digit zero-padded counter starting at 1.
   - `in-memory-photo-store.ts`: `InMemoryPhotoStore` uses a `Map<string, Blob>` keyed by `ref.id`. It has a `failNextWriteWith?: Error` option, and exposes `ids()` for assertions.
   - `fake-image-compressor.ts`: `FakeImageCompressor` returns `{ blob: new Blob(['x'], { type: 'image/webp' }), mimeType: 'image/webp' }`, or throws a configured `PhotoDecodeError`.
   - `test-db.ts`: `createTestDb()` returns `createDb(\`test-${n}\`, { indexedDB: new IDBFactory(), IDBKeyRange })`.
-- [ ] T016 [P] Create `src/adapters/crypto-id-generator.ts`, exporting `cryptoIdGenerator: IdGenerator` that uses `crypto.randomUUID()`.
-- [ ] T017 Create `src/app/deps.ts` and `src/ui/hooks/useDeps.tsx`:
+- [X] T016 [P] Create `src/adapters/crypto-id-generator.ts`, exporting `cryptoIdGenerator: IdGenerator` that uses `crypto.randomUUID()`.
+- [X] T017 Create `src/app/deps.ts` and `src/ui/hooks/useDeps.tsx`:
   - `deps.ts`: `interface Deps { db: PlannerDb; ids: IdGenerator }`, extended by later tasks, and `createDeps(): Deps`, which wires `createDb()` and `cryptoIdGenerator`.
   - `useDeps.tsx`: `DepsProvider` (React context) and the `useDeps()` hook, which throws if no provider is present.
-- [ ] T018 Create `tests/ui/render.tsx`:
+- [X] T018 Create `tests/ui/render.tsx`:
   - It calls `Framework7.use(Framework7React)` once.
   - It exports `renderWithApp(ui, deps?)`, which mounts `ui` inside Framework7 `<App>` and `<DepsProvider>`. The default deps use `createTestDb()` and `FixedIdGenerator`.
   - Verify it with a trivial smoke test in `tests/ui/render.test.tsx`.
