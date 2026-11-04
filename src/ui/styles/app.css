@@ -1,0 +1,28 @@
+/* Desktop layout (FR-009, research R10). Keep the breakpoint in sync with DESKTOP_QUERY. */
+@media (min-width: 1024px) {
+  /* The tabbar moves to the top; the tab views start below it. */
+  .views.tabs > .toolbar.tabbar {
+    top: 0;
+    bottom: auto;
+    height: var(--f7-tabbar-icons-height);
+  }
+  .views.tabs > .toolbar.tabbar ~ * {
+    --f7-page-toolbar-bottom-offset: 0px;
+  }
+  .views.tabs > .view {
+    margin-top: var(--f7-tabbar-icons-height);
+    height: calc(100% - var(--f7-tabbar-icons-height));
+  }
+
+  .page-wide {
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+}

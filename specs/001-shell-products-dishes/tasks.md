@@ -131,7 +131,7 @@ description: "Task list for App Shell, Products and Dishes"
 
 ### Tests for User Story 5
 
-- [ ] T019 [P] [US5] Write `tests/ui/app-shell.test.tsx` before the implementation:
+- [X] T019 [P] [US5] Write `tests/ui/app-shell.test.tsx` before the implementation:
   - rendering `<AppShell />` shows tab links labelled exactly "Tydzień", "Dania", "Lista zakupów", "Ustawienia", in this order
   - "Tydzień" is the active tab
   - the active tab's page contains "Ten ekran pojawi się w kolejnej wersji."
@@ -139,23 +139,23 @@ description: "Task list for App Shell, Products and Dishes"
 
 ### Implementation for User Story 5
 
-- [ ] T020 [P] [US5] Create `src/adapters/persist-storage.ts`, exporting `requestPersistentStorage: RequestPersistentStorage`. It calls `navigator.storage?.persist?.()` and resolves `false` on absence or error (research R9).
-- [ ] T021 [P] [US5] Create `src/ui/components/PlaceholderPage.tsx`: a Framework7 `Page` with a `Navbar` titled by the `title` prop, and a `Block` with the text "Ten ekran pojawi się w kolejnej wersji."
-- [ ] T022 [P] [US5] Create `src/ui/styles/app.css` and `src/ui/hooks/useMediaQuery.ts`:
+- [X] T020 [P] [US5] Create `src/adapters/persist-storage.ts`, exporting `requestPersistentStorage: RequestPersistentStorage`. It calls `navigator.storage?.persist?.()` and resolves `false` on absence or error (research R9).
+- [X] T021 [P] [US5] Create `src/ui/components/PlaceholderPage.tsx`: a Framework7 `Page` with a `Navbar` titled by the `title` prop, and a `Block` with the text "Ten ekran pojawi się w kolejnej wersji."
+- [X] T022 [P] [US5] Create `src/ui/styles/app.css` and `src/ui/hooks/useMediaQuery.ts`:
   - At `@media (min-width: 1024px)`: move the `.toolbar.tabbar` to the top, restyle `.page-wide` (centred, `max-width: 960px`) and switch `.card-grid` to `display: grid` with `repeat(auto-fill, minmax(200px, 1fr))`.
   - `useMediaQuery(query)` wraps `matchMedia` with a subscription.
   - Later pages use these classes (FR-009, research R10).
-- [ ] T023 [US5] Create `src/ui/routes.ts`, exporting per-tab route arrays `weekRoutes`, `dishesRoutes`, `shoppingRoutes`, `settingsRoutes`. In this phase each contains one `/` route rendering `PlaceholderPage` with that tab's title. US1 replaces `dishesRoutes`.
-- [ ] T024 [US5] Create `src/ui/App.tsx`, exporting `AppShell`:
+- [X] T023 [US5] Create `src/ui/routes.ts`, exporting per-tab route arrays `weekRoutes`, `dishesRoutes`, `shoppingRoutes`, `settingsRoutes`. In this phase each contains one `/` route rendering `PlaceholderPage` with that tab's title. US1 replaces `dishesRoutes`.
+- [X] T024 [US5] Create `src/ui/App.tsx`, exporting `AppShell`:
   - Framework7 `<App name="Planer posiłków" theme="auto">` with `<Views tabs>` holding four `<View>`s: `id` `view-week` (`tab`, `tabActive`, `main`), `view-dishes`, `view-shopping`, `view-settings`. Each has `url="/"` and its own `routes` from T023, and `browserHistory` stays off.
   - A bottom `<Toolbar tabbar icons>` with `<Link tabLink>` entries, labelled and iconed per [contracts/ui.md](contracts/ui.md): Tydzień `calendar`, Dania `book`, Lista zakupów `cart`, Ustawienia `gear`.
   - Make T019 pass.
-- [ ] T025 [US5] Implement `src/main.tsx`:
+- [X] T025 [US5] Implement `src/main.tsx`:
   - Import `framework7/css/bundle`, `framework7-icons/css/framework7-icons.css` and `./ui/styles/app.css`.
   - Call `Framework7.use(Framework7React)`.
   - Call `void requestPersistentStorage()`.
   - Render `<DepsProvider value={createDeps()}><AppShell /></DepsProvider>` into `#app`.
-- [ ] T026 [US5] Configure the PWA (research R8):
+- [X] T026 [US5] Configure the PWA (research R8):
   - In `vite.config.ts`, add `VitePWA({ registerType: 'prompt', injectRegister: 'script', strategies: 'generateSW', workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff,woff2,ttf,webmanifest}'], navigateFallback: 'index.html', runtimeCaching: [] }, manifest: { name: 'Planer posiłków', short_name: 'Planer', lang: 'pl', display: 'standalone', start_url: '/', scope: '/', theme_color: '#2f6f4f', background_color: '#ffffff', icons: [192, 512, 512-maskable] } })`. Do not call `skipWaiting` and do not show a prompt UI.
   - Create `public/icons/icon.svg` (a simple plate glyph on `#2f6f4f`) and `pwa-assets.config.ts`. Generate `public/icons/pwa-192x192.png`, `pwa-512x512.png`, `maskable-icon-512x512.png` and `apple-touch-icon-180x180.png` with `npx pwa-assets-generator`.
   - In `index.html`, add `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">`, `<meta name="apple-mobile-web-app-capable" content="yes">`, `<meta name="apple-mobile-web-app-title" content="Planer">` and `<link rel="apple-touch-icon" href="/icons/apple-touch-icon-180x180.png">`.
