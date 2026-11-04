@@ -6,6 +6,7 @@ How to prove the feature works end to end. Behaviour details are in [spec.md](sp
 
 - Node 24 LTS and npm
 - For the manual checks: an iPhone with current iOS Safari and an Android phone with Chrome, opening the HTTPS preview from `npm run deploy:preview` (Cloudflare Pages, see T027). Phones need HTTPS for the service worker, installing and photo storage. Plain `npm run preview` over the local network is HTTP and will not work there. Fallback without Cloudflare access: `npm run preview -- --host` plus `cloudflared tunnel --url http://localhost:4173`.
+- HTTPS preview URL: <https://preview.planner-4ft.pages.dev>. This alias always points at the latest `npm run deploy:preview`. Each deployment also gets its own URL; the first was <https://f95a50f0.planner-4ft.pages.dev> (2026-11-04).
 
 ## Automated checks
 
