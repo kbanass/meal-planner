@@ -621,3 +621,32 @@ html {
 .add-slot-button .icon {
   font-size: 20px;
 }
+
+/* "Dodaj składnik" is an action, not a field: a dashed button that opens the search in place
+   (Dish form and Meal sheet). */
+.add-ingredient-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: calc(100% - 32px);
+  margin: 12px 16px;
+  padding: 14px;
+  border: 1.5px dashed rgba(47, 111, 79, 0.45);
+  border-radius: 16px;
+  background: none;
+  color: var(--f7-theme-color);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.add-ingredient-button .icon {
+  font-size: 18px;
+}
+.product-picker-cancel {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 16px 8px;
+  list-style: none;
+}

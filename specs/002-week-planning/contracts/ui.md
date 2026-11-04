@@ -165,6 +165,15 @@ Removed in the 2026-11-04 redesign. The day title ("Czwartek, 5 lis"), the Slots
 - The sheets keep Framework7's default sheet behaviour.
 - No grid, side panel or drag and drop (spec Assumptions).
 
+## ProductPicker (change to feature 001, 2026-11-04)
+
+Asked for by the user: "Dodaj składnik" looked like a text field, so it was misleading.
+- **Closed:** the picker is a dashed, green "+ Dodaj składnik" button.
+- **Tapped:** it opens the search in place: an outlined, focused input with the placeholder "Szukaj produktu…", the suggestions, "Dodaj „{nazwa}”", and an "Anuluj" link.
+- **Picking a Product, or "Anuluj",** closes the search back into the button.
+- **No new modal:** the search stays in place, so the Meal sheet gets no third stacked sheet.
+- This applies to the Dish form and the Meal sheet alike.
+
 ## Strings written beyond this contract (as built)
 
 | Where | Text |
@@ -173,4 +182,5 @@ Removed in the 2026-11-04 redesign. The day title ("Czwartek, 5 lis"), the Slots
 | Day pill (`aria-label`) | "{dayName}, {dateText}", e.g. "Czwartek, 5 lis" |
 | Macro totals (`aria-label` and `title`) | "Kalorie: 350 kcal", "Białko: 12,5 g", "Tłuszcz: 7,5 g", "Węglowodany: 55 g" |
 | Slots sheet in Ustawienia | title "Liczba slotów", link "Zamknij" |
+| ProductPicker | button "Dodaj składnik", search placeholder "Szukaj produktu…", link "Anuluj" |
 | Dev seed toast | "Dane testowe wczytane: {seed}" (development and `deploy:seed` builds only) |

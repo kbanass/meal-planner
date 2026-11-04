@@ -9,11 +9,22 @@ async function renderPicker() {
   await deps.products.createFromName('mleko', 'ml');
   const onPick = vi.fn();
   renderWithApp(<ProductPicker onPick={onPick} />, deps);
-  const input = screen.getByPlaceholderText('Dodaj składnik…');
+  await userEvent.click(screen.getByRole('button', { name: 'Dodaj składnik' }));
+  const input = screen.getByPlaceholderText('Szukaj produktu…');
   return { deps, onPick, input };
 }
 
 describe('ProductPicker', () => {
+  it('is a button until tapped, and Anuluj closes the search', async () => {
+    const { input } = await renderPicker();
+
+    expect(input).toHaveFocus();
+    await userEvent.click(screen.getByText('Anuluj', { selector: '.product-picker-cancel *' }));
+
+    expect(screen.queryByPlaceholderText('Szukaj produktu…')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Dodaj składnik' })).toBeInTheDocument();
+  });
+
   it('suggests a Product ignoring case', async () => {
     const { input } = await renderPicker();
 
@@ -40,7 +51,9 @@ describe('ProductPicker', () => {
       }),
     );
     expect(await deps.products.list()).toHaveLength(2);
-    expect(input).toHaveValue('');
+    // After picking, the search closes back into the button.
+    expect(input).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Dodaj składnik' })).toBeInTheDocument();
   });
 
   it('does not offer to create an existing name', async () => {

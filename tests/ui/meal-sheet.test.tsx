@@ -130,7 +130,8 @@ describe('MealSheet', () => {
     const sheet = await openSheet(container);
     await within(sheet).findByText('płatki owsiane');
 
-    await userEvent.type(within(sheet).getByPlaceholderText('Dodaj składnik…'), 'jogurt grecki');
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Dodaj składnik' }));
+    await userEvent.type(within(sheet).getByPlaceholderText('Szukaj produktu…'), 'jogurt grecki');
     await userEvent.click(await within(sheet).findByText('Dodaj „jogurt grecki”'));
     const productSheet = await waitFor(() => {
       const open = document.querySelector<HTMLElement>('.product-sheet.modal-in');
