@@ -24,6 +24,11 @@ html {
   .views.tabs > .toolbar.tabbar ~ * {
     --f7-page-toolbar-bottom-offset: 0px;
   }
+  /* iOS pads the inner bar on the bottom for the bottom position; mirror it for the top. */
+  .ios .views.tabs > .toolbar.tabbar .toolbar-inner {
+    padding-top: 16px;
+    padding-bottom: 0;
+  }
   .views.tabs > .view {
     margin-top: var(--f7-tabbar-icons-height);
     height: calc(100% - var(--f7-tabbar-icons-height));
@@ -131,18 +136,9 @@ html {
   cursor: pointer;
 }
 
-/* Fit "Lista zakupów" in a four-tab bar on narrow phones: less side padding, and the
-   10 px label size native iOS tabbars use. */
+/* Fit "Lista zakupów" in a four-tab bar on narrow phones: the 10 px label size native
+   iOS tabbars use. */
 @media (max-width: 1023px) {
-  .toolbar.tabbar .toolbar-inner {
-    padding-left: 4px;
-    padding-right: 4px;
-    gap: 0;
-  }
-  .toolbar.tabbar .tab-link {
-    flex: 1 1 0;
-    min-width: 0;
-  }
   .toolbar.tabbar .tabbar-label {
     font-size: 10px;
     text-overflow: clip;
