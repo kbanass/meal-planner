@@ -48,6 +48,7 @@ export function ProductPicker({ onPick }: { onPick(product: Product): void }) {
     <>
       <List className="product-picker">
         <ListInput
+          outline
           type="text"
           placeholder="Dodaj składnik…"
           value={query}

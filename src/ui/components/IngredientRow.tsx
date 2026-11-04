@@ -20,8 +20,10 @@ export function IngredientRow({
   onRemove,
 }: IngredientRowProps) {
   return (
-    <li className={error ? 'item-input-with-error-message item-input-invalid' : undefined}>
-      <div className="item-content item-input">
+    <li>
+      <div
+        className={`item-content item-input item-input-outline${error ? ' item-input-invalid' : ''}`}
+      >
         <div className="item-inner">
           <label className="item-title item-label" htmlFor={inputId}>
             {name}
@@ -36,7 +38,7 @@ export function IngredientRow({
             />
             <span className="ingredient-unit">{unit}</span>
           </div>
-          {error && <div className="item-input-error-message">{error}</div>}
+          {error && <div className="ingredient-error">{error}</div>}
         </div>
         <button
           type="button"

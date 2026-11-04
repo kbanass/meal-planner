@@ -74,6 +74,15 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
   const photo = photoSection(storedPhoto, photoChange);
   const fileInput = useRef<HTMLInputElement>(null);
 
+  function clearError(path: string) {
+    setErrors((current) => {
+      if (!(path in current)) return current;
+      const next = { ...current };
+      delete next[path];
+      return next;
+    });
+  }
+
   const error = (path: string) => {
     const code = errors[path];
     return code ? errorMessage(code) : undefined;
@@ -179,21 +188,29 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
 
           <List>
             <ListInput
+              outline
               label="Nazwa"
               type="text"
               inputId={fieldDomId('name')}
               value={draft.name}
-              onInput={(event) => setDraft({ ...draft, name: event.target.value })}
+              onInput={(event) => {
+                setDraft({ ...draft, name: event.target.value });
+                clearError('name');
+              }}
               errorMessage={error('name')}
               errorMessageForce={errors.name !== undefined}
             />
             <ListInput
+              outline
               label="Liczba porcji"
               type="text"
               inputmode="decimal"
               inputId={fieldDomId('servingsYield')}
               value={draft.servingsYield}
-              onInput={(event) => setDraft({ ...draft, servingsYield: event.target.value })}
+              onInput={(event) => {
+                setDraft({ ...draft, servingsYield: event.target.value });
+                clearError('servingsYield');
+              }}
               errorMessage={error('servingsYield')}
               errorMessageForce={errors.servingsYield !== undefined}
             />
@@ -215,14 +232,15 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
                     unit={product ? unitLabel(product.unit) : ''}
                     amount={ingredient.amount}
                     error={error(`${path}.productId`) ?? error(`${path}.amount`)}
-                    onAmountChange={(amount) =>
+                    onAmountChange={(amount) => {
                       setDraft({
                         ...draft,
                         ingredients: draft.ingredients.map((other, i) =>
                           i === index ? { ...other, amount } : other,
                         ),
-                      })
-                    }
+                      });
+                      clearError(`${path}.amount`);
+                    }}
                     onRemove={() => {
                       setDraft(removeIngredient(draft, index));
                       setErrors({});
@@ -239,15 +257,17 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
           <List>
             {MACRO_FIELDS.map(({ key, label }) => (
               <ListInput
+                outline
                 key={key}
                 label={label}
                 type="text"
                 inputmode="decimal"
                 inputId={fieldDomId(`macros.${key}`)}
                 value={draft.macros[key]}
-                onInput={(event) =>
-                  setDraft({ ...draft, macros: { ...draft.macros, [key]: event.target.value } })
-                }
+                onInput={(event) => {
+                  setDraft({ ...draft, macros: { ...draft.macros, [key]: event.target.value } });
+                  clearError(`macros.${key}`);
+                }}
                 errorMessage={error(`macros.${key}`)}
                 errorMessageForce={errors[`macros.${key}`] !== undefined}
               />
@@ -256,6 +276,7 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
 
           <List>
             <ListInput
+              outline
               label="Notatki"
               type="textarea"
               resizable

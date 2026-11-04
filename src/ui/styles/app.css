@@ -1,5 +1,20 @@
+/* No double-tap zoom: the app should feel like a native app. */
+html {
+  touch-action: manipulation;
+}
+
 /* Desktop layout (FR-009, research R10). Keep the breakpoint in sync with DESKTOP_QUERY. */
 @media (min-width: 1024px) {
+  /* A centred app column instead of filling the whole window. */
+  body {
+    background: var(--f7-page-bg-color);
+  }
+  .views.tabs {
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   /* The tabbar moves to the top; the tab views start below it. */
   .views.tabs > .toolbar.tabbar {
     top: 0;
@@ -15,9 +30,12 @@
   }
 
   .page-wide {
-    max-width: 960px;
+    max-width: 640px;
     margin-left: auto;
     margin-right: auto;
+  }
+  .page-wide-grid {
+    max-width: none;
   }
 
   .card-grid > ul {
@@ -113,10 +131,22 @@
   cursor: pointer;
 }
 
-/* Fit "Lista zakupów" in a four-tab bar on narrow phones. */
-.toolbar.tabbar .tabbar-label {
-  font-size: 11px;
-  text-overflow: clip;
+/* Fit "Lista zakupów" in a four-tab bar on narrow phones: less side padding, and the
+   10 px label size native iOS tabbars use. */
+@media (max-width: 1023px) {
+  .toolbar.tabbar .toolbar-inner {
+    padding-left: 4px;
+    padding-right: 4px;
+    gap: 0;
+  }
+  .toolbar.tabbar .tab-link {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .toolbar.tabbar .tabbar-label {
+    font-size: 10px;
+    text-overflow: clip;
+  }
 }
 
 /* Why a Produkty action is unavailable, shown under its label. */
@@ -133,4 +163,10 @@
   padding-top: 8px;
   padding-bottom: 8px;
   flex-direction: column;
+}
+
+.ingredient-error {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--f7-input-error-text-color, #ff3b30);
 }

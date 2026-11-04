@@ -49,3 +49,20 @@ Seeding is a dev-only module (`src/dev/seed.ts`). It loads only when `import.met
 
 - **SC-002**: Run `npm run dev`, open `/?seed=products-500`, then type in the ProductPicker. Suggestions keep up with typing, and the Performance panel shows each input task under 100 ms.
 - **SC-003**: Open `/?seed=dishes-200-photos-100` on a mid-range phone, then open Dania. The list shows within 1 s and scrolls smoothly. Photos load as their rows scroll into view.
+
+## Results
+
+### 2026-11-04: iPhone (iOS Safari, installed from the preview URL) and desktop
+
+Passed: install (10), offline (11), creating and editing Dishes (2), autocomplete (3), validation (4), photo and compression (5, a 250 kB photo stored at about 120 kB), placeholder colours (6), merge (7), rules for used Products (8), deleting a Dish (9), desktop functions (12).
+
+UI defects found and fixed afterwards (re-checked in Chrome with an iPhone user agent at 375 pt, and at 1440 px):
+
+- "Lista zakupów" was clipped in the tabbar. Phone tabbar labels are now 10 px, with less side padding.
+- The "Dania" navbar title was pushed off the left edge, because the Produkty link rendered after the title. The navbar parts are now in explicit order.
+- Input fields had no visible box. Inputs are now outlined.
+- Double-tap zoomed the page. Zoom is disabled with `touch-action: manipulation` and `maximum-scale=1`.
+- A field error stayed after the field was corrected, and the Ingredient error overlapped the amount. Errors now clear on edit and sit below the row.
+- The desktop layout spread over the whole window. It is now a centred 960 px column, with forms at most 640 px wide.
+
+Still to check: Android (Chrome), the performance spot checks on the reference devices, persistence after a reboot (13), and that the photo above was saved as `.jpg` on iOS. Re-check the phone UI after the next `npm run deploy:preview`.
