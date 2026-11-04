@@ -47,6 +47,16 @@ describe('AppShell', () => {
     expect(within(week).queryByText(NOTICE)).not.toBeInTheDocument();
   });
 
+  it('shows the Slot setting on Ustawienia', async () => {
+    renderShell();
+    const settings = document.getElementById('view-settings')!;
+
+    await userEvent.click(screen.getByText('Ustawienia', { selector: '.tab-link *' }));
+
+    expect(await within(settings).findByText('Liczba slotów')).toBeInTheDocument();
+    expect(within(settings).queryByText(NOTICE)).not.toBeInTheDocument();
+  });
+
   it('switches to Lista zakupów when its tab is tapped', async () => {
     renderShell();
     const shopping = document.getElementById('view-shopping')!;

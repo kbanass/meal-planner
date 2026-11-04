@@ -437,24 +437,24 @@ description: "Task list for Week Planning"
 
 ### Tests for User Story 5
 
-- [ ] T063 [P] [US5] Extend `tests/data/week-repository.test.ts` with `setDaySlotCount('2026-11-07', 5)`: it creates the record, a second call with 6 replaces it, and `listDaySlots` returns it.
-- [ ] T064 [P] [US5] Extend `tests/data/settings-repository.test.ts` with `setSlotsPerDay`:
+- [X] T063 [P] [US5] Extend `tests/data/week-repository.test.ts` with `setDaySlotCount('2026-11-07', 5)`: it creates the record, a second call with 6 replaces it, and `listDaySlots` returns it.
+- [X] T064 [P] [US5] Extend `tests/data/settings-repository.test.ts` with `setSlotsPerDay`:
   - 6 → `saved`, then `get()` gives 6.
   - 0, 11 and 2.5 → `invalid`, with nothing written.
-- [ ] T065 [P] [US5] Write `tests/app/add-slot.test.ts`:
+- [X] T065 [P] [US5] Write `tests/app/add-slot.test.ts`:
   - With the default of 4 and no Meals, `addSlotToDay(deps, '2026-11-07')` returns 5 and stores `{ slotCount: 5 }`. A second call returns 6.
   - With a Meal in Slot 7, it returns 8.
   - With `slotsPerDay` 6 and a record of 5, it returns 7.
-- [ ] T066 [P] [US5] Write `tests/ui/settings-page.test.tsx` (key interaction):
+- [X] T066 [P] [US5] Write `tests/ui/settings-page.test.tsx` (key interaction):
   - The "Liczba slotów" stepper shows 4. Tapping the plus button stores 5.
   - The minus button is disabled at 1 and the plus button at 10 (Framework7 `Stepper` `min` and `max`).
 
 ### Implementation for User Story 5
 
-- [ ] T067 [US5] Add `setDaySlotCount(date, slotCount)` (`daySlots.put({ date, slotCount })`) to `src/data/week-repository.ts`. Add `setSlotsPerDay(n)` (rejects unless `isValidSlotsPerDay(n)`, then `settings.put({ id: 'app', slotsPerDay: n })`) to `src/data/settings-repository.ts`. This makes T063 and T064 pass.
-- [ ] T068 [US5] Add `addSlotToDay(deps: { week; settings }, date)` to `src/app/week.ts`: read that date's Meals, its `DaySlots` and the settings, then store `nextSlotCount(slotCountForDay(...))` and return it. This makes T065 pass.
-- [ ] T069 [US5] In `src/ui/pages/DayPage.tsx`, add a `List` below the last Slot with one list button "dodaj kolejny" that calls `addSlotToDay`. The live query updates the Slots. Extend `tests/ui/day-page.test.tsx`: tapping "dodaj kolejny" shows a `BlockTitle` "5".
-- [ ] T070 [US5] Create `src/ui/pages/SettingsPage.tsx`:
+- [X] T067 [US5] Add `setDaySlotCount(date, slotCount)` (`daySlots.put({ date, slotCount })`) to `src/data/week-repository.ts`. Add `setSlotsPerDay(n)` (rejects unless `isValidSlotsPerDay(n)`, then `settings.put({ id: 'app', slotsPerDay: n })`) to `src/data/settings-repository.ts`. This makes T063 and T064 pass.
+- [X] T068 [US5] Add `addSlotToDay(deps: { week; settings }, date)` to `src/app/week.ts`: read that date's Meals, its `DaySlots` and the settings, then store `nextSlotCount(slotCountForDay(...))` and return it. This makes T065 pass.
+- [X] T069 [US5] In `src/ui/pages/DayPage.tsx`, add a `List` below the last Slot with one list button "dodaj kolejny" that calls `addSlotToDay`. The live query updates the Slots. Extend `tests/ui/day-page.test.tsx`: tapping "dodaj kolejny" shows a `BlockTitle` "5".
+- [X] T070 [US5] Create `src/ui/pages/SettingsPage.tsx`:
   - A `Navbar` "Ustawienia".
   - A `List` with one `ListItem` "Liczba slotów". Its `after` content is a Framework7 `Stepper` (`min={SLOTS_PER_DAY.min}`, `max={SLOTS_PER_DAY.max}`, `step={1}`, `small`, `round`), with its value from `useLiveQuery(() => deps.settings.get())`. `onStepperChange` calls `setSlotsPerDay`.
   - The list footer reads "Domyślna liczba slotów w każdym dniu. Dzień może mieć ich więcej."

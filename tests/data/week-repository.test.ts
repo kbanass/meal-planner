@@ -99,3 +99,12 @@ describe('listAllDetachedIngredientLists', () => {
     expect(await week.listAllDetachedIngredientLists()).toEqual([]);
   });
 });
+
+describe('setDaySlotCount', () => {
+  it('stores and then replaces the Slot count a day was raised to', async () => {
+    await week.setDaySlotCount('2026-11-07', 5);
+    await week.setDaySlotCount('2026-11-07', 6);
+
+    expect(await week.listDaySlots(range)).toEqual([{ date: '2026-11-07', slotCount: 6 }]);
+  });
+});

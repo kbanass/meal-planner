@@ -1,3 +1,4 @@
+import type { SettingsRepository } from '../data/settings-repository';
 import type { WeekRepository } from '../data/week-repository';
 import {
   decideMealSave,
@@ -7,6 +8,7 @@ import {
   type FieldError,
   type MealDraft,
 } from '../domain/meals';
+import { nextSlotCount, slotCountForDay } from '../domain/slots';
 import type { Dish, IsoDate, Meal, Product } from '../domain/types';
 
 /** Places a Dish in a Slot as a Linked Meal with 1 Serving, after the Slot's other Meals. */
@@ -62,4 +64,20 @@ export async function restoreMealFromDish(
   if (!meal) return { kind: 'gone' };
   await deps.week.putMeal(restoreMeal(meal));
   return { kind: 'restored' };
+}
+
+/** "dodaj kolejny": raises the day to one Slot more than it shows now (FR-010). */
+export async function addSlotToDay(
+  deps: { week: WeekRepository; settings: SettingsRepository },
+  date: IsoDate,
+): Promise<number> {
+  const day = { start: date, end: date };
+  const [meals, [daySlots], settings] = await Promise.all([
+    deps.week.listMeals(day),
+    deps.week.listDaySlots(day),
+    deps.settings.get(),
+  ]);
+  const slotCount = nextSlotCount(slotCountForDay(settings.slotsPerDay, meals, daySlots));
+  await deps.week.setDaySlotCount(date, slotCount);
+  return slotCount;
 }

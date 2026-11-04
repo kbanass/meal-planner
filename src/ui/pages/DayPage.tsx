@@ -1,8 +1,18 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Badge, Block, BlockTitle, Icon, List, ListItem, Navbar, Page } from 'framework7-react';
+import {
+  Badge,
+  Block,
+  BlockTitle,
+  Icon,
+  List,
+  ListButton,
+  ListItem,
+  Navbar,
+  Page,
+} from 'framework7-react';
 import type { Router } from 'framework7/types';
 import { useState } from 'react';
-import { addMealFromDish } from '../../app/week';
+import { addMealFromDish, addSlotToDay } from '../../app/week';
 import type { Dish } from '../../domain/types';
 import { DishAvatar } from '../components/DishAvatar';
 import { DishPickerSheet } from '../components/DishPickerSheet';
@@ -83,6 +93,10 @@ export function DayPage({ f7route }: DayPageProps) {
             </List>
           </div>
         ))}
+        {/* Adds one Slot to this day only (FR-010). */}
+        <List strong inset>
+          <ListButton onClick={() => void addSlotToDay(deps, date)}>dodaj kolejny</ListButton>
+        </List>
       </div>
 
       <DishPickerSheet

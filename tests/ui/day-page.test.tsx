@@ -55,6 +55,18 @@ describe('DayPage', () => {
     ]);
   });
 
+  it('adds a Slot to this day with "dodaj kolejny" (US5-1)', async () => {
+    const { container, deps } = await renderDay();
+    await screen.findByText('Czwartek, 5 lis');
+
+    await userEvent.click(screen.getByText('dodaj kolejny'));
+
+    expect(await within(container).findByText('5', { selector: '.block-title' })).toBeInTheDocument();
+    expect(await deps.week.listDaySlots({ start: '2026-11-05', end: '2026-11-05' })).toEqual([
+      { date: '2026-11-05', slotCount: 5 },
+    ]);
+  });
+
   it('explains an invalid date', async () => {
     await renderDay('2026-02-30');
 

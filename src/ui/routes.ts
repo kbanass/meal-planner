@@ -4,6 +4,7 @@ import { DayPage } from './pages/DayPage';
 import { DishFormPage } from './pages/DishFormPage';
 import { DishLibraryPage } from './pages/DishLibraryPage';
 import { ProductsPage } from './pages/ProductsPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { WeekPage } from './pages/WeekPage';
 
 type Routes = Router.RouteParameters[];
@@ -24,4 +25,4 @@ export const dishesRoutes: Routes = [
   { path: '/products/', component: ProductsPage },
 ];
 export const shoppingRoutes: Routes = placeholder('Lista zakupów');
-export const settingsRoutes: Routes = placeholder('Ustawienia');
+export const settingsRoutes: Routes = [{ path: '/', component: SettingsPage }];

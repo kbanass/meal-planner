@@ -17,6 +17,8 @@ export interface WeekRepository {
   addMeal(input: { date: IsoDate; slot: number; dishId: string }): Promise<Meal>;
   putMeal(meal: Meal): Promise<void>;
   removeMeal(id: string): Promise<void>;
+  /** Stores the Slot count a day was raised to with "dodaj kolejny". */
+  setDaySlotCount(date: IsoDate, slotCount: number): Promise<void>;
   /** `detached.ingredients` of every Detached Meal, in all Weeks (Product usage). */
   listAllDetachedIngredientLists(): Promise<Ingredient[][]>;
 }
@@ -52,6 +54,9 @@ export function createWeekRepository(db: PlannerDb, ids: IdGenerator): WeekRepos
       await db.meals.put(meal);
     },
     removeMeal: (id) => db.meals.delete(id),
+    async setDaySlotCount(date, slotCount) {
+      await db.daySlots.put({ date, slotCount });
+    },
     listAllDetachedIngredientLists: () => detachedIngredientLists(db),
   };
 }
