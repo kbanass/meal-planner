@@ -35,7 +35,7 @@ Help one person plan a full **Week** of meals ahead so that:
 
 ### Dish
 - `name`
-- `photo` (optional): stored in OPFS, compressed before saving (~800 px longest edge, WebP). Without a photo, show a deterministic placeholder: a color derived from a hash of the name, plus initials.
+- `photo` (optional): stored in OPFS, compressed before saving (~800 px longest edge, WebP, or JPEG where the browser cannot encode WebP, e.g. iOS Safari). Without a photo, show a deterministic placeholder: a color derived from a hash of the name, plus initials.
 - `servingsYield`: how many servings the recipe makes
 - `ingredients`: list of { product, amount } in the product's unit
 - `macros`: kcal, protein, fat, carbs **for the whole recipe**

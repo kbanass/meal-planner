@@ -1,0 +1,12 @@
+/** Scales down to fit `maxEdge` on the longest side, keeping the ratio. Never scales up. */
+export function fitWithin(
+  width: number,
+  height: number,
+  maxEdge: number,
+): { width: number; height: number } {
+  const scale = Math.min(1, maxEdge / Math.max(width, height));
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
+}

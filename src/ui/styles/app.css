@@ -1,0 +1,168 @@
+/* No double-tap zoom: the app should feel like a native app. */
+html {
+  touch-action: manipulation;
+}
+
+/* Desktop layout (FR-009, research R10). Keep the breakpoint in sync with DESKTOP_QUERY. */
+@media (min-width: 1024px) {
+  /* A centred app column instead of filling the whole window. */
+  body {
+    background: var(--f7-page-bg-color);
+  }
+  .views.tabs {
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* The tabbar moves to the top; the tab views start below it. */
+  .views.tabs > .toolbar.tabbar {
+    top: 0;
+    bottom: auto;
+    height: var(--f7-tabbar-icons-height);
+  }
+  .views.tabs > .toolbar.tabbar ~ * {
+    --f7-page-toolbar-bottom-offset: 0px;
+  }
+  /* iOS pads the inner bar on the bottom for the bottom position; mirror it for the top. */
+  .ios .views.tabs > .toolbar.tabbar .toolbar-inner {
+    padding-top: 16px;
+    padding-bottom: 0;
+  }
+  .views.tabs > .view {
+    margin-top: var(--f7-tabbar-icons-height);
+    height: calc(100% - var(--f7-tabbar-icons-height));
+  }
+
+  .page-wide {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .page-wide-grid {
+    max-width: none;
+  }
+
+  .card-grid > ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 16px;
+    background: none;
+  }
+  .card-grid > ul::before,
+  .card-grid > ul::after {
+    display: none;
+  }
+  .card-grid > ul > li {
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--f7-list-bg-color);
+  }
+  .card-grid .item-content {
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 8px;
+  }
+  .card-grid .item-media {
+    padding: 0 0 8px;
+  }
+  .card-grid .item-inner {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+  .card-grid .item-inner::after,
+  .card-grid .item-inner::before {
+    display: none;
+  }
+  .card-grid .item-link .item-inner {
+    padding-right: 0;
+  }
+}
+
+/* Dish avatar: the photo, or a coloured circle with initials (US2). */
+.dish-avatar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+  color: #ffffff;
+  font-weight: 600;
+  user-select: none;
+}
+.dish-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.dish-photo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 16px 0;
+}
+.dish-photo-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Ingredient rows: amount input with a fixed unit suffix (US1-5). */
+.ingredient-amount {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ingredient-amount input {
+  flex: 1;
+}
+.ingredient-unit {
+  color: var(--f7-list-item-after-text-color);
+}
+.ingredient-remove {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin-left: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--f7-theme-color);
+  cursor: pointer;
+}
+
+/* Fit "Lista zakupów" in a four-tab bar on narrow phones: the 10 px label size native
+   iOS tabbars use. */
+@media (max-width: 1023px) {
+  .toolbar.tabbar .tabbar-label {
+    font-size: 10px;
+    text-overflow: clip;
+  }
+}
+
+/* Why a Produkty action is unavailable, shown under its label. */
+.actions-hint {
+  display: block;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--f7-list-item-footer-text-color, #8e8e93);
+  white-space: normal;
+}
+.actions-button.disabled {
+  height: auto;
+  min-height: var(--f7-actions-button-height);
+  padding-top: 8px;
+  padding-bottom: 8px;
+  flex-direction: column;
+}
+
+.ingredient-error {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--f7-input-error-text-color, #ff3b30);
+}

@@ -1,0 +1,12 @@
+node_modules
+dist
+dev-dist
+coverage
+*.local
+*.tsbuildinfo
+.wrangler
+
+# Editors and OS
+.DS_Store
+*.log
+.env*
