@@ -15,12 +15,7 @@ import {
   Popup,
 } from 'framework7-react';
 import { useState } from 'react';
-import {
-  countProductUsage,
-  mergeCandidates,
-  productActions,
-  selectProductRows,
-} from '../../domain/products';
+import { countProductUsage, mergeCandidates, selectProductRows } from '../../domain/products';
 import type { Product, Unit } from '../../domain/types';
 import { UNITS } from '../../domain/units';
 import { useDeps } from '../hooks/useDeps';
@@ -29,7 +24,7 @@ import {
   deleteConfirmMessage,
   deleteHint,
   mergeConfirmMessage,
-  mergeHint,
+  productMenu,
   renameConflictMessage,
   renameMergeQuestion,
   unitHint,
@@ -56,8 +51,7 @@ export function ProductsPage() {
   const [unitFor, setUnitFor] = useState<Product | null>(null);
   const [mergeFrom, setMergeFrom] = useState<Product | null>(null);
 
-  const actions = productActions(selected?.usage ?? 0);
-  const candidates = selected ? mergeCandidates(products ?? [], selected.product) : [];
+  const menu = selected ? productMenu(products ?? [], selected) : null;
 
   async function merge(from: Product, into: Product) {
     const result = await deps.products.merge(from.id, into.id);
@@ -138,26 +132,26 @@ export function ProductsPage() {
             <ActionsLabel>{selected.product.name}</ActionsLabel>
             <ActionsButton onClick={() => rename(selected.product)}>Zmień nazwę</ActionsButton>
             <ActionsButton
-              className={actions.canChangeUnit ? undefined : 'disabled'}
+              className={menu?.canChangeUnit ? undefined : 'disabled'}
               onClick={() => setUnitFor(selected.product)}
             >
               Zmień jednostkę
-              <Hint text={actions.canChangeUnit ? null : unitHint(selected.usage)} />
+              <Hint text={menu?.unitHint ?? null} />
             </ActionsButton>
             <ActionsButton
-              className={candidates.length > 0 ? undefined : 'disabled'}
+              className={menu?.canMerge ? undefined : 'disabled'}
               onClick={() => setMergeFrom(selected.product)}
             >
               Scal z innym produktem…
-              <Hint text={mergeHint(candidates.length > 0)} />
+              <Hint text={menu?.mergeHint ?? null} />
             </ActionsButton>
             <ActionsButton
               color="red"
-              className={actions.canDelete ? undefined : 'disabled'}
+              className={menu?.canDelete ? undefined : 'disabled'}
               onClick={() => confirmDelete(selected.product)}
             >
               Usuń
-              <Hint text={actions.canDelete ? null : deleteHint(selected.usage)} />
+              <Hint text={menu?.deleteHint ?? null} />
             </ActionsButton>
           </ActionsGroup>
         )}

@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import type { DishFieldError } from '../../src/domain/dishes';
+import { emptyDishDraft, type DishFieldError } from '../../src/domain/dishes';
+import type { Dish } from '../../src/domain/types';
 import {
+  createProductLabel,
+  currentDraft,
   deleteDishConfirmMessage,
   errorMessage,
   firstInvalidField,
+  formTitle,
+  newProductName,
   photoErrorMessage,
   photoSection,
   unitLabel,
@@ -108,5 +113,50 @@ describe('photoSection', () => {
 describe('deleteDishConfirmMessage', () => {
   it('names the Dish', () => {
     expect(deleteDishConfirmMessage('Owsianka')).toBe('Usunąć danie „Owsianka”?');
+  });
+});
+
+describe('newProductName', () => {
+  it('shows the name the new Product will be stored under', () => {
+    expect(newProductName('  Mleko   kokosowe ')).toBe('Mleko kokosowe');
+    expect(createProductLabel('  Mleko ')).toBe('Dodaj „Mleko”');
+  });
+});
+
+describe('formTitle', () => {
+  it('names the form after its mode', () => {
+    expect(formTitle(undefined)).toBe('Nowe danie');
+    expect(formTitle('d-1')).toBe('Edycja dania');
+  });
+});
+
+describe('currentDraft', () => {
+  const stored: Dish = {
+    id: 'd-1',
+    name: 'Owsianka',
+    servingsYield: 1.5,
+    ingredients: [],
+    macros: { kcal: 400, protein: 12, fat: 8, carbs: 60 },
+    notes: '',
+    photo: null,
+    archived: false,
+  };
+
+  it('waits while the stored Dish is loading', () => {
+    expect(currentDraft(null, undefined)).toBeNull();
+  });
+
+  it('starts empty for a new Dish', () => {
+    expect(currentDraft(null, null)).toEqual(emptyDishDraft());
+  });
+
+  it('follows the stored Dish until the first edit', () => {
+    expect(currentDraft(null, stored)).toMatchObject({ name: 'Owsianka', servingsYield: '1,5' });
+  });
+
+  it('keeps the edited draft once the user has typed', () => {
+    const edited = { ...emptyDishDraft(), name: 'Owsianka z jabłkiem' };
+    expect(currentDraft(edited, stored)).toBe(edited);
+    expect(currentDraft(edited, undefined)).toBe(edited);
   });
 });

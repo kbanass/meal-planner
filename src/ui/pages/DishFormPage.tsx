@@ -16,8 +16,6 @@ import { useRef, useState } from 'react';
 import { deleteDish, saveDish, type PhotoChange } from '../../app/dishes';
 import {
   addIngredient,
-  draftFromDish,
-  emptyDishDraft,
   removeIngredient,
   type DishDraft,
   type DishFieldErrors,
@@ -29,10 +27,12 @@ import { ProductPicker } from '../components/ProductPicker';
 import { useDeps } from '../hooks/useDeps';
 import { useBlobUrl } from '../hooks/usePhotoUrl';
 import {
+  currentDraft,
   deleteDishConfirmMessage,
   errorMessage,
   fieldDomId,
   firstInvalidField,
+  formTitle,
   indexProducts,
   photoErrorMessage,
   photoSection,
@@ -63,9 +63,8 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
   const products = useLiveQuery(() => deps.products.list(), [deps]);
   const productsById = indexProducts(products ?? []);
 
-  // The draft follows the stored Dish until the user makes the first edit.
   const [edited, setDraft] = useState<DishDraft | null>(null);
-  const draft = edited ?? (stored ? draftFromDish(stored) : stored === null ? emptyDishDraft() : null);
+  const draft = currentDraft(edited, stored);
   const [errors, setErrors] = useState<DishFieldErrors>({});
   const [saving, setSaving] = useState(false);
   const [photoChange, setPhotoChange] = useState<PhotoChange>({ kind: 'keep' });
@@ -143,7 +142,7 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
 
   return (
     <Page>
-      <Navbar title={dishId === undefined ? 'Nowe danie' : 'Edycja dania'} backLink>
+      <Navbar title={formTitle(dishId)} backLink>
         <NavRight>
           <Link onClick={save}>Zapisz</Link>
         </NavRight>

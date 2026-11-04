@@ -1,7 +1,13 @@
 import type { PhotoChange, PhotoError } from '../../app/dishes';
-import type { DishFieldError, DishFieldErrors } from '../../domain/dishes';
+import {
+  draftFromDish,
+  emptyDishDraft,
+  type DishDraft,
+  type DishFieldError,
+  type DishFieldErrors,
+} from '../../domain/dishes';
 import { normalizeName } from '../../domain/names';
-import type { DishPhotoRef, Product, Unit } from '../../domain/types';
+import type { Dish, DishPhotoRef, Product, Unit } from '../../domain/types';
 
 const MESSAGES: Record<DishFieldError, string> = {
   required: 'To pole jest wymagane.',
@@ -58,8 +64,30 @@ export function indexProducts(products: readonly Product[]): ReadonlyMap<string,
   return new Map(products.map((product) => [product.id, product]));
 }
 
+/** The name a Product created from the picker's query will be stored under. */
+export function newProductName(query: string): string {
+  return normalizeName(query);
+}
+
 export function createProductLabel(query: string): string {
-  return `Dodaj „${normalizeName(query)}”`;
+  return `Dodaj „${newProductName(query)}”`;
+}
+
+export function formTitle(dishId: string | undefined): string {
+  return dishId === undefined ? 'Nowe danie' : 'Edycja dania';
+}
+
+/**
+ * The draft the form shows: the user's edits once there are any, otherwise the stored Dish,
+ * or an empty draft for a new Dish. `stored` is `undefined` while it loads, `null` for a new Dish.
+ */
+export function currentDraft(
+  edited: DishDraft | null,
+  stored: Dish | null | undefined,
+): DishDraft | null {
+  if (edited) return edited;
+  if (stored === undefined) return null;
+  return stored ? draftFromDish(stored) : emptyDishDraft();
 }
 
 const PHOTO_ERROR_MESSAGES: Record<PhotoError, string> = {

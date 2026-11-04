@@ -11,12 +11,11 @@ import {
   Sheet,
 } from 'framework7-react';
 import { useDeferredValue, useState } from 'react';
-import { normalizeName } from '../../domain/names';
 import { shouldOfferCreate, suggestProducts } from '../../domain/products';
 import type { Product, Unit } from '../../domain/types';
 import { UNITS } from '../../domain/units';
 import { useDeps } from '../hooks/useDeps';
-import { createProductLabel, unitLabel } from '../view-models/dish-form';
+import { createProductLabel, newProductName, unitLabel } from '../view-models/dish-form';
 
 export function ProductPicker({ onPick }: { onPick(product: Product): void }) {
   const deps = useDeps();
@@ -79,7 +78,7 @@ export function ProductPicker({ onPick }: { onPick(product: Product): void }) {
         <PageContent>
           <BlockTitle>Nowy produkt</BlockTitle>
           <Block>
-            <p>{normalizeName(query)}</p>
+            <p>{newProductName(query)}</p>
             <Segmented strong tag="p">
               {UNITS.map((option) => (
                 <Button
