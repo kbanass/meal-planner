@@ -9,6 +9,7 @@ import {
   toDayNumber,
   weekDates,
   weekdayIndex,
+  weekRange,
   weekRangeLabel,
   weekStartOf,
 } from '../../src/domain/dates';
@@ -49,6 +50,12 @@ describe('weekDates', () => {
       '2026-11-07',
       '2026-11-08',
     ]);
+  });
+});
+
+describe('weekRange', () => {
+  it('reads Monday to Sunday', () => {
+    expect(weekRange('2026-11-02')).toEqual({ start: '2026-11-02', end: '2026-11-08' });
   });
 });
 

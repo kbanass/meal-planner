@@ -108,3 +108,47 @@ describe('setDaySlotCount', () => {
     expect(await week.listDaySlots(range)).toEqual([{ date: '2026-11-07', slotCount: 6 }]);
   });
 });
+
+describe('replaceWeek', () => {
+  const nextWeek = { start: '2026-11-09', end: '2026-11-15' };
+
+  beforeEach(async () => {
+    await db.meals.bulkAdd([
+      meal('m-sunday-before', '2026-11-08'),
+      meal('m-old-1', '2026-11-09'),
+      meal('m-old-2', '2026-11-15'),
+      meal('m-after', '2026-11-16'),
+    ]);
+    await db.daySlots.bulkAdd([
+      { date: '2026-11-10', slotCount: 7 },
+      { date: '2026-11-16', slotCount: 5 },
+    ]);
+  });
+
+  it('replaces the Meals and Added Slots of that Week only', async () => {
+    await week.replaceWeek('2026-11-09', {
+      meals: [meal('m-new', '2026-11-11')],
+      daySlots: [{ date: '2026-11-14', slotCount: 5 }],
+    });
+
+    expect((await week.listMeals(nextWeek)).map((m) => m.id)).toEqual(['m-new']);
+    expect(await week.listDaySlots(nextWeek)).toEqual([{ date: '2026-11-14', slotCount: 5 }]);
+    expect(await db.meals.get('m-sunday-before')).toBeDefined();
+    expect(await db.meals.get('m-after')).toBeDefined();
+    expect(await db.daySlots.get('2026-11-16')).toBeDefined();
+  });
+
+  it('changes nothing when a write fails (FR-038)', async () => {
+    const before = { meals: await week.listMeals(nextWeek), daySlots: await week.listDaySlots(nextWeek) };
+
+    await expect(
+      week.replaceWeek('2026-11-09', {
+        meals: [meal('m-dup', '2026-11-11'), meal('m-dup', '2026-11-12')],
+        daySlots: [],
+      }),
+    ).rejects.toThrow();
+
+    expect(await week.listMeals(nextWeek)).toEqual(before.meals);
+    expect(await week.listDaySlots(nextWeek)).toEqual(before.daySlots);
+  });
+});

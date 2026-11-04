@@ -1,9 +1,7 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { Deps } from '../../src/app/deps';
-import { AppShell } from '../../src/ui/App';
-import { DepsProvider } from '../../src/ui/hooks/useDeps';
 import { WeekPage } from '../../src/ui/pages/WeekPage';
 import { owsianka } from '../fakes/dishes';
 import { FixedClock } from '../fakes/fixed-clock';
@@ -14,8 +12,8 @@ function depsWithClock(): { deps: Deps; clock: FixedClock } {
   return { deps: { ...createTestDeps(), clock }, clock };
 }
 
-function title(): string {
-  return document.querySelector('.page-current .navbar .title, .navbar .title')?.textContent ?? '';
+function copyButton(): HTMLElement {
+  return screen.getByText('Skopiuj do następnego tygodnia').closest('.button') as HTMLElement;
 }
 
 function todayRow(container: HTMLElement): string {
@@ -68,23 +66,47 @@ describe('WeekPage', () => {
     expect(screen.getByText('2–8 lis 2026')).toBeInTheDocument();
   });
 
-  it('comes back from a day to the same Week (FR-007)', async () => {
+  it('offers no copy for an empty Week (FR-036)', async () => {
     const { deps } = depsWithClock();
-    render(
-      <DepsProvider value={deps}>
-        <AppShell />
-      </DepsProvider>,
-    );
-    const week = document.getElementById('view-week')!;
-    await within(week).findByText('2–8 lis 2026');
+    renderWithApp(<WeekPage />, deps);
+    await screen.findByText('2–8 lis 2026');
 
-    await userEvent.click(within(week).getByLabelText('Następny tydzień'));
-    await within(week).findByText('9–15 lis 2026');
-    await userEvent.click(within(week).getByText('Czwartek'));
-    expect(await within(week).findByText('Czwartek, 12 lis')).toBeInTheDocument();
+    expect(copyButton()).toHaveClass('disabled');
+  });
 
-    await userEvent.click(week.querySelector<HTMLElement>('.page-current .navbar .back')!);
-    await waitFor(() => expect(title()).not.toBe('Czwartek, 12 lis'));
-    expect(await within(week).findByText('9–15 lis 2026')).toBeInTheDocument();
+  it('copies at once when the next Week is empty, and stays on this Week (US6-1, US6-7)', async () => {
+    const { deps } = depsWithClock();
+    await deps.dishes.put(owsianka);
+    await deps.week.addMeal({ date: '2026-11-02', slot: 1, dishId: owsianka.id });
+    renderWithApp(<WeekPage />, deps);
+    await screen.findByText('350 kcal');
+
+    await userEvent.click(copyButton());
+
+    expect(await screen.findByText('Skopiowano do następnego tygodnia.')).toBeInTheDocument();
+    expect(document.querySelector('.dialog.modal-in')).toBeNull();
+    expect(screen.getByText('2–8 lis 2026')).toBeInTheDocument();
+    expect(await deps.week.listMeals({ start: '2026-11-09', end: '2026-11-15' })).toHaveLength(1);
+  });
+
+  it('asks before replacing a planned next Week, and cancelling changes nothing (US6-3)', async () => {
+    const { deps } = depsWithClock();
+    await deps.dishes.put(owsianka);
+    await deps.week.addMeal({ date: '2026-11-02', slot: 1, dishId: owsianka.id });
+    const kept = await deps.week.addMeal({ date: '2026-11-11', slot: 2, dishId: owsianka.id });
+    renderWithApp(<WeekPage />, deps);
+    await screen.findByText('350 kcal');
+
+    await userEvent.click(copyButton());
+
+    const dialog = await waitFor(() => {
+      const open = document.querySelector<HTMLElement>('.dialog.modal-in');
+      if (!open) throw new Error('No dialog');
+      return open;
+    });
+    expect(dialog).toHaveTextContent('Następny tydzień ma już plan. Zastąpić go planem z tego tygodnia?');
+    await userEvent.click(dialog.querySelectorAll<HTMLElement>('.dialog-button')[0]!);
+
+    expect(await deps.week.listMeals({ start: '2026-11-09', end: '2026-11-15' })).toEqual([kept]);
   });
 });

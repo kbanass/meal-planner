@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { MealView } from '../../src/domain/week';
 import {
+  copyConfirmMessage,
+  copyDoneToast,
+  copyFailedMessage,
   dayPage,
   dayRow,
   dayTitle,
@@ -9,7 +12,6 @@ import {
   pickerEmptyMessage,
   removeMealConfirmMessage,
   weekPage,
-  weekRange,
 } from '../../src/ui/view-models/week';
 import { meal, owsianka } from '../fakes/dishes';
 
@@ -93,7 +95,11 @@ describe('Day page texts', () => {
 
 describe('weekPage', () => {
   it('titles the Week and lists its seven days, today marked', () => {
-    const model = weekPage('2026-11-02', '2026-11-04', [meal({ id: 'm-1', date: '2026-11-02' })], [owsianka]);
+    const model = weekPage('2026-11-02', '2026-11-04', {
+      meals: [meal({ id: 'm-1', date: '2026-11-02' })],
+      daySlots: [],
+      dishes: [owsianka],
+    });
 
     expect(model.title).toBe('2–8 lis 2026');
     expect(model.days.map((d) => d.title)).toEqual([
@@ -107,15 +113,36 @@ describe('weekPage', () => {
     ]);
     expect(model.days[0]?.after).toBe('350 kcal');
     expect(model.days[2]?.isToday).toBe(true);
+    expect(model.canCopy).toBe(true);
   });
 
-  it('shows empty days while the data loads', () => {
-    expect(weekPage('2026-11-02', '2026-11-04', undefined, undefined).days.every((d) => d.after === 'brak posiłków')).toBe(true);
+  it('shows empty days, and offers no copy, while the data loads', () => {
+    const model = weekPage('2026-11-02', '2026-11-04', {
+      meals: undefined,
+      daySlots: undefined,
+      dishes: undefined,
+    });
+    expect(model.days.every((d) => d.after === 'brak posiłków')).toBe(true);
+    expect(model.canCopy).toBe(false);
   });
 
-  it('reads Monday to Sunday', () => {
-    expect(weekRange('2026-11-02')).toEqual({ start: '2026-11-02', end: '2026-11-08' });
+  it('offers the copy for a Week with only Added Slots', () => {
+    const model = weekPage('2026-11-02', '2026-11-04', {
+      meals: [],
+      daySlots: [{ date: '2026-11-07', slotCount: 5 }],
+      dishes: [],
+    });
+    expect(model.canCopy).toBe(true);
   });
+
+  it('words the copy confirmation, toast and failure', () => {
+    expect(copyConfirmMessage).toBe('Następny tydzień ma już plan. Zastąpić go planem z tego tygodnia?');
+    expect(copyDoneToast).toBe('Skopiowano do następnego tygodnia.');
+    expect(copyFailedMessage).toBe(
+      'Nie udało się skopiować tygodnia. Następny tydzień nie został zmieniony.',
+    );
+  });
+
 });
 
 describe('dayPage', () => {

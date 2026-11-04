@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { plannedKcal, selectDay, selectWeekDays } from '../../src/domain/week';
+import { planWeekCopy, plannedKcal, selectDay, selectWeekDays, weekHasPlan } from '../../src/domain/week';
+import { FixedIdGenerator } from '../fakes/fixed-id-generator';
 import { byId, dish, meal, owsianka } from '../fakes/dishes';
 
 const third = dish({
@@ -117,5 +118,54 @@ describe('selectDay', () => {
       selectDay('2026-11-05', [meal({ id: 'm-1', dishId: banan.id, detached: copy })], undefined, dishes, settings)[0]
         ?.meals ?? [];
     expect(view).toMatchObject({ name: 'Banan z masłem orzechowym', photo });
+  });
+});
+
+describe('weekHasPlan', () => {
+  it('is false for an empty Week, true with a Meal or only Added Slots', () => {
+    expect(weekHasPlan([], [])).toBe(false);
+    expect(weekHasPlan([meal({ id: 'm-1' })], [])).toBe(true);
+    expect(weekHasPlan([], [{ date: '2026-11-07', slotCount: 5 }])).toBe(true);
+  });
+});
+
+describe('planWeekCopy', () => {
+  const copy = { ...owsianka, name: 'Leczo po mojemu' };
+
+  it('moves every record 7 days on, across month and year ends, with new Meal ids', () => {
+    const meals = [
+      meal({ id: 'm-sun', date: '2026-12-06', slot: 3, position: 1, servings: 1.5 }),
+      meal({ id: 'm-mon', date: '2026-11-30', detached: copy }),
+    ];
+    const plan = planWeekCopy('2026-11-30', meals, [{ date: '2026-12-05', slotCount: 6 }], new FixedIdGenerator());
+
+    expect(plan.meals).toEqual([
+      { ...meals[1], id: '00000000-0000-4000-8000-000000000001', date: '2026-12-07' },
+      { ...meals[0], id: '00000000-0000-4000-8000-000000000002', date: '2026-12-13' },
+    ]);
+    expect(plan.daySlots).toEqual([{ date: '2026-12-12', slotCount: 6 }]);
+
+    const yearEnd = planWeekCopy('2026-12-28', [meal({ id: 'm-1', date: '2027-01-03' })], [], new FixedIdGenerator());
+    expect(yearEnd.meals[0]?.date).toBe('2027-01-10');
+  });
+
+  it('deep-copies a Detached Meal copy', () => {
+    const original = meal({ id: 'm-1', date: '2026-11-30', detached: structuredClone(copy) });
+    const [copied] = planWeekCopy('2026-11-30', [original], [], new FixedIdGenerator()).meals;
+
+    copied!.detached!.ingredients[0]!.amount = 999;
+    copied!.detached!.macros.kcal = 1;
+    expect(original.detached?.ingredients[0]?.amount).toBe(100);
+    expect(original.detached?.macros.kcal).toBe(700);
+  });
+
+  it('ignores records outside the source Week', () => {
+    const plan = planWeekCopy(
+      '2026-11-30',
+      [meal({ id: 'm-before', date: '2026-11-29' }), meal({ id: 'm-after', date: '2026-12-07' })],
+      [{ date: '2026-12-07', slotCount: 5 }],
+      new FixedIdGenerator(),
+    );
+    expect(plan).toEqual({ meals: [], daySlots: [] });
   });
 });

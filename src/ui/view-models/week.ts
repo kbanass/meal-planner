@@ -1,9 +1,15 @@
-import { dayLabel, isIsoDate, weekDates, weekRangeLabel } from '../../domain/dates';
+import { dayLabel, isIsoDate, weekRangeLabel } from '../../domain/dates';
 import { servingsWord } from '../../domain/meals';
 import { formatKcal, formatServings } from '../../domain/nutrition';
 import { DEFAULT_SETTINGS } from '../../domain/settings';
 import type { DaySlots, Dish, DishPhotoRef, IsoDate, Meal, Settings } from '../../domain/types';
-import { selectDay, selectWeekDays, type DayView, type MealView } from '../../domain/week';
+import {
+  selectDay,
+  selectWeekDays,
+  weekHasPlan,
+  type DayView,
+  type MealView,
+} from '../../domain/week';
 
 export interface DayRow {
   date: IsoDate;
@@ -66,27 +72,39 @@ export function indexDishes(dishes: readonly Dish[]): ReadonlyMap<string, Dish> 
   return new Map(dishes.map((dish) => [dish.id, dish]));
 }
 
-/** The date range the Week page reads. */
-export function weekRange(weekStart: IsoDate): { start: IsoDate; end: IsoDate } {
-  const dates = weekDates(weekStart);
-  return { start: dates[0] as IsoDate, end: dates[6] as IsoDate };
-}
-
 export interface WeekPageModel {
   title: string;
   days: DayRow[];
+  /** "Skopiuj do następnego tygodnia" is offered only for a Week with a plan (FR-036). */
+  canCopy: boolean;
 }
 
 /** Everything the Week page shows. Live data is `undefined` while it loads. */
 export function weekPage(
   weekStart: IsoDate,
   today: IsoDate,
-  meals: readonly Meal[] | undefined,
-  dishes: readonly Dish[] | undefined,
+  data: {
+    meals: readonly Meal[] | undefined;
+    daySlots: readonly DaySlots[] | undefined;
+    dishes: readonly Dish[] | undefined;
+  },
 ): WeekPageModel {
-  const days = selectWeekDays(weekStart, today, meals ?? [], indexDishes(dishes ?? []));
-  return { title: weekRangeLabel(weekStart), days: days.map(dayRow) };
+  const meals = data.meals ?? [];
+  const days = selectWeekDays(weekStart, today, meals, indexDishes(data.dishes ?? []));
+  return {
+    title: weekRangeLabel(weekStart),
+    days: days.map(dayRow),
+    canCopy: weekHasPlan(meals, data.daySlots ?? []),
+  };
 }
+
+export const copyConfirmMessage =
+  'Następny tydzień ma już plan. Zastąpić go planem z tego tygodnia?';
+
+export const copyDoneToast = 'Skopiowano do następnego tygodnia.';
+
+export const copyFailedMessage =
+  'Nie udało się skopiować tygodnia. Następny tydzień nie został zmieniony.';
 
 export interface DayPageModel {
   valid: boolean;

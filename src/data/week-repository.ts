@@ -1,3 +1,4 @@
+import { weekRange } from '../domain/dates';
 import { newMeal } from '../domain/meals';
 import type { IdGenerator } from '../domain/ports';
 import { nextPosition } from '../domain/slots';
@@ -19,6 +20,11 @@ export interface WeekRepository {
   removeMeal(id: string): Promise<void>;
   /** Stores the Slot count a day was raised to with "dodaj kolejny". */
   setDaySlotCount(date: IsoDate, slotCount: number): Promise<void>;
+  /**
+   * Replaces every Meal and Added Slot of the Week starting `weekStart` with `plan`, in one
+   * transaction: a failure leaves the Week as it was (FR-033, FR-038).
+   */
+  replaceWeek(weekStart: IsoDate, plan: { meals: Meal[]; daySlots: DaySlots[] }): Promise<void>;
   /** `detached.ingredients` of every Detached Meal, in all Weeks (Product usage). */
   listAllDetachedIngredientLists(): Promise<Ingredient[][]>;
 }
@@ -56,6 +62,15 @@ export function createWeekRepository(db: PlannerDb, ids: IdGenerator): WeekRepos
     removeMeal: (id) => db.meals.delete(id),
     async setDaySlotCount(date, slotCount) {
       await db.daySlots.put({ date, slotCount });
+    },
+    replaceWeek(weekStart, plan) {
+      const { start, end } = weekRange(weekStart);
+      return db.transaction('rw', db.meals, db.daySlots, async () => {
+        await db.meals.where('date').between(start, end, true, true).delete();
+        await db.daySlots.where('date').between(start, end, true, true).delete();
+        await db.meals.bulkAdd(plan.meals);
+        await db.daySlots.bulkAdd(plan.daySlots);
+      });
     },
     listAllDetachedIngredientLists: () => detachedIngredientLists(db),
   };

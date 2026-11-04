@@ -478,7 +478,7 @@ description: "Task list for Week Planning"
 
 ### Tests for User Story 6
 
-- [ ] T071 [P] [US6] Extend `tests/domain/week.test.ts`:
+- [X] T071 [P] [US6] Extend `tests/domain/week.test.ts`:
   - `weekHasPlan`: no records → false, one Meal → true, only one `DaySlots` record → true.
   - `planWeekCopy('2026-11-30', …)`:
     - Dates move + 7 across the month boundary (`2026-12-06` → `2026-12-13`) and the year boundary (from Week `2026-12-28`, `2027-01-03` → `2027-01-10`).
@@ -486,35 +486,35 @@ description: "Task list for Week Planning"
     - `slot`, `position`, `dishId` and `servings` are kept.
     - `detached` is deep-copied: mutating `result.meals[0].detached.ingredients[0].amount` leaves the input unchanged.
     - Records dated outside the source Week are ignored.
-- [ ] T072 [P] [US6] Extend `tests/data/week-repository.test.ts` with `replaceWeek('2026-11-09', plan)`:
+- [X] T072 [P] [US6] Extend `tests/data/week-repository.test.ts` with `replaceWeek('2026-11-09', plan)`:
   - The target Week's old Meals and old `daySlots` are removed and the new ones stored.
   - Meals on `2026-11-08` and `2026-11-16` are untouched.
   - A plan containing two Meals with the same id makes `bulkAdd` fail, and afterwards the target Week is exactly as before (FR-038).
-- [ ] T073 [P] [US6] Write `tests/app/copy-week.test.ts`:
+- [X] T073 [P] [US6] Write `tests/app/copy-week.test.ts`:
   - The US6-1 and US6-2 examples: "Owsianka" ×1.5 on Monday Slot 1, a Detached "Leczo" on Friday Slot 3 and `{ date: '2026-11-07', slotCount: 5 }`. After `copyWeekToNext(deps, '2026-11-02')`, `2026-11-09` Slot 1 holds a Linked "Owsianka" ×1.5, `2026-11-13` Slot 3 holds a Detached "Leczo" with equal `detached`, and `2026-11-14` has `slotCount` 5.
   - Copying twice gives the same Week contents as copying once (ids differ).
   - An empty source → `{ kind: 'empty' }`, with the next Week untouched.
   - `weekHasPlanAt` → true after the copy.
   - Editing the copy's `detached` leaves the original alone (FR-035).
-- [ ] T074 [P] [US6] Extend `tests/ui/week-page.test.tsx` (key interaction):
+- [X] T074 [P] [US6] Extend `tests/ui/week-page.test.tsx` (key interaction):
   - The copy button is disabled on an empty Week.
   - With a Meal this Week and the next Week empty, tapping it shows the toast "Skopiowano do następnego tygodnia." with no dialog, and the title stays "2–8 lis 2026".
   - With a Meal in the next Week too, a dialog with the confirm text appears. Cancelling leaves the next Week's Meal in place.
 
 ### Implementation for User Story 6
 
-- [ ] T075 [US6] Add `weekHasPlan` and `planWeekCopy` to `src/domain/week.ts` per [contracts/domain-api.md](contracts/domain-api.md) and research R8, making T071 pass at 100% coverage.
-- [ ] T076 [US6] Add `replaceWeek(weekStart, { meals, daySlots })` to `src/data/week-repository.ts`. In one `rw` transaction over `meals` and `daySlots`, it deletes every record with `date` between `weekStart` and `addDays(weekStart, 6)`, then calls `bulkAdd` for both. This makes T072 pass.
-- [ ] T077 [US6] Add to `src/app/week.ts`:
+- [X] T075 [US6] Add `weekHasPlan` and `planWeekCopy` to `src/domain/week.ts` per [contracts/domain-api.md](contracts/domain-api.md) and research R8, making T071 pass at 100% coverage.
+- [X] T076 [US6] Add `replaceWeek(weekStart, { meals, daySlots })` to `src/data/week-repository.ts`. In one `rw` transaction over `meals` and `daySlots`, it deletes every record with `date` between `weekStart` and `addDays(weekStart, 6)`, then calls `bulkAdd` for both. This makes T072 pass.
+- [X] T077 [US6] Add to `src/app/week.ts`:
   - `weekHasPlanAt(deps: { week }, weekStart)`
   - `copyWeekToNext(deps: { week; ids }, weekStart)`: read the source Week; if `!weekHasPlan` return `empty`; otherwise `replaceWeek(addDays(weekStart, 7), planWeekCopy(...))` and return `{ kind: 'copied', meals: n }`
 
   This makes T073 pass.
-- [ ] T078 [US6] Add to `src/ui/view-models/week.ts`, with tests in `tests/ui/week-vm.test.ts`:
+- [X] T078 [US6] Add to `src/ui/view-models/week.ts`, with tests in `tests/ui/week-vm.test.ts`:
   - `copyConfirmMessage`: "Następny tydzień ma już plan. Zastąpić go planem z tego tygodnia?"
   - `copyDoneToast`: "Skopiowano do następnego tygodnia."
   - `copyFailedMessage`: "Nie udało się skopiować tygodnia. Następny tydzień nie został zmieniony."
-- [ ] T079 [US6] In `src/ui/pages/WeekPage.tsx`, add a `Block` below the navbar with an outlined `Button` "Skopiuj do następnego tygodnia":
+- [X] T079 [US6] In `src/ui/pages/WeekPage.tsx`, add a `Block` below the navbar with an outlined `Button` "Skopiuj do następnego tygodnia":
   - It is disabled when `weekHasPlan` is false for the viewed Week's live data (FR-036).
   - On tap, `await weekHasPlanAt(next)`. If true, use `f7.dialog.confirm(copyConfirmMessage, run)`, otherwise `run()`.
   - `run` calls `copyWeekToNext` and shows `copyDoneToast`. On a thrown error, it shows `f7.dialog.alert(copyFailedMessage)`.

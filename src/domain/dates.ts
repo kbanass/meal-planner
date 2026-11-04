@@ -108,6 +108,11 @@ export function weekDates(weekStart: IsoDate): IsoDate[] {
   return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 }
 
+/** Monday to Sunday of the Week, both included: the range its records are read with. */
+export function weekRange(weekStart: IsoDate): { start: IsoDate; end: IsoDate } {
+  return { start: weekStart, end: addDays(weekStart, 6) };
+}
+
 function monthName(month: number): string {
   return MONTH_ABBREVIATIONS[month - 1] as string;
 }

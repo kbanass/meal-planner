@@ -1,8 +1,9 @@
-import { weekDates } from './dates';
+import { addDays, weekDates } from './dates';
 import { mealSource, scaleMeal, isDetached } from './meals';
 import { compareIds } from './names';
+import type { IdGenerator } from './ports';
 import { slotCountForDay } from './slots';
-import type { DaySlots, Dish, DishPhotoRef, IsoDate, Meal, Settings } from './types';
+import type { DaySlots, Dish, DishPhotoRef, IsoDate, Meal, MealSource, Settings } from './types';
 
 export interface DayView {
   date: IsoDate;
@@ -83,4 +84,52 @@ export function selectDay(
     number: i + 1,
     meals: mealsOfDay.filter((meal) => meal.slot === i + 1).map((meal) => mealView(meal, dishesById)),
   }));
+}
+
+/** A Week has a plan when it holds any Meal or any Added Slots (research R4). */
+export function weekHasPlan(meals: readonly Meal[], daySlots: readonly DaySlots[]): boolean {
+  return meals.length > 0 || daySlots.length > 0;
+}
+
+function copySource(source: MealSource): MealSource {
+  return {
+    ...source,
+    ingredients: source.ingredients.map((ingredient) => ({ ...ingredient })),
+    macros: { ...source.macros },
+  };
+}
+
+/**
+ * The next Week's records for "Skopiuj do następnego tygodnia" (FR-031, FR-032, research R8):
+ * the source Week's Meals and Added Slots 7 days later. Meals get new ids and deep copies, so
+ * copies and originals are independent; Linked Meals keep their Dish.
+ */
+export function planWeekCopy(
+  weekStart: IsoDate,
+  meals: readonly Meal[],
+  daySlots: readonly DaySlots[],
+  ids: IdGenerator,
+): { meals: Meal[]; daySlots: DaySlots[] } {
+  const inWeek = new Set(weekDates(weekStart));
+  const sourceMeals = meals
+    .filter((meal) => inWeek.has(meal.date))
+    // A fixed order, so new ids are handed out the same way every time.
+    .sort(
+      (a, b) =>
+        compareIds(a.date, b.date) ||
+        a.slot - b.slot ||
+        a.position - b.position ||
+        compareIds(a.id, b.id),
+    );
+  return {
+    meals: sourceMeals.map((meal) => ({
+      ...meal,
+      id: ids.next(),
+      date: addDays(meal.date, 7),
+      detached: meal.detached && copySource(meal.detached),
+    })),
+    daySlots: daySlots
+      .filter((record) => inWeek.has(record.date))
+      .map((record) => ({ date: addDays(record.date, 7), slotCount: record.slotCount })),
+  };
 }

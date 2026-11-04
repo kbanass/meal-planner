@@ -1,9 +1,12 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { AppShell } from '../../src/ui/App';
 import { DepsProvider } from '../../src/ui/hooks/useDeps';
 import { createTestDeps } from './render';
+
+// The whole shell creates its own Framework7 <App>, so tests that need it live in this file;
+// a second <App> next to renderWithApp's would take over Framework7's dialogs and toasts.
 
 const NOTICE = 'Ten ekran pojawi się w kolejnej wersji.';
 
@@ -66,5 +69,22 @@ describe('AppShell', () => {
     expect(shopping).toHaveClass('tab-active');
     expect(document.getElementById('view-week')).not.toHaveClass('tab-active');
     expect(await within(shopping).findByText(NOTICE)).toBeInTheDocument();
+  });
+
+  it('comes back from a day to the same Week (FR-007)', async () => {
+    renderShell();
+    const week = document.getElementById('view-week')!;
+    await within(week).findByText('2–8 lis 2026');
+
+    await userEvent.click(within(week).getByLabelText('Następny tydzień'));
+    await within(week).findByText('9–15 lis 2026');
+    await userEvent.click(within(week).getByText('Czwartek'));
+    expect(await within(week).findByText('Czwartek, 12 lis')).toBeInTheDocument();
+
+    await userEvent.click(week.querySelector<HTMLElement>('.page-current .navbar .back')!);
+    await waitFor(() =>
+      expect(week.querySelector('.page-current .navbar .title')).not.toHaveTextContent('Czwartek, 12 lis'),
+    );
+    expect(await within(week).findByText('9–15 lis 2026')).toBeInTheDocument();
   });
 });
