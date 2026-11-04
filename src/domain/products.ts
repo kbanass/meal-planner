@@ -35,18 +35,29 @@ export function shouldOfferCreate(products: readonly Product[], query: string): 
  * productId → number of Dishes (archived included) and Detached Meal Ingredient lists that
  * use the Product (FR-017). Unused Products are absent, meaning 0.
  */
+/** Per Product: how many Dishes (archived included) and Detached Meals use it. */
+export function productUsageBreakdown(
+  dishes: readonly Dish[],
+  detachedMealIngredientLists: readonly (readonly Ingredient[])[],
+): ReadonlyMap<string, { dishes: number; meals: number }> {
+  const usage = new Map<string, { dishes: number; meals: number }>();
+  const count = (list: readonly Ingredient[], key: 'dishes' | 'meals') => {
+    for (const productId of new Set(list.map((ingredient) => ingredient.productId))) {
+      const entry = usage.get(productId) ?? { dishes: 0, meals: 0 };
+      usage.set(productId, { ...entry, [key]: entry[key] + 1 });
+    }
+  };
+  dishes.forEach((dish) => count(dish.ingredients, 'dishes'));
+  detachedMealIngredientLists.forEach((list) => count(list, 'meals'));
+  return usage;
+}
+
 export function countProductUsage(
   dishes: readonly Dish[],
   detachedMealIngredientLists: readonly (readonly Ingredient[])[],
 ): ReadonlyMap<string, number> {
-  const usage = new Map<string, number>();
-  const lists = [...dishes.map((dish) => dish.ingredients), ...detachedMealIngredientLists];
-  for (const list of lists) {
-    for (const productId of new Set(list.map((ingredient) => ingredient.productId))) {
-      usage.set(productId, (usage.get(productId) ?? 0) + 1);
-    }
-  }
-  return usage;
+  const breakdown = productUsageBreakdown(dishes, detachedMealIngredientLists);
+  return new Map([...breakdown].map(([productId, { dishes, meals }]) => [productId, dishes + meals]));
 }
 
 export function productActions(usage: number): { canDelete: boolean; canChangeUnit: boolean } {

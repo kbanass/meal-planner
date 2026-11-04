@@ -38,7 +38,7 @@ description: "Task list for Week Planning"
 
 **Purpose**: Confirm the starting point. This feature adds no dependencies or tooling.
 
-- [ ] T001 On branch `002-week-planning`, run `npm run lint`, `npm run typecheck`, `npm test` and `npm run coverage`, and confirm everything passes before any change. If anything fails, stop and report it, because it predates this feature.
+- [X] T001 On branch `002-week-planning`, run `npm run lint`, `npm run typecheck`, `npm test` and `npm run coverage`, and confirm everything passes before any change. If anything fails, stop and report it, because it predates this feature.
 
 ---
 
@@ -50,7 +50,7 @@ description: "Task list for Week Planning"
 
 ### Domain tests (write first, they must fail)
 
-- [ ] T002 [P] Write `tests/domain/dates.test.ts` per [contracts/domain-api.md](contracts/domain-api.md) "dates":
+- [X] T002 [P] Write `tests/domain/dates.test.ts` per [contracts/domain-api.md](contracts/domain-api.md) "dates":
   - `weekStartOf`: `'2026-11-04'` → `'2026-11-02'`, `'2026-11-08'` → `'2026-11-02'`, `'2026-11-02'` → `'2026-11-02'`.
   - `weekDates('2026-03-30')` and `weekDates('2026-10-19')` and `weekDates('2026-10-26')` each have 7 consecutive dates, Mon → Sun.
   - `addDays('2024-02-28', 1) === '2024-02-29'`, `addDays('2024-02-29', 1) === '2024-03-01'`, `addDays('2026-12-28', 6) === '2027-01-03'`, `addDays('2026-11-09', -7) === '2026-11-02'`.
@@ -60,34 +60,34 @@ description: "Task list for Week Planning"
   - `dayLabel('2026-11-05')` → `{ dayName: 'Czwartek', dateText: '5 lis' }`.
   - `weekRangeLabel`: `'2026-11-02'` → `"2–8 lis 2026"` (en dash, no spaces), `'2026-11-30'` → `"30 lis – 6 gru 2026"` (spaced en dash), `'2026-12-28'` → `"28 gru 2026 – 3 sty 2027"`.
   - `DAY_NAMES` and `MONTH_ABBREVIATIONS` equal the arrays in the contract.
-- [ ] T003 [P] Extend `tests/domain/numbers.test.ts`:
+- [X] T003 [P] Extend `tests/domain/numbers.test.ts`:
   - `roundTo(18.75, 1) === 18.8`, `roundTo(11.25, 1) === 11.3`, `roundTo(-1.25, 1) === -1.3`, `roundTo(349.5, 0) === 350`, and `roundTo(x, 2) === roundTo2(x)` for the existing `roundTo2` cases.
   - `formatDecimal(18.75, 1) === "18,8"`, `formatDecimal(55, 1) === "55"`, and every existing `formatDecimal` case still passes without `places`.
-- [ ] T004 [P] Create `tests/domain/nutrition.test.ts`:
+- [X] T004 [P] Create `tests/domain/nutrition.test.ts`:
   - `formatKcal`: 350 → "350", 349.5 → "350", 99.999 → "100".
   - `formatMacro`: 12.5 → "12,5", 18.75 → "18,8", 11.25 → "11,3", 55 → "55", 0 → "0".
   - `formatServings`: 1 → "1", 1.5 → "1,5", 0.25 → "0,25".
-- [ ] T005 [P] Extend `tests/domain/units.test.ts`: `formatAmount(0.5, 'pcs') === "0,5"`, `formatAmount(1/3, 'pcs') === "0,33"`, `formatAmount(74.6, 'g') === "75"`, `formatAmount(150, 'ml') === "150"`, `formatAmount(1500, 'g') === "1500"`. This feature does not convert to kg or l; the Shopping List feature does.
-- [ ] T006 [P] Create `tests/domain/settings.test.ts`:
+- [X] T005 [P] Extend `tests/domain/units.test.ts`: `formatAmount(0.5, 'pcs') === "0,5"`, `formatAmount(1/3, 'pcs') === "0,33"`, `formatAmount(74.6, 'g') === "75"`, `formatAmount(150, 'ml') === "150"`, `formatAmount(1500, 'g') === "1500"`. This feature does not convert to kg or l; the Shopping List feature does.
+- [X] T006 [P] Create `tests/domain/settings.test.ts`:
   - `readSettings(undefined)`, `readSettings(null)` and `readSettings({})` → `{ slotsPerDay: 4 }`.
   - `readSettings({ slotsPerDay: 1 })` and `({ slotsPerDay: 10 })` keep the value.
   - `slotsPerDay` 0, 11, 2.5, `'4'`, `NaN` and `null` fall back to 4.
   - `isValidSlotsPerDay` agrees with those cases.
-- [ ] T007 [P] Create `tests/domain/slots.test.ts`:
+- [X] T007 [P] Create `tests/domain/slots.test.ts`:
   - `slotCountForDay(4, [], undefined) === 4`.
   - A Meal in Slot 6 → 6.
   - `{ slotCount: 5 }` with a default of 3 → 5, and with a default of 6 → 6.
   - Meals in Slots 2 and 7 plus `{ slotCount: 5 }` with a default of 4 → 7.
   - `nextSlotCount(4) === 5`.
   - `nextPosition([]) === 0`, and with positions 0 and 3 → 4.
-- [ ] T008 [P] Extend `tests/domain/products-maintenance.test.ts` with `productUsageBreakdown`:
+- [X] T008 [P] Extend `tests/domain/products-maintenance.test.ts` with `productUsageBreakdown`:
   - A Product in one active Dish, one archived Dish and two Detached Meal lists → `{ dishes: 2, meals: 2 }`.
   - A Product in no list is absent from the map.
   - `countProductUsage` returns the sum (4), and every existing `countProductUsage` test still passes.
 
 ### Domain implementation
 
-- [ ] T009 Extend `src/domain/types.ts` with the types from [data-model.md](data-model.md), copied exactly with their comments:
+- [X] T009 Extend `src/domain/types.ts` with the types from [data-model.md](data-model.md), copied exactly with their comments:
   - `IsoDate = string`: "A local calendar date, 'YYYY-MM-DD'. Never a Date object".
   - `MealSource = Pick<Dish, 'name' | 'servingsYield' | 'ingredients' | 'macros'>`.
   - `Meal { id; date; slot; position; dishId; servings; detached }`, where:
@@ -98,7 +98,7 @@ description: "Task list for Week Planning"
     - `detached: MealSource | null` is "null = Linked Meal; otherwise whole-recipe values"
   - `DaySlots { date; slotCount }`, where `slotCount` is "≥ 1, whole number".
   - `Settings { slotsPerDay }`, where `slotsPerDay` is "whole number, 1–10, default 4".
-- [ ] T010 [P] Implement `src/domain/dates.ts`, making T002 pass:
+- [X] T010 [P] Implement `src/domain/dates.ts`, making T002 pass:
   - Integer days-from-civil / civil-from-days (research R1), with no `Date` use.
   - `weekdayIndex = ((dayNumber + 3) % 7 + 7) % 7`.
   - `DAY_NAMES = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela']`.
@@ -107,13 +107,13 @@ description: "Task list for Week Planning"
     - same month: `"{d1}–{d2} {mon} {yyyy}"`
     - different month, same year: `"{d1} {mon1} – {d2} {mon2} {yyyy}"`
     - different years: `"{d1} {mon1} {yyyy1} – {d2} {mon2} {yyyy2}"`
-- [ ] T011 [P] In `src/domain/numbers.ts`, add `roundTo(value, places)`, rounding half away from zero with the same `Number.EPSILON` approach. Make `roundTo2(v)` return `roundTo(v, 2)`, and give `formatDecimal` an optional `places = 2`. This makes T003 pass.
-- [ ] T012 [P] Create `src/domain/nutrition.ts` with `formatKcal` (`formatDecimal(v, 0)`), `formatMacro` (`formatDecimal(v, 1)`) and `formatServings` (`formatDecimal(v, 2)`), making T004 pass.
-- [ ] T013 [P] Add `formatAmount(amount, unit)` to `src/domain/units.ts`: `formatDecimal(amount, unit === 'pcs' ? 2 : 0)`. This makes T005 pass.
-- [ ] T014 [P] Create `src/domain/settings.ts` with `DEFAULT_SETTINGS = { slotsPerDay: 4 }`, `SLOTS_PER_DAY = { min: 1, max: 10 } as const`, `isValidSlotsPerDay(value: unknown)` (`Number.isInteger`, in range) and `readSettings(stored: unknown): Settings`, making T006 pass.
-- [ ] T015 [P] Create `src/domain/slots.ts` with `slotCountForDay`, `nextSlotCount` and `nextPosition` per [contracts/domain-api.md](contracts/domain-api.md), making T007 pass. The formula is `max(slotsPerDay, highest meal.slot, daySlots?.slotCount ?? 0)` (FR-009).
-- [ ] T016 [P] Add `productUsageBreakdown(dishes, detachedMealIngredientLists)` to `src/domain/products.ts`, returning `ReadonlyMap<string, { dishes: number; meals: number }>`. Each Dish counts once per Product, archived included, and each Detached Meal list counts once per Product. Reimplement `countProductUsage` as the sum. This makes T008 pass.
-- [ ] T017 [P] Add `interface Clock { today(): IsoDate }` to `src/domain/ports.ts`. Create `src/adapters/system-clock.ts`, exporting `systemClock: Clock`, which builds the `IsoDate` from `new Date()` local `getFullYear()`, `getMonth() + 1` and `getDate()`, zero-padded. Create `tests/fakes/fixed-clock.ts`: a `FixedClock` class with `constructor(today: IsoDate)`, `today()` and `set(date)` for tests that move the day.
+- [X] T011 [P] In `src/domain/numbers.ts`, add `roundTo(value, places)`, rounding half away from zero with the same `Number.EPSILON` approach. Make `roundTo2(v)` return `roundTo(v, 2)`, and give `formatDecimal` an optional `places = 2`. This makes T003 pass.
+- [X] T012 [P] Create `src/domain/nutrition.ts` with `formatKcal` (`formatDecimal(v, 0)`), `formatMacro` (`formatDecimal(v, 1)`) and `formatServings` (`formatDecimal(v, 2)`), making T004 pass.
+- [X] T013 [P] Add `formatAmount(amount, unit)` to `src/domain/units.ts`: `formatDecimal(amount, unit === 'pcs' ? 2 : 0)`. This makes T005 pass.
+- [X] T014 [P] Create `src/domain/settings.ts` with `DEFAULT_SETTINGS = { slotsPerDay: 4 }`, `SLOTS_PER_DAY = { min: 1, max: 10 } as const`, `isValidSlotsPerDay(value: unknown)` (`Number.isInteger`, in range) and `readSettings(stored: unknown): Settings`, making T006 pass.
+- [X] T015 [P] Create `src/domain/slots.ts` with `slotCountForDay`, `nextSlotCount` and `nextPosition` per [contracts/domain-api.md](contracts/domain-api.md), making T007 pass. The formula is `max(slotsPerDay, highest meal.slot, daySlots?.slotCount ?? 0)` (FR-009).
+- [X] T016 [P] Add `productUsageBreakdown(dishes, detachedMealIngredientLists)` to `src/domain/products.ts`, returning `ReadonlyMap<string, { dishes: number; meals: number }>`. Each Dish counts once per Product, archived included, and each Detached Meal list counts once per Product. Reimplement `countProductUsage` as the sum. This makes T008 pass.
+- [X] T017 [P] Add `interface Clock { today(): IsoDate }` to `src/domain/ports.ts`. Create `src/adapters/system-clock.ts`, exporting `systemClock: Clock`, which builds the `IsoDate` from `new Date()` local `getFullYear()`, `getMonth() + 1` and `getDate()`, zero-padded. Create `tests/fakes/fixed-clock.ts`: a `FixedClock` class with `constructor(today: IsoDate)`, `today()` and `set(date)` for tests that move the day.
 
 ### Storage, repositories and wiring
 
