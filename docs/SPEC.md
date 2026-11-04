@@ -62,10 +62,10 @@ Editing a Meal:
 - Remove from slot.
 
 ### Slots
-- The default number of Slots per day is a global setting.
+- The default number of Slots per day is a global setting: a whole number from 1 to 10, initially 4.
 - Each Slot can hold several Meals.
-- Below the last Slot of a day sits a placeholder, "dodaj kolejny", which adds one extra Slot **to that day only**.
-- A day shows `max(setting, slots in use, that day's extra slots)` Slots.
+- Below the last Slot of a day sits a placeholder, "dodaj kolejny", which adds one Slot **to that day only**. The day keeps the raised Slot count ("added Slots") even while those Slots are empty.
+- A day shows `max(setting, highest Slot in use, that day's raised Slot count)` Slots.
 - In the UI, Slots are labelled with numbers only.
 
 ### Goals
@@ -75,7 +75,7 @@ Editing a Meal:
 ### Week
 - Always Monday–Sunday.
 - Past weeks are kept. Navigate with ← / → arrows.
-- **"Skopiuj do następnego tygodnia"** copies all Meals (with servings and their linked/detached state) and per-day extra Slots from the viewed Week into the next one, **replacing** the next Week's Meals and extra Slots. If the next Week is not empty, ask for confirmation first. The next Week's Shopping List layer (Adjustments, Extras, checks) is left as it is.
+- **"Skopiuj do następnego tygodnia"** copies all Meals (with servings and their linked/detached state) and per-day added Slots from the viewed Week into the next one, **replacing** the next Week's Meals and added Slots. If the next Week is not empty, ask for confirmation first. The next Week's Shopping List layer (Adjustments, Extras, checks) is left as it is.
 
 ## Summaries
 
