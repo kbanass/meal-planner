@@ -73,3 +73,13 @@ UI defects found and fixed afterwards (re-checked in Chrome with an iPhone user 
 - The desktop layout spread over the whole window. It is now a centred 960 px column, with forms at most 640 px wide.
 
 Still to check: Android (Chrome), the performance spot checks on the reference devices, persistence after a reboot (13), and that the photo above was saved as `.jpg` on iOS. Re-check the phone UI after the next `npm run deploy:preview`.
+
+### 2026-11-04 (later): re-check after the fixes
+
+- iPhone: the UI fixes and the Tabbar Icons (`ToolbarPane`) tabbar look right.
+- Desktop Chrome in dev mode: looks right.
+- Persistence after a reboot (13): passed.
+- Photo format on iOS: assumed `.jpg`, not checked directly.
+- Seeding did not work on the first try. It runs only in `npm run dev`, and the preview is a production build. Fixed with the seeded test deploy described under Performance spot checks.
+
+Still open: Android (Chrome), and the SC-002/SC-003 spot checks on the reference phones through `npm run deploy:seed`.
