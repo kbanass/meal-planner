@@ -3,7 +3,9 @@ import { dishesRoutes, settingsRoutes, shoppingRoutes, weekRoutes } from './rout
 
 export function AppShell() {
   return (
-    <App name="Planer posiłków" theme="auto">
+    // `colors.primary` is Framework7's documented theme colour: links, icons, the tabbar and
+    // dialogs use the app's green instead of iOS blue (FR-043).
+    <App name="Planer posiłków" theme="auto" colors={{ primary: '#2f6f4f' }}>
       <Views tabs className="safe-areas">
         {/* Framework7's tabbar with icons: on iOS the pane is the floating glass bar with a
             highlight behind the active tab. */}

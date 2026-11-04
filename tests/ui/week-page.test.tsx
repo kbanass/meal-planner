@@ -65,7 +65,7 @@ describe('WeekPage', () => {
     expect(pill('Czwartek, 5 lis')).toHaveAttribute('aria-pressed', 'true');
     expect(pill('Środa, 4 lis')).toHaveClass('day-pill-today');
     expect(heading()).toBe('Czwartek, 5 lis');
-    expect([...container.querySelectorAll('.slot-label')].map((l) => l.textContent)).toEqual([
+    expect([...container.querySelectorAll('.slot-number')].map((l) => l.textContent)).toEqual([
       '1',
       '2',
       '3',
@@ -85,13 +85,56 @@ describe('WeekPage', () => {
     await waitFor(() => expect(heading()).toBe('Czwartek, 12 lis'));
     expect(await within(slot(container, 1)).findByText('Owsianka')).toBeInTheDocument();
     expect(within(pill('Czwartek, 12 lis')).getByText('350')).toBeInTheDocument();
-    expect(screen.getByText('1 posiłek · 350 kcal')).toBeInTheDocument();
+    expect(screen.getByText('1 posiłek')).toBeInTheDocument();
     expect(container.querySelector('.day-pill-today')).toBeNull();
 
     await userEvent.click(screen.getByLabelText('Poprzedni tydzień'));
     await userEvent.click(screen.getByLabelText('Poprzedni tydzień'));
     expect(await screen.findByText('Październik – listopad 2026')).toBeInTheDocument();
     expect(heading()).toBe('Czwartek, 29 paź');
+  });
+
+  it('has no page title (FR-005)', async () => {
+    const { deps } = depsWithClock();
+    const { container } = renderWithApp(<WeekPage />, deps);
+    await screen.findByText('Listopad 2026');
+
+    expect(container.querySelector('.navbar')).toBeNull();
+    expect(screen.queryByText('Tydzień')).not.toBeInTheDocument();
+  });
+
+  it('changes the Week with a swipe on the Week card (FR-005)', async () => {
+    const { deps } = depsWithClock();
+    const { container } = renderWithApp(<WeekPage />, deps);
+    await screen.findByText('Listopad 2026');
+    const card = container.querySelector<HTMLElement>('.week-card')!;
+    const swipe = (fromX: number, toX: number, dy = 0) => {
+      act(() => {
+        card.dispatchEvent(
+          new TouchEvent('touchstart', {
+            bubbles: true,
+            touches: [{ clientX: fromX, clientY: 300 } as Touch],
+          }),
+        );
+        card.dispatchEvent(
+          new TouchEvent('touchend', {
+            bubbles: true,
+            changedTouches: [{ clientX: toX, clientY: 300 + dy } as Touch],
+          }),
+        );
+      });
+    };
+
+    swipe(300, 120);
+    await waitFor(() => expect(heading()).toBe('Środa, 11 lis'));
+
+    swipe(100, 320);
+    swipe(100, 320);
+    await waitFor(() => expect(heading()).toBe('Środa, 28 paź'));
+
+    swipe(300, 270); // too short: 30 px
+    swipe(300, 150, 200); // mostly vertical: a scroll
+    expect(heading()).toBe('Środa, 28 paź');
   });
 
   it('moves the today mark when the app comes back after midnight, keeping the selection', async () => {
@@ -118,13 +161,22 @@ describe('WeekPage', () => {
 
     const sheet = await openPicker(container, 2);
     expect(within(sheet).getByText('Wybierz danie')).toBeInTheDocument();
+    // One Serving of "Owsianka" (yields 2): 350 kcal, 12,5 g protein (FR-045).
+    expect(within(sheet).getByLabelText('Kalorie: 350 kcal')).toBeInTheDocument();
+    expect(within(sheet).getByLabelText('Białko: 12,5 g')).toBeInTheDocument();
     expect(within(sheet).queryByText('Stare danie')).not.toBeInTheDocument();
     await userEvent.click(within(sheet).getByText('Owsianka'));
 
     expect(await within(slot(container, 2)).findByText('Owsianka')).toBeInTheDocument();
     expect(within(slot(container, 2)).getByText('1 porcja · 350 kcal')).toBeInTheDocument();
     expect(within(slot(container, 2)).getByText('Dodaj posiłek')).toBeInTheDocument();
-    expect(screen.getByText('1 posiłek · 350 kcal')).toBeInTheDocument();
+    expect(screen.getByText('1 posiłek')).toBeInTheDocument();
+    // The Slot card and the day totals both show the Meal's kcal and macros (FR-004, FR-044).
+    expect(within(slot(container, 2)).getByLabelText('Kalorie: 350 kcal')).toBeInTheDocument();
+    expect(within(slot(container, 2)).getByLabelText('Białko: 12,5 g')).toBeInTheDocument();
+    const dayTotals = container.querySelector<HTMLElement>('.week-card-totals')!;
+    expect(within(dayTotals).getByLabelText('Kalorie: 350 kcal')).toBeInTheDocument();
+    expect(within(dayTotals).getByLabelText('Węglowodany: 55 g')).toBeInTheDocument();
     expect(within(pill('Środa, 4 lis')).getByText('350')).toBeInTheDocument();
     await waitFor(() => expect(sheet).not.toHaveClass('modal-in'));
     expect(await deps.week.listMeals({ start: '2026-11-04', end: '2026-11-04' })).toHaveLength(1);

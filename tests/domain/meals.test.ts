@@ -7,6 +7,7 @@ import {
   mealSource,
   mealsWord,
   newMeal,
+  perServing,
   removeMealIngredient,
   rescaleMealDraft,
   restoreMeal,
@@ -426,5 +427,11 @@ describe('mealsWord', () => {
     [0, 'posiłków'],
   ])('%d → %s', (count, word) => {
     expect(mealsWord(count)).toBe(word);
+  });
+});
+
+describe('perServing', () => {
+  it('gives the Macros of one Serving', () => {
+    expect(perServing(owsianka)).toEqual({ kcal: 350, protein: 12.5, fat: 7.5, carbs: 55 });
   });
 });

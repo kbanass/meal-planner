@@ -56,7 +56,9 @@ describe('AppShell', () => {
 
     await userEvent.click(screen.getByText('Ustawienia', { selector: '.tab-link *' }));
 
-    expect(await within(settings).findByText('Liczba slotów')).toBeInTheDocument();
+    expect(
+      await within(settings).findByText('Liczba slotów', { selector: '.item-title' }),
+    ).toBeInTheDocument();
     expect(within(settings).queryByText(NOTICE)).not.toBeInTheDocument();
   });
 

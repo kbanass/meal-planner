@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { planWeekCopy, plannedKcal, selectDay, selectWeekDays, weekHasPlan } from '../../src/domain/week';
+import {
+  planWeekCopy,
+  plannedKcal,
+  plannedMacros,
+  selectDay,
+  selectWeekDays,
+  weekHasPlan,
+} from '../../src/domain/week';
 import { FixedIdGenerator } from '../fakes/fixed-id-generator';
 import { byId, dish, meal, owsianka } from '../fakes/dishes';
 
@@ -20,6 +27,18 @@ describe('plannedKcal', () => {
 
   it('skips a Meal whose Dish is missing', () => {
     expect(plannedKcal([meal({ id: 'm-1', dishId: 'gone' }), meal({ id: 'm-2' })], dishes)).toBe(350);
+  });
+});
+
+describe('plannedMacros', () => {
+  it('adds all four Macros unrounded, skipping a missing Dish', () => {
+    const meals = [
+      meal({ id: 'm-1', servings: 1.5 }),
+      meal({ id: 'm-2', dishId: banan.id }),
+      meal({ id: 'm-3', dishId: 'gone' }),
+    ];
+    expect(plannedMacros(meals, dishes)).toEqual({ kcal: 625, protein: 19.75, fat: 11.25, carbs: 107.5 });
+    expect(plannedMacros([], dishes)).toEqual({ kcal: 0, protein: 0, fat: 0, carbs: 0 });
   });
 });
 
@@ -49,9 +68,16 @@ describe('selectWeekDays', () => {
   it('counts Meals and Planned kcal per day, ignoring other Weeks', () => {
     const days = selectWeekDays('2026-11-02', '2026-11-04', meals, dishes);
 
-    expect(days[0]).toEqual({ date: '2026-11-02', isToday: false, mealCount: 1, plannedKcal: 350 });
-    expect(days[2]).toEqual({ date: '2026-11-04', isToday: true, mealCount: 2, plannedKcal: 625 });
-    expect(days[6]).toEqual({ date: '2026-11-08', isToday: false, mealCount: 0, plannedKcal: 0 });
+    expect(days[0]).toEqual({
+      date: '2026-11-02',
+      isToday: false,
+      mealCount: 1,
+      plannedKcal: 350,
+      macros: { kcal: 350, protein: 12.5, fat: 7.5, carbs: 55 },
+    });
+    expect(days[2]).toMatchObject({ date: '2026-11-04', isToday: true, mealCount: 2, plannedKcal: 625 });
+    expect(days[2]?.macros).toEqual({ kcal: 625, protein: 19.75, fat: 11.25, carbs: 107.5 });
+    expect(days[6]).toMatchObject({ date: '2026-11-08', mealCount: 0, plannedKcal: 0 });
   });
 
   it('marks no day when today is in another Week', () => {
@@ -77,6 +103,7 @@ describe('selectDay', () => {
     ];
     const slot2 = selectDay('2026-11-05', meals, undefined, dishes, settings)[1];
     expect(slot2?.meals.map((m) => m.meal.id)).toEqual(['m-c', 'm-a', 'm-b']);
+    expect(slot2?.macros).toEqual({ kcal: 1050, protein: 37.5, fat: 22.5, carbs: 165 });
   });
 
   it('shows a Meal in Slot 6, the Added Slots, and only that day', () => {

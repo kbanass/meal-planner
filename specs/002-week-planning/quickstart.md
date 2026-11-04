@@ -36,10 +36,10 @@ Use a fresh install with the Dishes from feature 001's US1:
 | 6 | Add "Owsianka" to Friday Slot 1 as well. In the Thursday one set płatki 75 → 120 g (at 1,5 Servings) and save | The badge "zmieniony" appears. kcal stays 525. A toast explains detaching | US3-1, US3-4 |
 | 7 | Edit the Dish "Owsianka" in Dania to 800 kcal | The Friday Meal shows 400 kcal. Thursday is unchanged at 525 | US3-3, SC-003 |
 | 8 | Thursday "Owsianka" → "Przywróć z dania", confirm | Badge gone, 1,5 porcji · 600 kcal | US3-5, SC-004 |
-| 9 | With Thursday selected, tap → twice, then ← three times | The month label follows ("Listopad 2026", "Październik – listopad 2026" …), Thursday stays selected, each Week shows only its own Meals | US4-1–US4-3, FR-007 |
+| 9 | With Thursday selected, swipe the Week card left twice, then right three times (desktop: → twice, ← three times) | The month label follows ("Listopad 2026", "Październik – listopad 2026" …), Thursday stays selected, each Week shows only its own Meals | US4-1–US4-3, FR-007 |
 | 10 | Close the app on another Week and reopen | Opens on the current Week | US4-4, FR-002 |
 | 11 | Select Saturday, tap "dodaj kolejny" | Saturday shows Slots 1–5, other days 1–4. Reopen the app and select Saturday: still 5 | US5-1–US5-3 |
-| 12 | Ustawienia: Liczba slotów 3, then 6 | Friday shows 3 Slots (or more if used), Saturday 5. With 6, every day shows ≥ 6 | US5-4, US5-5, FR-011 |
+| 12 | Ustawienia: tap "Liczba slotów", pick 3 in the sheet, then 6 | Friday shows 3 Slots (or more if used), Saturday 5. With 6, every day shows ≥ 6 | US5-4, US5-5, FR-011 |
 | 13 | Detach one Meal, then "Skopiuj do następnego tygodnia" with the next Week empty | No question. Toast. → next Week matches, including the badge and Saturday's Slot 5 | US6-1, US6-2, US6-7 |
 | 14 | Change a Meal in this Week and copy again | Confirmation asked. Cancel: nothing changes. Confirm: the next Week matches exactly | US6-3, US6-4 |
 | 15 | Edit the copied Detached Meal in the next Week | The original is unchanged | US6-5 |

@@ -74,6 +74,27 @@ The screenshot is a reference for the general look only, not a design to match e
    - **Slot with Meals**: below its cards, a small text action "+ Dodaj posiłek" that opens the same picker.
 5. **"dodaj kolejny"**: a dashed outlined card like the empty Slot, labelled "dodaj kolejny" (FR-010).
 
+**Refinements as built (later 2026-11-04, tasks T098–T105):**
+- **No title.** The page has no navbar, and the Week card starts below the safe area.
+- **Week card:**
+  - Month label.
+  - ← / → round buttons: visible at 1024 px and up, visually hidden but kept for screen readers below that.
+  - Day strip.
+  - The selected day's totals (`MacroTotals`): `flame_fill` kcal, `cube_fill` białko, `drop_fill` tłuszcz, `hexagon_fill` węglowodany, each with an `aria-label` such as "Białko: 12,5 g".
+  - Copy action.
+- **Swipe.** A horizontal swipe on the Week card (`swipeWeekDelta`: at least 50 px, and mostly horizontal) moves the Week, with a 220 ms slide-in. Reduced motion turns the slide off.
+- **Slot cards.** Each Slot is a `SlotCard`:
+  - a green number badge and compact totals
+  - Meals as rows (64 px rounded photo, name, "1 porcja · 350 kcal", "zmieniony" chip, pencil)
+  - "Dodaj posiłek", a dashed box when the Slot is empty
+- **"dodaj kolejny"** is a centred pill button, below a dashed divider, after the Slot cards.
+- **Day heading.** The summary is the Meal count only ("2 posiłki"). The kcal moved to the totals.
+- **Dish picker.** Tiles are 132 px white cards: a 96 px photo, the name, and compact totals for one Serving.
+- **App-wide:**
+  - `<App colors={{ primary: '#2f6f4f' }}>` makes Framework7's links, icons, tabbar and dialogs green.
+  - The tokens, the warm page and navbar background, and `--f7-input-outline-border-color: #7a746e` (about 4.6:1 on white) are set on `.framework7-root`.
+- **Ustawienia.** "Liczba slotów" is a link row showing the value. It opens the `slots-sheet` with radio rows 1–10, and picking one saves it and closes the sheet. The inline Stepper is gone.
+
 **As built (2026-11-04):**
 - `WeekCard` is markup inside `WeekPage.tsx` rather than its own component.
 - `DayStrip` and `MealCard`/`SlotAddCard` live in `src/ui/components/`.

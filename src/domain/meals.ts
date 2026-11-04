@@ -67,6 +67,11 @@ function pluralForm(n: number): 'one' | 'few' | 'many' {
   return Number.isInteger(n) && few ? 'few' : 'many';
 }
 
+/** Macros of one Serving, e.g. for the Dish picker. Unrounded. */
+export function perServing(source: MealSource): Macros {
+  return scaleMeal(source, 1).macros;
+}
+
 /** The Polish word after a number of Servings: 1 porcja, 2 porcje, 5 porcji, 1,5 porcji. */
 export function servingsWord(servings: number): 'porcja' | 'porcje' | 'porcji' {
   return ({ one: 'porcja', few: 'porcje', many: 'porcji' } as const)[pluralForm(servings)];

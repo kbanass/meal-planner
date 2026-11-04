@@ -3,8 +3,9 @@ import { Block, Link, PageContent, Sheet, Toolbar } from 'framework7-react';
 import { selectLibrary } from '../../domain/dishes';
 import type { Dish } from '../../domain/types';
 import { useDeps } from '../hooks/useDeps';
-import { pickerEmptyMessage } from '../view-models/week';
+import { pickerEmptyMessage, pickerTile } from '../view-models/week';
 import { DishAvatar } from './DishAvatar';
+import { MacroTotals } from './MacroTotals';
 
 interface DishPickerSheetProps {
   opened: boolean;
@@ -41,17 +42,23 @@ export function DishPickerSheet({ opened, onClose, onPick }: DishPickerSheetProp
           </Block>
         ) : (
           <div className="dish-picker-strip">
-            {library.map((dish) => (
-              <button
-                key={dish.id}
-                type="button"
-                className="dish-picker-tile"
-                onClick={() => onPick(dish)}
-              >
-                <DishAvatar name={dish.name} photo={dish.photo} size={72} />
-                <span className="dish-picker-name">{dish.name}</span>
-              </button>
-            ))}
+            {library.map((dish) => {
+              const tile = pickerTile(dish);
+              return (
+                <button
+                  key={tile.id}
+                  type="button"
+                  className="dish-picker-tile"
+                  onClick={() => onPick(dish)}
+                >
+                  <DishAvatar name={tile.name} photo={tile.photo} size={120} shape="square" />
+                  <span className="dish-picker-body">
+                    <span className="dish-picker-name">{tile.name}</span>
+                    <MacroTotals totals={tile.totals} compact />
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
       </PageContent>

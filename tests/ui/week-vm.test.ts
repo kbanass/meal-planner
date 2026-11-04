@@ -5,9 +5,12 @@ import {
   copyDoneToast,
   copyFailedMessage,
   dayTitle,
+  macroTotals,
   mealRow,
   pickerEmptyMessage,
+  pickerTile,
   removeMealConfirmMessage,
+  swipeWeekDelta,
   weekPage,
 } from '../../src/ui/view-models/week';
 import { dish, meal, owsianka } from '../fakes/dishes';
@@ -116,16 +119,17 @@ describe('weekPage', () => {
     const model = weekPage('2026-11-02', '2026-11-04', '2026-11-05', loaded);
 
     expect(model.heading).toBe('Czwartek, 5 lis');
-    expect(model.summary).toBe('2 posiłki · 875 kcal');
+    expect(model.summary).toBe('2 posiłki');
+    expect(model.dayTotals.map((t) => t.value)).toEqual(['875', '13,5', '7,5', '80']);
     expect(model.slots.map((slot) => slot.number)).toEqual([1, 2, 3, 4, 5]);
     expect(model.slots[1]?.rows.map((row) => row.title)).toEqual(['Owsianka', 'Banan']);
+    expect(model.slots[1]?.totals.map((t) => t.value)).toEqual(['875', '13,5', '7,5', '80']);
+    expect(model.slots[0]?.totals.map((t) => t.value)).toEqual(['0', '0', '0', '0']);
     expect(model.canCopy).toBe(true);
   });
 
   it('words a day with one Meal and an empty day', () => {
-    expect(weekPage('2026-11-02', '2026-11-04', '2026-11-02', loaded).summary).toBe(
-      '1 posiłek · 350 kcal',
-    );
+    expect(weekPage('2026-11-02', '2026-11-04', '2026-11-02', loaded).summary).toBe('1 posiłek');
     expect(weekPage('2026-11-02', '2026-11-04', '2026-11-03', loaded).summary).toBe('brak posiłków');
   });
 
@@ -151,5 +155,39 @@ describe('weekPage', () => {
       settings: undefined,
     });
     expect(model.canCopy).toBe(true);
+  });
+});
+
+describe('macroTotals', () => {
+  it('gives kcal, protein, fat and carbs with icons, labels and display rounding', () => {
+    expect(macroTotals({ kcal: 349.6, protein: 18.75, fat: 11.25, carbs: 82.5 })).toEqual([
+      { key: 'kcal', label: 'Kalorie', value: '350', unit: 'kcal', icon: 'flame_fill' },
+      { key: 'protein', label: 'Białko', value: '18,8', unit: 'g', icon: 'cube_fill' },
+      { key: 'fat', label: 'Tłuszcz', value: '11,3', unit: 'g', icon: 'drop_fill' },
+      { key: 'carbs', label: 'Węglowodany', value: '82,5', unit: 'g', icon: 'hexagon_fill' },
+    ]);
+  });
+});
+
+describe('pickerTile', () => {
+  it('shows one Serving of the Dish', () => {
+    expect(pickerTile(owsianka)).toEqual({
+      id: owsianka.id,
+      name: 'Owsianka',
+      photo: null,
+      totals: macroTotals({ kcal: 350, protein: 12.5, fat: 7.5, carbs: 55 }),
+    });
+  });
+});
+
+describe('swipeWeekDelta', () => {
+  it.each([
+    [-80, 10, 7],
+    [80, -10, -7],
+    [-40, 0, 0],
+    [-80, 70, 0],
+    [0, 0, 0],
+  ])('dx %d, dy %d → %d days', (dx, dy, delta) => {
+    expect(swipeWeekDelta(dx, dy)).toBe(delta);
   });
 });

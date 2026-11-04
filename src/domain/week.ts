@@ -3,13 +3,23 @@ import { mealSource, scaleMeal, isDetached } from './meals';
 import { compareIds } from './names';
 import type { IdGenerator } from './ports';
 import { slotCountForDay } from './slots';
-import type { DaySlots, Dish, DishPhotoRef, IsoDate, Meal, MealSource, Settings } from './types';
+import type {
+  DaySlots,
+  Dish,
+  DishPhotoRef,
+  IsoDate,
+  Macros,
+  Meal,
+  MealSource,
+  Settings,
+} from './types';
 
 export interface DayView {
   date: IsoDate;
   isToday: boolean;
   mealCount: number;
   plannedKcal: number; // unrounded
+  macros: Macros; // Planned, unrounded
 }
 
 export interface MealView {
@@ -25,16 +35,36 @@ export interface MealView {
 export interface SlotView {
   number: number;
   meals: MealView[]; // ordered by position, then id
+  macros: Macros; // Planned for this Slot, unrounded
+}
+
+const NO_MACROS: Macros = { kcal: 0, protein: 0, fat: 0, carbs: 0 };
+
+function mealMacros(meal: Meal, dishesById: ReadonlyMap<string, Dish>): Macros {
+  const source = mealSource(meal, dishesById);
+  return source ? scaleMeal(source, meal.servings).macros : NO_MACROS;
 }
 
 function mealKcal(meal: Meal, dishesById: ReadonlyMap<string, Dish>): number {
-  const source = mealSource(meal, dishesById);
-  return source ? scaleMeal(source, meal.servings).macros.kcal : 0;
+  return mealMacros(meal, dishesById).kcal;
+}
+
+/** Planned Macros of some Meals: sums of unrounded values (FR-023). A missing Dish adds 0. */
+export function plannedMacros(meals: readonly Meal[], dishesById: ReadonlyMap<string, Dish>): Macros {
+  return meals.reduce((sum, meal) => {
+    const m = mealMacros(meal, dishesById);
+    return {
+      kcal: sum.kcal + m.kcal,
+      protein: sum.protein + m.protein,
+      fat: sum.fat + m.fat,
+      carbs: sum.carbs + m.carbs,
+    };
+  }, NO_MACROS);
 }
 
 /** Planned kcal of some Meals: the sum of unrounded values (FR-023). */
 export function plannedKcal(meals: readonly Meal[], dishesById: ReadonlyMap<string, Dish>): number {
-  return meals.reduce((sum, meal) => sum + mealKcal(meal, dishesById), 0);
+  return plannedMacros(meals, dishesById).kcal;
 }
 
 /** The seven day rows of a Week, Monday to Sunday. Meals outside the Week are ignored. */
@@ -46,11 +76,13 @@ export function selectWeekDays(
 ): DayView[] {
   return weekDates(weekStart).map((date) => {
     const mealsOfDay = meals.filter((meal) => meal.date === date);
+    const macros = plannedMacros(mealsOfDay, dishesById);
     return {
       date,
       isToday: date === today,
       mealCount: mealsOfDay.length,
-      plannedKcal: plannedKcal(mealsOfDay, dishesById),
+      plannedKcal: macros.kcal,
+      macros,
     };
   });
 }
@@ -80,10 +112,14 @@ export function selectDay(
     .filter((meal) => meal.date === date)
     .sort((a, b) => a.position - b.position || compareIds(a.id, b.id));
   const count = slotCountForDay(settings.slotsPerDay, mealsOfDay, daySlots);
-  return Array.from({ length: count }, (_, i) => ({
-    number: i + 1,
-    meals: mealsOfDay.filter((meal) => meal.slot === i + 1).map((meal) => mealView(meal, dishesById)),
-  }));
+  return Array.from({ length: count }, (_, i) => {
+    const inSlot = mealsOfDay.filter((meal) => meal.slot === i + 1);
+    return {
+      number: i + 1,
+      meals: inSlot.map((meal) => mealView(meal, dishesById)),
+      macros: plannedMacros(inSlot, dishesById),
+    };
+  });
 }
 
 /** A Week has a plan when it holds any Meal or any Added Slots (research R4). */

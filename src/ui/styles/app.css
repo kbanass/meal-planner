@@ -7,7 +7,8 @@ html {
 @media (min-width: 1024px) {
   /* A centred app column instead of filling the whole window. */
   body {
-    background: var(--f7-page-bg-color);
+    /* The warm page colour (FR-043); the app tokens are set inside .framework7-root. */
+    background: #f5f1ec;
   }
   .views.tabs {
     max-width: 960px;
@@ -41,12 +42,6 @@ html {
   }
   .page-wide-grid {
     max-width: none;
-  }
-  /* The Week page's large title lines up with its 640 px column of cards. */
-  #view-week .title-large-text {
-    max-width: 640px;
-    margin-left: auto;
-    margin-right: auto;
   }
 
   .card-grid > ul {
@@ -176,39 +171,51 @@ html {
   color: var(--f7-input-error-text-color, #ff3b30);
 }
 
-/* Dish picker: a horizontal strip of tiles (research R11). Framework7 has no horizontal
-   list, so this is the one custom layout. */
+/* Dish picker: a horizontal strip of small cards (research R11, FR-045). Framework7 has no
+   horizontal list, so this is custom layout. */
 .dish-picker-strip {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  padding: 16px 16px calc(16px + var(--f7-safe-area-bottom, 0px));
+  padding: 12px 16px calc(16px + var(--f7-safe-area-bottom, 0px));
   -webkit-overflow-scrolling: touch;
 }
 .dish-picker-tile {
   flex: none;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  width: 88px;
+  width: 132px;
   padding: 0;
+  overflow: hidden;
   border: 0;
-  background: none;
-  color: inherit;
+  border-radius: 18px;
+  background: var(--planner-card-bg);
+  box-shadow: var(--planner-card-shadow);
+  color: var(--planner-text);
   font: inherit;
+  text-align: left;
   scroll-snap-align: start;
   cursor: pointer;
+}
+.dish-picker-tile .dish-avatar {
+  width: 100% !important;
+  height: 96px !important;
+}
+.dish-picker-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px 10px;
 }
 .dish-picker-name {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 700;
   line-height: 1.25;
-  text-align: center;
 }
 
 /* The Meal sheet holds a whole form, so it is taller than Framework7's default 260 px. */
@@ -216,26 +223,28 @@ html {
   --f7-sheet-height: 85%;
 }
 
-/* Week page redesign (spec Revisions 2026-11-04, contracts/ui.md "Look"). A warm page, white
-   rounded cards and the app's green accent, scoped to the Tydzień tab. */
-#view-week {
+/* The app's look (FR-043, contracts/ui.md "Look"): a warm page, white rounded cards and the
+   app's green, on every tab. Framework7's own theme colour comes from <App colors>. */
+.framework7-root {
   --planner-accent: #2f6f4f;
   --planner-accent-soft: rgba(47, 111, 79, 0.12);
   --planner-page-bg: #f5f1ec;
   --planner-card-bg: #ffffff;
   --planner-card-radius: 24px;
   --planner-card-shadow: 0 8px 24px rgba(60, 30, 20, 0.08);
-  --planner-muted: #8e8a86;
+  --planner-muted: #7a746e;
   --planner-text: #1c1a19;
-  --f7-theme-color: var(--planner-accent);
-  --f7-theme-color-rgb: 47, 111, 79;
   --f7-page-bg-color: var(--planner-page-bg);
   --f7-navbar-bg-color: var(--planner-page-bg);
   --f7-bars-bg-color: var(--planner-page-bg);
   --f7-navbar-large-collapsed-bg-color: var(--planner-page-bg);
+  /* Outlined inputs: #7a746e on white is about 4.6:1, well above the 3:1 needed for controls. */
+  --f7-input-outline-border-color: #7a746e;
 }
+
+/* No page title: the Week card starts below the status bar (FR-005). */
 .week-content {
-  padding: 8px 16px calc(32px + var(--f7-safe-area-bottom, 0px));
+  padding: calc(16px + var(--f7-safe-area-top, 0px)) 16px calc(32px + var(--f7-safe-area-bottom, 0px));
   color: var(--planner-text);
 }
 
@@ -262,6 +271,43 @@ html {
   display: flex;
   flex: none;
   gap: 10px;
+}
+/* Phones swipe the Week card, so the buttons are hidden but kept for screen readers. */
+@media (max-width: 1023px) {
+  .week-card-nav {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
+.week-card {
+  touch-action: pan-y;
+}
+.week-slide-next {
+  animation: week-slide-from-right 220ms ease-out;
+}
+.week-slide-previous {
+  animation: week-slide-from-left 220ms ease-out;
+}
+@keyframes week-slide-from-right {
+  from {
+    opacity: 0.3;
+    transform: translateX(24px);
+  }
+}
+@keyframes week-slide-from-left {
+  from {
+    opacity: 0.3;
+    transform: translateX(-24px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .week-slide-next,
+  .week-slide-previous {
+    animation: none;
+  }
 }
 .round-button {
   display: flex;
@@ -374,112 +420,204 @@ html {
   color: var(--planner-muted);
 }
 
-.slot {
-  margin-top: 14px;
+/* The selected day's totals under the strip (FR-004). Bars come with the Goals feature. */
+.week-card-totals {
+  margin: 12px 4px 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(122, 116, 110, 0.18);
 }
-.slot-label {
-  margin: 0 4px 6px;
-  font-size: 13px;
-  font-weight: 600;
+.macro-totals {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.macro-total {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.macro-total .icon {
+  flex: none;
+  font-size: 17px;
+}
+.macro-total-unit {
+  font-weight: 400;
+  font-size: 12px;
   color: var(--planner-muted);
 }
-
-/* A Meal: square photo filling the left side, text on the right (FR-042). */
-.meal-card {
-  position: relative;
+.macro-total-kcal .icon {
+  color: #c8553d;
+}
+.macro-total-protein .icon {
+  color: var(--planner-accent);
+}
+.macro-total-fat .icon {
+  color: #d9a036;
+}
+.macro-total-carbs .icon {
+  color: #7a6fb3;
+}
+.macro-totals-compact {
   display: flex;
-  width: 100%;
-  margin-bottom: 10px;
-  padding: 0;
-  overflow: hidden;
-  border: 0;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+.macro-totals-compact .macro-total {
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.macro-totals-compact .macro-total .icon {
+  font-size: 12px;
+}
+.macro-totals-compact .macro-total-unit {
+  font-size: 11px;
+}
+
+/* A Slot: one card with its number, totals and Meals (FR-044). */
+.slot-card {
+  margin-top: 14px;
+  padding: 12px;
   border-radius: var(--planner-card-radius);
   background: var(--planner-card-bg);
   box-shadow: var(--planner-card-shadow);
+}
+.slot-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 4px 8px;
+}
+.slot-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--planner-accent-soft);
+  color: var(--planner-accent);
+  font-size: 14px;
+  font-weight: 700;
+}
+.slot-card-header .macro-totals-compact {
+  justify-content: flex-end;
+}
+
+/* A Meal inside its Slot card: photo on the left, text on the right (FR-042). */
+.meal-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 36px 8px 4px;
+  border: 0;
+  border-top: 1px solid rgba(122, 116, 110, 0.14);
+  background: none;
   color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
-.meal-card-body {
+.meal-row .dish-avatar {
+  border-radius: 16px;
+  font-size: 22px !important;
+}
+.meal-row-body {
   display: flex;
   flex: 1;
   flex-direction: column;
-  justify-content: center;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
-  padding: 12px 44px 12px 16px;
 }
-.meal-card-title {
+.meal-row-title {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.25;
 }
-.meal-card-subtitle {
+.meal-row-subtitle {
   font-size: 14px;
   color: var(--planner-muted);
 }
-.meal-card-chip {
+.meal-row-chip {
   align-self: flex-start;
-  margin-top: 2px;
-  padding: 3px 10px;
+  padding: 2px 9px;
   border-radius: 999px;
   background: var(--planner-accent-soft);
   color: var(--planner-accent);
   font-size: 12px;
   font-weight: 600;
 }
-.meal-card-edit {
+.meal-row-edit {
   position: absolute;
-  top: 12px;
-  right: 14px;
-  font-size: 20px;
-  color: var(--planner-text);
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: var(--planner-muted);
 }
 
-/* Adding: a dashed card for an empty Slot or "dodaj kolejny", a small link under Meals. */
-.slot-add-card {
+.slot-add {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
-  min-height: 56px;
-  margin-bottom: 10px;
-  border: 1.5px dashed rgba(142, 138, 134, 0.6);
-  border-radius: var(--planner-card-radius);
+  margin-top: 4px;
+  padding: 10px 4px 4px;
+  border: 0;
+  border-top: 1px solid rgba(122, 116, 110, 0.14);
   background: none;
-  color: var(--planner-muted);
+  color: var(--planner-accent);
   font: inherit;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
 }
-.slot-add-card .icon,
-.slot-add-link .icon {
+.slot-add .icon {
   font-size: 18px;
 }
-.slot > .slot-add-card {
-  margin-bottom: 0;
+.slot-add-empty {
+  justify-content: center;
+  margin-top: 0;
+  padding: 14px;
+  border: 1.5px dashed rgba(47, 111, 79, 0.45);
+  border-radius: 16px;
 }
-.week-content > .slot-add-card {
-  margin-top: 20px;
+
+/* "dodaj kolejny" is set apart from the Slot cards (FR-044). */
+.add-slot-area {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px dashed rgba(122, 116, 110, 0.35);
 }
-.slot-add-link {
+.add-slot-button {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin: 0 4px;
-  padding: 2px 0;
+  gap: 8px;
+  width: auto;
+  padding: 12px 22px;
   border: 0;
-  background: none;
+  border-radius: 999px;
+  background: var(--planner-accent-soft);
   color: var(--planner-accent);
   font: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
+}
+.add-slot-button .icon {
+  font-size: 20px;
 }
