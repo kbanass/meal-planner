@@ -159,6 +159,25 @@ describe('planWeekCopy', () => {
     expect(original.detached?.macros.kcal).toBe(700);
   });
 
+  it('hands out new ids by date, Slot, position, then id', () => {
+    const meals = [
+      meal({ id: 'm-d', date: '2026-12-01', slot: 2, position: 0 }),
+      meal({ id: 'm-c', date: '2026-12-01', slot: 1, position: 1 }),
+      meal({ id: 'm-b', date: '2026-12-01', slot: 1, position: 0 }),
+      meal({ id: 'm-a2', date: '2026-12-01', slot: 1, position: 0 }),
+    ];
+    const plan = planWeekCopy('2026-11-30', meals, [], new FixedIdGenerator());
+
+    // m-a2 and m-b tie on Slot and position, so the id decides.
+    expect(plan.meals.map((m) => [m.slot, m.position, m.id.slice(-1)])).toEqual([
+      [1, 0, '1'],
+      [1, 0, '2'],
+      [1, 1, '3'],
+      [2, 0, '4'],
+    ]);
+    expect(plan.meals.map((m) => m.servings)).toEqual([1, 1, 1, 1]);
+  });
+
   it('ignores records outside the source Week', () => {
     const plan = planWeekCopy(
       '2026-11-30',
