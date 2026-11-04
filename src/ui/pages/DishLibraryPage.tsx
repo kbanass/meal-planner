@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Block, Link, List, ListItem, Navbar, NavRight, Page } from 'framework7-react';
+import { Block, Link, List, ListItem, Navbar, NavLeft, NavRight, Page } from 'framework7-react';
 import { selectLibrary } from '../../domain/dishes';
 import { DishAvatar } from '../components/DishAvatar';
 import { useDeps } from '../hooks/useDeps';
@@ -14,6 +14,9 @@ export function DishLibraryPage() {
   return (
     <Page>
       <Navbar title="Dania">
+        <NavLeft>
+          <Link href="/products/">Produkty</Link>
+        </NavLeft>
         <NavRight>
           <Link href="/dishes/new/" iconF7="plus" iconOnly aria-label="Dodaj danie" />
         </NavRight>

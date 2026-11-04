@@ -1,6 +1,13 @@
 import { nameKey, normalizeName } from '../domain/names';
 import type { IdGenerator } from '../domain/ports';
-import { validateProductName } from '../domain/products';
+import {
+  canMerge,
+  countProductUsage,
+  findNameConflict,
+  mergeIngredients,
+  productActions,
+  validateProductName,
+} from '../domain/products';
 import type { Product, Unit } from '../domain/types';
 import type { PlannerDb, StoredProduct } from './db';
 
@@ -9,9 +16,23 @@ export type CreateProductResult =
   | { kind: 'exists'; product: Product }
   | { kind: 'invalid' };
 
+export type RenameProductResult =
+  | { kind: 'renamed' }
+  | { kind: 'invalid' }
+  | { kind: 'conflict'; existing: Product; mergeAllowed: boolean };
+
+export type MergeProductsResult =
+  | { kind: 'merged'; dishesUpdated: number }
+  | { kind: 'unitMismatch' }
+  | { kind: 'sameProduct' };
+
 export interface ProductRepository {
   list(): Promise<Product[]>;
   createFromName(name: string, unit: Unit): Promise<CreateProductResult>;
+  rename(id: string, newName: string): Promise<RenameProductResult>;
+  changeUnit(id: string, unit: Unit): Promise<{ kind: 'changed' } | { kind: 'inUse'; usage: number }>;
+  delete(id: string): Promise<{ kind: 'deleted' } | { kind: 'inUse'; usage: number }>;
+  merge(fromId: string, intoId: string): Promise<MergeProductsResult>;
 }
 
 function toProduct({ id, name, unit }: StoredProduct): Product {
@@ -24,6 +45,23 @@ function isConstraintError(error: unknown): boolean {
 
 export function createProductRepository(db: PlannerDb, ids: IdGenerator): ProductRepository {
   const findByKey = (key: string) => db.products.where('nameKey').equals(key).first();
+
+  async function getProduct(id: string): Promise<Product> {
+    const stored = await db.products.get(id);
+    if (!stored) throw new Error(`Product ${id} does not exist.`);
+    return toProduct(stored);
+  }
+
+  /** Usage read inside the caller's transaction, so the check and the write cannot race. */
+  async function usageOf(id: string): Promise<number> {
+    // TODO(week-planning): pass Detached Meal Ingredient lists instead of [] once Meals
+    // exist (specs/001-shell-products-dishes/research.md R13).
+    return countProductUsage(await db.dishes.toArray(), []).get(id) ?? 0;
+  }
+
+  function conflictWith(self: Product, existing: Product): RenameProductResult {
+    return { kind: 'conflict', existing, mergeAllowed: canMerge(self, existing) };
+  }
 
   return {
     async list() {
@@ -47,6 +85,59 @@ export function createProductRepository(db: PlannerDb, ids: IdGenerator): Produc
         if (existing) return { kind: 'exists', product: toProduct(existing) };
         throw error;
       }
+    },
+
+    async rename(id, newName) {
+      if (validateProductName(newName) !== null) return { kind: 'invalid' };
+      try {
+        return await db.transaction('rw', db.products, async (): Promise<RenameProductResult> => {
+          const products = (await db.products.toArray()).map(toProduct);
+          const self = await getProduct(id);
+          const existing = findNameConflict(products, newName, id);
+          if (existing) return conflictWith(self, existing);
+          await db.products.update(id, { name: normalizeName(newName), nameKey: nameKey(newName) });
+          return { kind: 'renamed' };
+        });
+      } catch (error) {
+        const existing = isConstraintError(error) ? await findByKey(nameKey(newName)) : undefined;
+        if (existing) return conflictWith(await getProduct(id), toProduct(existing));
+        throw error;
+      }
+    },
+
+    changeUnit(id, unit) {
+      return db.transaction('rw', db.products, db.dishes, async () => {
+        const usage = await usageOf(id);
+        if (!productActions(usage).canChangeUnit) return { kind: 'inUse', usage } as const;
+        await db.products.update(id, { unit });
+        return { kind: 'changed' } as const;
+      });
+    },
+
+    delete(id) {
+      return db.transaction('rw', db.products, db.dishes, async () => {
+        const usage = await usageOf(id);
+        if (!productActions(usage).canDelete) return { kind: 'inUse', usage } as const;
+        await db.products.delete(id);
+        return { kind: 'deleted' } as const;
+      });
+    },
+
+    async merge(fromId, intoId) {
+      if (fromId === intoId) return { kind: 'sameProduct' };
+      return db.transaction('rw', db.products, db.dishes, async (): Promise<MergeProductsResult> => {
+        const [from, into] = [await getProduct(fromId), await getProduct(intoId)];
+        // Rechecked here: the units may have changed since the UI offered the merge.
+        if (!canMerge(from, into)) return { kind: 'unitMismatch' };
+        const affected = (await db.dishes.toArray()).filter((dish) =>
+          dish.ingredients.some((ingredient) => ingredient.productId === fromId),
+        );
+        for (const dish of affected) {
+          await db.dishes.put({ ...dish, ingredients: mergeIngredients(dish.ingredients, fromId, intoId) });
+        }
+        await db.products.delete(fromId);
+        return { kind: 'merged', dishesUpdated: affected.length };
+      });
     },
   };
 }

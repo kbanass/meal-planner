@@ -352,7 +352,7 @@ description: "Task list for App Shell, Products and Dishes"
 
 ### Tests for User Story 3
 
-- [ ] T063 [P] [US3] Write `tests/domain/products-maintenance.test.ts` before the implementation:
+- [X] T063 [P] [US3] Write `tests/domain/products-maintenance.test.ts` before the implementation:
   - `countProductUsage`:
     - two Dishes using the same Product → 2
     - archived Dishes count
@@ -368,7 +368,7 @@ description: "Task list for App Shell, Products and Dishes"
     - the input array and objects are not mutated
     - `0.1 + 0.2` sums to `0.3`
   - `selectProductRows` sorts by `compareNames` and attaches the usage, defaulting to 0
-- [ ] T064 [P] [US3] Write `tests/data/product-repository-maintenance.test.ts` before the implementation:
+- [X] T064 [P] [US3] Write `tests/data/product-repository-maintenance.test.ts` before the implementation:
   - **Merge**: in spec US3-1 with three Dishes, a merge returns `{ kind: 'merged', dishesUpdated: 3 }`, "pomidory" is gone, and usage of "pomidor" = 3. In US3-2, summed to 300.
   - **Merge refusals**: different units → `unitMismatch`; same id → `sameProduct`.
   - **Rename**:
@@ -379,7 +379,7 @@ description: "Task list for App Shell, Products and Dishes"
     - `"  "` → `invalid`
   - **Used Products**: `delete` and `changeUnit` on a Product used only by an archived Dish → `inUse` with `usage: 1`.
   - **Unused Products**: `delete` and `changeUnit` on unused Products → `deleted` / `changed`.
-- [ ] T065 [P] [US3] Write `tests/ui/products-vm.test.ts` before the implementation:
+- [X] T065 [P] [US3] Write `tests/ui/products-vm.test.ts` before the implementation:
   - `dishCountPhrase(1) === "1 daniu"`, `(2) === "2 daniach"`, `(5) === "5 daniach"`, `(22) === "22 daniach"`
   - `deleteHint(3) === "Produkt jest używany w 3 daniach – nie można go usunąć."`
   - `unitHint(1) === "Produkt jest używany w 1 daniu – jednostki nie można zmienić."`
@@ -388,15 +388,15 @@ description: "Task list for App Shell, Products and Dishes"
 
 ### Implementation for User Story 3
 
-- [ ] T066 [US3] Add `countProductUsage(dishes, detachedMealIngredientLists)`, `productActions(usage)`, `canMerge(from, into)`, `mergeIngredients(list, fromId, intoId)` and `selectProductRows(products, usage)` to `src/domain/products.ts`, per [contracts/domain-api.md](contracts/domain-api.md) and the "Derived values" table in [data-model.md](data-model.md). Merge rule, quoted: "replace `fromId` with `intoId`. If both are present, one Ingredient at the position of the first, amount = `roundTo2(a + b)`". Make T063 pass.
-- [ ] T067 [US3] Add `rename`, `changeUnit`, `delete` and `merge` to `src/data/product-repository.ts`, per [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md):
+- [X] T066 [US3] Add `countProductUsage(dishes, detachedMealIngredientLists)`, `productActions(usage)`, `canMerge(from, into)`, `mergeIngredients(list, fromId, intoId)` and `selectProductRows(products, usage)` to `src/domain/products.ts`, per [contracts/domain-api.md](contracts/domain-api.md) and the "Derived values" table in [data-model.md](data-model.md). Merge rule, quoted: "replace `fromId` with `intoId`. If both are present, one Ingredient at the position of the first, amount = `roundTo2(a + b)`". Make T063 pass.
+- [X] T067 [US3] Add `rename`, `changeUnit`, `delete` and `merge` to `src/data/product-repository.ts`, per [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md):
   - Each runs in `db.transaction('rw', db.products, db.dishes, …)`.
   - Usage is recomputed inside the transaction with `countProductUsage(await db.dishes.toArray(), [])`. The `[]` stands for Detached Meals, which do not exist yet (research R13); add a `// TODO(week-planning)` comment pointing to R13.
   - `rename` uses `findNameConflict`, and the unique-index `ConstraintError` maps to `conflict`.
   - `merge` rewrites every Dish containing `fromId` with `mergeIngredients`, then deletes `fromId`.
   - Make T064 pass.
-- [ ] T068 [P] [US3] Create `src/ui/view-models/products.ts` with `dishCountPhrase(n)` (Polish locative: "1 daniu", otherwise "N daniach"), `usageLabel(n)`, `deleteHint(n)`, `unitHint(n)`, `mergeHint(hasCandidates)` and `renameConflictMessage(name)` ("Produkt „{name}” już istnieje."). Make T065 pass.
-- [ ] T069 [US3] Create `src/ui/pages/ProductsPage.tsx`:
+- [X] T068 [P] [US3] Create `src/ui/view-models/products.ts` with `dishCountPhrase(n)` (Polish locative: "1 daniu", otherwise "N daniach"), `usageLabel(n)`, `deleteHint(n)`, `unitHint(n)`, `mergeHint(hasCandidates)` and `renameConflictMessage(name)` ("Produkt „{name}” już istnieje."). Make T065 pass.
+- [X] T069 [US3] Create `src/ui/pages/ProductsPage.tsx`:
   - Navbar "Produkty" with a back link. The list is `selectProductRows(products, countProductUsage(dishes, []))`, each row showing the name, `unitLabel(unit)` and `usageLabel(usage)`, wrapped in `.page-wide`.
   - Tapping a row opens a Framework7 `Actions` sheet with:
     - "Zmień nazwę": `f7.dialog.prompt` prefilled with the name, with Framework7's default buttons. On `conflict`:
@@ -406,8 +406,8 @@ description: "Task list for App Shell, Products and Dishes"
     - "Scal z innym produktem…": disabled with `mergeHint` when there are no same-unit candidates. Otherwise a picker of same-unit Products, then `f7.dialog.confirm` with "Scalić „{from}” z „{into}”? Wszystkie dania będą używać „{into}”." and Framework7's default buttons.
     - "Usuń": disabled with `deleteHint` when used. Otherwise `f7.dialog.confirm` with "Usunąć produkt „{name}”?" and Framework7's default buttons.
   - Disabled actions show their hint text below the label.
-- [ ] T070 [US3] Add the route `/products/` → `ProductsPage` to `dishesRoutes` in `src/ui/routes.ts`, and a "Produkty" navbar link (left side) to `/products/` in `src/ui/pages/DishLibraryPage.tsx` (FR-004).
-- [ ] T071 [P] [US3] Write `tests/ui/products-page.test.tsx`: with a seeded Product used by one Dish, opening its actions shows "Usuń" and "Zmień jednostkę" disabled, with "Produkt jest używany w 1 daniu – nie można go usunąć." visible.
+- [X] T070 [US3] Add the route `/products/` → `ProductsPage` to `dishesRoutes` in `src/ui/routes.ts`, and a "Produkty" navbar link (left side) to `/products/` in `src/ui/pages/DishLibraryPage.tsx` (FR-004).
+- [X] T071 [P] [US3] Write `tests/ui/products-page.test.tsx`: with a seeded Product used by one Dish, opening its actions shows "Usuń" and "Zmień jednostkę" disabled, with "Produkt jest używany w 1 daniu – nie można go usunąć." visible.
 
 **Checkpoint**: US3 works. Quickstart rows 7–8 pass.
 

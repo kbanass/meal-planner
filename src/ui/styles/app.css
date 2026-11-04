@@ -118,3 +118,19 @@
   font-size: 11px;
   text-overflow: clip;
 }
+
+/* Why a Produkty action is unavailable, shown under its label. */
+.actions-hint {
+  display: block;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--f7-list-item-footer-text-color, #8e8e93);
+  white-space: normal;
+}
+.actions-button.disabled {
+  height: auto;
+  min-height: var(--f7-actions-button-height);
+  padding-top: 8px;
+  padding-bottom: 8px;
+  flex-direction: column;
+}
