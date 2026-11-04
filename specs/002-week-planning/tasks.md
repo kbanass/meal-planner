@@ -1,0 +1,653 @@
+---
+description: "Task list for Week Planning"
+---
+
+# Tasks: Week Planning
+
+**Input**: Design documents from `specs/002-week-planning/`
+
+**Prerequisites**: [plan.md](plan.md), [spec.md](spec.md), [research.md](research.md), [data-model.md](data-model.md), [contracts/](contracts/), [quickstart.md](quickstart.md)
+
+**Tests**: Required. Constitution Principle IV requires domain tests in every feature's `tasks.md`, written together with or before the implementation, plus a 100% coverage gate on `src/domain/**`. Repository and use-case tests use `fake-indexeddb`. Component tests cover only key interactions (research R13).
+
+**Organization**: One phase per user story, in priority order: US1, US2 (P1), then US3, US4 (P2), then US5, US6 (P3). The feature 001 handoff is in Phase 2, because once Meals can be created, deleting a Dish or a Product must already see them.
+
+## Format: `[ID] [P?] [Story] Description`
+
+- **[P]**: Can run in parallel (different files, no dependency on an unfinished task)
+- **[Story]**: Which user story the task belongs to (US1–US6 from spec.md)
+
+## Conventions for every task
+
+- **Language**:
+  - Code, identifiers and comments are in English.
+  - Every user-facing string we write is Polish and inline, with exact strings from [contracts/ui.md](contracts/ui.md).
+  - Framework7's own default labels ("OK", "Cancel", "Back") stay as shipped (plan.md, Complexity Tracking).
+- **Domain terms** follow [GLOSSARY.md](../../GLOSSARY.md): Week, Slot, Meal, Linked Meal, Detached Meal, Servings, Macros, Planned.
+  - Never use Entry, Plan item, Multiplier, Quantity or Portions count as identifiers.
+  - Never call Slots raised with "dodaj kolejny" "extra": they are `daySlots` / `slotCount` (research R4).
+- **Domain boundary**: `src/domain/**` imports only from `src/domain/**`. It uses no `Date.now`, no argument-less `new Date`, no `Math.random`, no `crypto` and no DOM globals. `src/domain/dates.ts` uses no `Date` at all (research R1).
+- **Thin components**: Components render selector or view-model output and call use cases. They compute no derived values inline.
+- **Tests**: Vitest, no network, no real timers, fixed fixtures (`FixedIdGenerator`, `FixedClock`), no dependence on test order.
+- **Framework7 structure**: Mirror Framework7 9's documented patterns (research R11). Check every new screen at 375 pt with an iOS user agent as well as at desktop width.
+- **Commits**: Commit after each task group, with tests passing (Conventional Commits, e.g. `feat(week): …`, `test(domain): …`).
+
+---
+
+## Phase 1: Setup
+
+**Purpose**: Confirm the starting point. This feature adds no dependencies or tooling.
+
+- [ ] T001 On branch `002-week-planning`, run `npm run lint`, `npm run typecheck`, `npm test` and `npm run coverage`, and confirm everything passes before any change. If anything fails, stop and report it, because it predates this feature.
+
+---
+
+## Phase 2: Foundational (Blocking Prerequisites)
+
+**Purpose**: Dates, display numbers, settings and Slot rules, the Meal storage and ports, and the feature 001 handoff. Every story uses these.
+
+**⚠️ CRITICAL**: No user story work can begin until this phase is complete.
+
+### Domain tests (write first, they must fail)
+
+- [ ] T002 [P] Write `tests/domain/dates.test.ts` per [contracts/domain-api.md](contracts/domain-api.md) "dates":
+  - `weekStartOf`: `'2026-11-04'` → `'2026-11-02'`, `'2026-11-08'` → `'2026-11-02'`, `'2026-11-02'` → `'2026-11-02'`.
+  - `weekDates('2026-03-30')` and `weekDates('2026-10-19')` and `weekDates('2026-10-26')` each have 7 consecutive dates, Mon → Sun.
+  - `addDays('2024-02-28', 1) === '2024-02-29'`, `addDays('2024-02-29', 1) === '2024-03-01'`, `addDays('2026-12-28', 6) === '2027-01-03'`, `addDays('2026-11-09', -7) === '2026-11-02'`.
+  - `toDayNumber('1970-01-01') === 0`, `toDayNumber('1969-12-31') === -1`, and `fromDayNumber(toDayNumber(d)) === d` for every day from `'2023-01-01'` to `'2028-12-31'`.
+  - `weekdayIndex('2026-11-02') === 0` and `weekdayIndex('2026-11-08') === 6`.
+  - `isIsoDate` accepts `'2026-11-04'` and `'2024-02-29'`, and rejects `'2026-02-30'`, `'2025-02-29'`, `'2026-13-01'`, `'2026-1-5'`, `''` and `42`.
+  - `dayLabel('2026-11-05')` → `{ dayName: 'Czwartek', dateText: '5 lis' }`.
+  - `weekRangeLabel`: `'2026-11-02'` → `"2–8 lis 2026"` (en dash, no spaces), `'2026-11-30'` → `"30 lis – 6 gru 2026"` (spaced en dash), `'2026-12-28'` → `"28 gru 2026 – 3 sty 2027"`.
+  - `DAY_NAMES` and `MONTH_ABBREVIATIONS` equal the arrays in the contract.
+- [ ] T003 [P] Extend `tests/domain/numbers.test.ts`:
+  - `roundTo(18.75, 1) === 18.8`, `roundTo(11.25, 1) === 11.3`, `roundTo(-1.25, 1) === -1.3`, `roundTo(349.5, 0) === 350`, and `roundTo(x, 2) === roundTo2(x)` for the existing `roundTo2` cases.
+  - `formatDecimal(18.75, 1) === "18,8"`, `formatDecimal(55, 1) === "55"`, and every existing `formatDecimal` case still passes without `places`.
+- [ ] T004 [P] Create `tests/domain/nutrition.test.ts`:
+  - `formatKcal`: 350 → "350", 349.5 → "350", 99.999 → "100".
+  - `formatMacro`: 12.5 → "12,5", 18.75 → "18,8", 11.25 → "11,3", 55 → "55", 0 → "0".
+  - `formatServings`: 1 → "1", 1.5 → "1,5", 0.25 → "0,25".
+- [ ] T005 [P] Extend `tests/domain/units.test.ts`: `formatAmount(0.5, 'pcs') === "0,5"`, `formatAmount(1/3, 'pcs') === "0,33"`, `formatAmount(74.6, 'g') === "75"`, `formatAmount(150, 'ml') === "150"`, `formatAmount(1500, 'g') === "1500"`. This feature does not convert to kg or l; the Shopping List feature does.
+- [ ] T006 [P] Create `tests/domain/settings.test.ts`:
+  - `readSettings(undefined)`, `readSettings(null)` and `readSettings({})` → `{ slotsPerDay: 4 }`.
+  - `readSettings({ slotsPerDay: 1 })` and `({ slotsPerDay: 10 })` keep the value.
+  - `slotsPerDay` 0, 11, 2.5, `'4'`, `NaN` and `null` fall back to 4.
+  - `isValidSlotsPerDay` agrees with those cases.
+- [ ] T007 [P] Create `tests/domain/slots.test.ts`:
+  - `slotCountForDay(4, [], undefined) === 4`.
+  - A Meal in Slot 6 → 6.
+  - `{ slotCount: 5 }` with a default of 3 → 5, and with a default of 6 → 6.
+  - Meals in Slots 2 and 7 plus `{ slotCount: 5 }` with a default of 4 → 7.
+  - `nextSlotCount(4) === 5`.
+  - `nextPosition([]) === 0`, and with positions 0 and 3 → 4.
+- [ ] T008 [P] Extend `tests/domain/products-maintenance.test.ts` with `productUsageBreakdown`:
+  - A Product in one active Dish, one archived Dish and two Detached Meal lists → `{ dishes: 2, meals: 2 }`.
+  - A Product in no list is absent from the map.
+  - `countProductUsage` returns the sum (4), and every existing `countProductUsage` test still passes.
+
+### Domain implementation
+
+- [ ] T009 Extend `src/domain/types.ts` with the types from [data-model.md](data-model.md), copied exactly with their comments:
+  - `IsoDate = string`: "A local calendar date, 'YYYY-MM-DD'. Never a Date object".
+  - `MealSource = Pick<Dish, 'name' | 'servingsYield' | 'ingredients' | 'macros'>`.
+  - `Meal { id; date; slot; position; dishId; servings; detached }`, where:
+    - `slot` is "1, 2, 3…"
+    - `position` is "order within (date, slot), 0-based, ascending = order added"
+    - `dishId` is "kept when detached"
+    - `servings` is "> 0, rounded to 2 decimals, default 1"
+    - `detached: MealSource | null` is "null = Linked Meal; otherwise whole-recipe values"
+  - `DaySlots { date; slotCount }`, where `slotCount` is "≥ 1, whole number".
+  - `Settings { slotsPerDay }`, where `slotsPerDay` is "whole number, 1–10, default 4".
+- [ ] T010 [P] Implement `src/domain/dates.ts`, making T002 pass:
+  - Integer days-from-civil / civil-from-days (research R1), with no `Date` use.
+  - `weekdayIndex = ((dayNumber + 3) % 7 + 7) % 7`.
+  - `DAY_NAMES = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela']`.
+  - `MONTH_ABBREVIATIONS = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru']`.
+  - `weekRangeLabel` formats:
+    - same month: `"{d1}–{d2} {mon} {yyyy}"`
+    - different month, same year: `"{d1} {mon1} – {d2} {mon2} {yyyy}"`
+    - different years: `"{d1} {mon1} {yyyy1} – {d2} {mon2} {yyyy2}"`
+- [ ] T011 [P] In `src/domain/numbers.ts`, add `roundTo(value, places)`, rounding half away from zero with the same `Number.EPSILON` approach. Make `roundTo2(v)` return `roundTo(v, 2)`, and give `formatDecimal` an optional `places = 2`. This makes T003 pass.
+- [ ] T012 [P] Create `src/domain/nutrition.ts` with `formatKcal` (`formatDecimal(v, 0)`), `formatMacro` (`formatDecimal(v, 1)`) and `formatServings` (`formatDecimal(v, 2)`), making T004 pass.
+- [ ] T013 [P] Add `formatAmount(amount, unit)` to `src/domain/units.ts`: `formatDecimal(amount, unit === 'pcs' ? 2 : 0)`. This makes T005 pass.
+- [ ] T014 [P] Create `src/domain/settings.ts` with `DEFAULT_SETTINGS = { slotsPerDay: 4 }`, `SLOTS_PER_DAY = { min: 1, max: 10 } as const`, `isValidSlotsPerDay(value: unknown)` (`Number.isInteger`, in range) and `readSettings(stored: unknown): Settings`, making T006 pass.
+- [ ] T015 [P] Create `src/domain/slots.ts` with `slotCountForDay`, `nextSlotCount` and `nextPosition` per [contracts/domain-api.md](contracts/domain-api.md), making T007 pass. The formula is `max(slotsPerDay, highest meal.slot, daySlots?.slotCount ?? 0)` (FR-009).
+- [ ] T016 [P] Add `productUsageBreakdown(dishes, detachedMealIngredientLists)` to `src/domain/products.ts`, returning `ReadonlyMap<string, { dishes: number; meals: number }>`. Each Dish counts once per Product, archived included, and each Detached Meal list counts once per Product. Reimplement `countProductUsage` as the sum. This makes T008 pass.
+- [ ] T017 [P] Add `interface Clock { today(): IsoDate }` to `src/domain/ports.ts`. Create `src/adapters/system-clock.ts`, exporting `systemClock: Clock`, which builds the `IsoDate` from `new Date()` local `getFullYear()`, `getMonth() + 1` and `getDate()`, zero-padded. Create `tests/fakes/fixed-clock.ts`: a `FixedClock` class with `constructor(today: IsoDate)`, `today()` and `set(date)` for tests that move the day.
+
+### Storage, repositories and wiring
+
+- [ ] T018 Add `db.version(2).stores({ meals: 'id, date, dishId', daySlots: 'date', settings: 'id' })` to `src/data/db.ts`, keeping `version(1)` unchanged. Declare the tables:
+  - `meals: Table<Meal, string>`
+  - `daySlots: Table<DaySlots, string>`
+  - `settings: Table<Settings & { id: 'app' }, string>`
+
+  No upgrade function (data-model.md).
+- [ ] T019 [P] Write `tests/data/week-repository.test.ts` (on `createTestDb()` and `FixedIdGenerator`) for the core members:
+  - `listMeals({ start: '2026-11-02', end: '2026-11-08' })` returns Meals dated `2026-11-02` and `2026-11-08`, but not `2026-11-01` or `2026-11-09`. `listDaySlots` behaves the same way.
+  - Three `addMeal({ date, slot: 2, dishId })` calls on the same date and Slot get positions 0, 1 and 2. A Meal in another Slot starts at 0.
+  - `addMeal` returns `servings: 1` and `detached: null`.
+  - `putMeal` replaces the record, `getMeal` reads it back, and `removeMeal` deletes it.
+- [ ] T020 [P] Write `tests/data/settings-repository.test.ts` for `get()`: an empty db → `{ slotsPerDay: 4 }`. A stored record `{ id: 'app', slotsPerDay: 99 }` written directly into the table → `{ slotsPerDay: 4 }`.
+- [ ] T021 Create `src/data/week-repository.ts` exporting `WeekRepository`, `DateRange` and `createWeekRepository(db, ids)`, with `listMeals`, `listDaySlots`, `getMeal`, `addMeal`, `putMeal` and `removeMeal` per [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md):
+  - Range reads use `where('date').between(start, end, true, true)`.
+  - `addMeal` runs in one `rw` transaction over `meals`, computing `nextPosition` from the Meals of that `(date, slot)`.
+  - `setDaySlotCount` and `replaceWeek` come in US5 and US6.
+
+  Add `newMeal` to `src/domain/meals.ts` (servings 1, `detached` null) in this task, with its test in `tests/domain/meals.test.ts`. This makes T019 pass.
+- [ ] T022 Create `src/data/settings-repository.ts` exporting `SettingsRepository` and `createSettingsRepository(db)`, with `get()` = `readSettings(await db.settings.get('app'))`. `setSlotsPerDay` comes in US5. This makes T020 pass.
+- [ ] T023 Wire the new dependencies:
+  - In `src/app/deps.ts`, add `clock: Clock` (`systemClock`), `week: WeekRepository` and `settings: SettingsRepository` to `Deps` and `createDeps()`.
+  - In `tests/ui/render.tsx`, update `createTestDeps()` the same way, using `new FixedClock('2026-11-04')` and the repositories over the test db.
+
+  Keep `countMealsUsingDish` for now. T026 removes it.
+
+### Feature 001 handoff (research R10)
+
+- [ ] T024 [P] Extend `tests/data/dish-repository.test.ts` with `removeOrArchive`:
+  - A Dish with 0 Meals → `{ kind: 'deleted', photo }`, and the record is gone.
+  - A Dish used only by a Detached Meal (`detached` not `null`) → `{ kind: 'archived' }`, with `archived: true` and the record kept.
+  - A Dish used by a Linked Meal → `archived`.
+- [ ] T025 [P] Extend `tests/data/product-repository-maintenance.test.ts`:
+  - `delete` and `changeUnit` return `inUse` for a Product used only in a Detached Meal's `detached.ingredients`. `inUse` carries `usage: 1` and `breakdown: { dishes: 0, meals: 1 }`.
+  - `merge('pomidor', 'pomidory')` rewrites a Detached Meal that holds both: one Ingredient at the first position, with the amounts summed. It leaves a Linked Meal record untouched, and returns `{ kind: 'merged', dishesUpdated, mealsUpdated: 1 }`.
+- [ ] T026 Implement the handoff:
+  - **`src/data/dish-repository.ts`**: add `removeOrArchive(id)`. In one `rw` transaction over `dishes` and `meals`, it counts `meals.where('dishId').equals(id)`, applies `decideDishRemoval`, then deletes or archives the Dish.
+  - **`src/app/dishes.ts`**: `deleteDish` now takes `deps: { dishes; photos }`, calls `removeOrArchive`, and deletes the returned photo after the commit (failure ignored).
+  - **`src/data/product-repository.ts`**:
+    - `usageOf`, `changeUnit`, `delete` and `merge` include `db.meals` in their transactions.
+    - `usageOf` passes the `detached.ingredients` of every Meal with `detached !== null`, replacing the `TODO(week-planning)` comment.
+    - `inUse` results gain `breakdown: { dishes: number; meals: number }`.
+    - `merge` rewrites the affected Detached Meals with `mergeIngredients` and returns `mealsUpdated`.
+  - **Remove `countMealsUsingDish`** from `Deps`, `createDeps()` and `createTestDeps()`.
+  - **Update `tests/app/delete-dish.test.ts`** to seed a real Meal through `WeekRepository.addMeal` for the archive case, instead of a fake count.
+
+  This makes T024 and T025 pass.
+- [ ] T027 [P] Extend `tests/ui/products-vm.test.ts`, then `src/ui/view-models/products.ts`:
+  - Add `mealCountPhrase(n)`: "1 posiłku", otherwise "N posiłkach".
+  - `deleteHint(breakdown)` and `unitHint(breakdown)` take `{ dishes, meals }` and produce the three cases in [contracts/ui.md](contracts/ui.md) "Produkty hints":
+    - dishes only: unchanged text
+    - meals only: "w 1 posiłku"
+    - both: "w 2 daniach i 3 posiłkach"
+  - `productMenu` takes the row's breakdown.
+  - `usageLabel` shows the total.
+- [ ] T028 Update `src/ui/pages/ProductsPage.tsx`:
+  - Read Meals with `useLiveQuery(() => deps.week.listAllDetachedIngredientLists())`, a small `WeekRepository` method added in this task: it returns `detached.ingredients` for each Detached Meal.
+  - Build rows with `productUsageBreakdown`, replacing the `TODO(week-planning)` comment.
+  - Pass the breakdown to the hints and to the `inUse` alerts.
+
+  Add the new method to the contract in [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md).
+
+**Checkpoint**: Lint, typecheck, tests and the coverage gate pass. Feature 001 behaves as before, except that it now sees Meals.
+
+---
+
+## Phase 3: User Story 1 - Plan a Week from Dishes (Priority: P1) 🎯 MVP
+
+**Goal**:
+- The Tydzień tab shows the current Week as seven day rows, with today marked and Planned kcal per day.
+- A day opens the Day page with numbered Slots.
+- Tapping a Slot's "Dodaj posiłek" opens the horizontal Dish picker, and picking adds a Linked Meal with 1 Serving.
+- A Meal can be removed after confirmation.
+
+**Independent Test**: Plan Monday to Sunday with at least one Meal per day and two Meals in one Slot, then reopen the app. Every Meal is in its day and Slot (spec US1, quickstart rows 1–3).
+
+### Tests for User Story 1
+
+- [ ] T029 [P] [US1] Write `tests/domain/meals.test.ts` (resolution and scaling part):
+  - `mealSource`:
+    - Linked → the Dish.
+    - A Dish with `archived: true` → still the Dish.
+    - `detached` set → the copy, even when the Dish has other values.
+    - Missing Dish → `null`.
+  - `scaleMeal` with "Owsianka" (`servingsYield` 2, 100 g "płatki owsiane", 300 ml "mleko", Macros 700 / 25 / 15 / 110):
+    - at 1 Serving → 50, 150, 350 / 12.5 / 7.5 / 55
+    - at 1.5 Servings → 75, 225, 525 / 18.75 / 11.25 / 82.5, unrounded
+  - `isDetached`.
+  - `servingsWord`: 1 → porcja, 2 → porcje, 4 → porcje, 5 → porcji, 12 → porcji, 22 → porcje, 1.5 → porcji.
+- [ ] T030 [P] [US1] Write `tests/domain/week.test.ts` (selectors part):
+  - `plannedKcal` of three Meals at 33.333 kcal each is the unrounded sum, not the sum of rounded values.
+  - `selectWeekDays('2026-11-02', '2026-11-04', meals, dishesById)`:
+    - always 7 days, Mon → Sun
+    - `isToday` only on `2026-11-04`
+    - `mealCount` and `plannedKcal` per day
+    - Meals outside the Week are ignored
+  - `selectDay('2026-11-05', meals, undefined, dishesById, { slotsPerDay: 4 })`:
+    - Slots 1–4, with the empty ones included
+    - Meals ordered by `position`, then `id`
+    - a Meal in Slot 6 makes 6 Slots
+  - `MealView`: `missingDish: true` and `name: ''` for a missing Dish. A Detached Meal takes its name from the copy and its `photo` from the Dish.
+- [ ] T031 [P] [US1] Write `tests/app/week-meals.test.ts`:
+  - `addMealFromDish` stores a Linked Meal with 1 Serving at the given date and Slot.
+  - Two adds to the same Slot get positions 0 and 1.
+  - `removeMeal` deletes the record.
+- [ ] T032 [P] [US1] Write `tests/ui/week-vm.test.ts` for `src/ui/view-models/week.ts`:
+  - `dayRow(dayView)`:
+    - title "Czwartek", subtitle "5 lis"
+    - for today, subtitle "4 lis · dziś" and `isToday: true`
+    - after "350 kcal", or "brak posiłków" when `mealCount === 0`
+  - `mealRow(mealView, products)`:
+    - title, or "Nieznane danie" when `missingDish`
+    - subtitle "1 porcja · 350 kcal" / "1,5 porcji · 525 kcal"
+    - `badge: 'zmieniony' | null`
+  - `dayTitle('2026-11-05')` → "Czwartek, 5 lis".
+  - `pickerEmptyMessage` text.
+- [ ] T033 [P] [US1] Write `tests/ui/day-page.test.tsx` (key interaction):
+  - Render `DayPage` for `2026-11-05` with one Dish "Owsianka" seeded.
+  - Tap Slot 2's "Dodaj posiłek", then the "Owsianka" tile in the picker.
+  - Slot 2 lists "Owsianka" with "1 porcja · 350 kcal", and the picker is closed.
+  - Seed an archived Dish too, and assert it is not offered.
+
+### Implementation for User Story 1
+
+- [ ] T034 [US1] Extend `src/domain/meals.ts` with `isDetached`, `mealSource`, `scaleMeal` and `servingsWord` per [contracts/domain-api.md](contracts/domain-api.md). This makes T029 pass.
+  - `servingsWord`: 1 → 'porcja'; a whole number whose last digit is 2–4 and whose last two digits are not 12–14 → 'porcje'; otherwise, fractions included → 'porcji'.
+- [ ] T035 [US1] Create `src/domain/week.ts` with the `DayView`, `SlotView` and `MealView` types, `plannedKcal`, `selectWeekDays` and `selectDay`, using `weekDates`, `mealSource`, `scaleMeal` and `slotCountForDay`. This makes T030 pass.
+- [ ] T036 [US1] Create `src/app/week.ts` with `addMealFromDish(deps: { week }, { date, slot, dishId })` and `removeMeal(deps: { week }, mealId)`. This makes T031 pass.
+- [ ] T037 [P] [US1] Create `src/ui/view-models/week.ts` with `dayRow`, `mealRow`, `dayTitle`, `pickerEmptyMessage` ("Nie masz jeszcze żadnych dań. Dodaj je w zakładce Dania."), `removeMealConfirmMessage(name)` ("Usunąć posiłek „{nazwa}”?") and `invalidDayMessage` ("Nie ma takiego dnia."). Use `formatKcal` and `formatServings`. This makes T032 pass.
+- [ ] T038 [P] [US1] Create `src/ui/components/DishPickerSheet.tsx`:
+  - A Framework7 `Sheet` with `backdrop` and `swipeToClose`, and props `opened`, `onClose()` and `onPick(dish)`.
+  - A title row "Wybierz danie" with a "Zamknij" link.
+  - A horizontally scrolling strip of tiles (`DishAvatar` at 72 px plus the name, clamped to 2 lines) from `selectLibrary(dishes)`, or `pickerEmptyMessage` when it is empty.
+  - Add `.dish-picker-strip` (`display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap`) and the tile styles to `src/ui/styles/app.css`.
+- [ ] T039 [US1] Create `src/ui/components/MealSheet.tsx` (minimal for US1):
+  - A Framework7 `Sheet` with `backdrop` and `swipeToClose`, and props `meal`, `opened` and `onClose()`.
+  - A `Toolbar` with "Anuluj" and the Meal name.
+  - A red list button "Usuń posiłek", which confirms with `removeMealConfirmMessage`, then calls `removeMeal` and closes the sheet.
+
+  US2 and US3 add the fields and "Zapisz".
+- [ ] T040 [US1] Create `src/ui/pages/DayPage.tsx` for route `/day/:date/`:
+  - An invalid `date` (`!isIsoDate`) shows `invalidDayMessage`.
+  - Otherwise, a `Navbar` with a back link and `dayTitle`.
+  - Live queries: `deps.week.listMeals({ start: date, end: date })`, `deps.week.listDaySlots(...)`, `deps.dishes.list()` and `deps.settings.get()`.
+  - `selectDay` decides the Slots. For each Slot:
+    - a `BlockTitle` with the number
+    - a `List mediaList` of `mealRow`s (`DishAvatar` 40 px, title, subtitle, a `Badge` when `badge` is set; tapping opens `MealSheet`)
+    - a last row "Dodaj posiłek" (plus icon), which opens `DishPickerSheet` for that Slot
+  - Picking calls `addMealFromDish` and closes the picker.
+  - Render each sheet once per page, with the target Slot or Meal in state (plan.md implementation notes).
+  - Wrap the content in `.page-wide` (FR-041).
+
+  This makes T033 pass.
+- [ ] T041 [US1] Create `src/ui/pages/WeekPage.tsx`:
+  - `weekStart` state = `weekStartOf(deps.clock.today())` on mount (FR-002), and `today` state from the same read.
+  - Live queries for the Week's Meals and all Dishes. `selectWeekDays` produces seven `dayRow`s in a `List mediaList`, each linking to `/day/{date}/`.
+  - A `Navbar` titled `weekRangeLabel(weekStart)`. US4 adds the arrows, US6 the copy button.
+  - The today row gets the class `day-today`. Add its accent left-border style to `src/ui/styles/app.css`.
+  - `.page-wide` wrapper.
+- [ ] T042 [US1] In `src/ui/routes.ts`, set `weekRoutes = [{ path: '/', component: WeekPage }, { path: '/day/:date/', component: DayPage }]`. Update `tests/ui/app-shell.test.tsx`: the Tydzień tab no longer shows the placeholder notice (assert the Week range label "2–8 lis 2026" instead, with `FixedClock('2026-11-04')`), while Lista zakupów still does.
+
+**Checkpoint**: Meals can be planned for the current Week, and they survive a restart. Quickstart rows 1–3 pass on an iPhone-sized viewport.
+
+---
+
+## Phase 4: User Story 2 - Scale a Meal by Servings (Priority: P1)
+
+**Goal**: The Meal sheet edits Servings. Macros and Ingredient amounts follow, shown per Meal, and the Meal stays linked.
+
+**Independent Test**: Add "Owsianka", then set Servings to 1,5. The sheet and the Day page show 75 g, 225 ml, 525 kcal and 18,8 g protein, with no "zmieniony" badge. Servings of 0 or "abc" block saving (spec US2, quickstart rows 4–5).
+
+### Tests for User Story 2
+
+- [ ] T043 [P] [US2] Extend `tests/domain/meals.test.ts` (draft part):
+  - `draftFromMeal` for "Owsianka" at 1,5 Servings: `servings: "1,5"`, `basisServings: 1.5`, amounts `"75"` and `"225"`, Macros `"525"`, `"18,75"`, `"11,25"` and `"82,5"` (`formatDecimal`, 2 decimals).
+  - `rescaleMealDraft(draft, source, "2")` recomputes untouched fields from the source (100, 300, 700…) and sets `basisServings: 2`.
+  - `rescaleMealDraft` with `"0"`, `"abc"` or `""` returns the draft with only `servings` text updated and the numbers unchanged.
+  - Drift: a source with `servingsYield` 3 and 100 g; rescaling 1 → 2 → 1 → 2 leaves the amount text equal to `formatDecimal(100 / 3 * 2)`.
+  - `validateMealDraft`: `servings` `"0"` → `notPositive`, `"-1"` → `notPositive`, `"abc"` → `notANumber`, `""` → `required`. Every other code uses the same paths as the Dish draft.
+  - `decideMealSave`: an unchanged draft (including retyped `"50,00"` for 50) → `unchanged`. Only Servings changed → `{ kind: 'save', meal: { …, servings: 1.5, detached: null }, detachedNow: false }`.
+- [ ] T044 [P] [US2] Write `tests/app/save-meal.test.ts` (Servings part):
+  - `saveMeal` with Servings 1 → 1,5 stores `servings: 1.5` and leaves `detached` `null`, returning `{ kind: 'saved', detachedNow: false }`.
+  - An unchanged draft → `{ kind: 'unchanged' }`, and the stored record is deep-equal to before.
+  - Invalid Servings → `invalid` with nothing written.
+  - A removed Meal → `gone`.
+- [ ] T045 [P] [US2] Write `tests/ui/meal-sheet-vm.test.ts` for `src/ui/view-models/meal-sheet.ts`:
+  - `mealFieldDomId('ingredients[1].amount')` → `"meal-ingredients-1-amount"`.
+  - `mealErrorMessage('duplicateProduct')` → "Ten produkt jest już w posiłku.", and the other codes give the feature 001 messages.
+  - `goneMessage` → "Ten posiłek już nie istnieje.".
+  - `sheetValues(draft, products)` gives each Ingredient row as `{ name, unitLabel, amount }`.
+
+### Implementation for User Story 2
+
+- [ ] T046 [US2] Create `src/domain/drafts.ts` with the shared field parser now private to `dishes.ts` (`parseField(text, 'positive' | 'nonNegative')`, returning a number or a `DishFieldError`). Make `dishes.ts` use it, with its public API and tests unchanged. Export `type FieldError = DishFieldError` from `meals.ts`.
+- [ ] T047 [US2] Extend `src/domain/meals.ts` with `MealDraft`, `ValidMealValue`, `draftFromMeal`, `rescaleMealDraft`, `addMealIngredient`, `removeMealIngredient`, `validateMealDraft` and `decideMealSave` per [contracts/domain-api.md](contracts/domain-api.md) and research R7.
+  - In this story, `decideMealSave` handles `unchanged` and Servings-only saves.
+  - The "real change" comparison (name via `normalizeName`, the Product id list in order, each amount and Macro vs `roundTo2(scaled source)` at the saved Servings) is implemented here, because it decides `unchanged`.
+  - The branch that builds a `detached` copy is added in US3 (T055).
+
+  This makes T043 pass at 100% coverage.
+- [ ] T048 [US2] Add `saveMeal(deps: { week }, { mealId, draft, dishesById, productsById })` to `src/app/week.ts`, following the order in [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md): load → `gone`, source → `gone`, validate → `invalid`, `decideMealSave`, then `putMeal`. This makes T044 pass.
+- [ ] T049 [P] [US2] Create `src/ui/view-models/meal-sheet.ts` with `mealFieldDomId`, `mealErrorMessage`, `goneMessage`, `sheetValues` and `detachToast` ("Posiłek zmieniony – nie będzie już śledził zmian w daniu.", used in US3). This makes T045 pass.
+- [ ] T050 [US2] Extend `src/ui/components/MealSheet.tsx`:
+  - Draft state from `draftFromMeal` when the sheet opens.
+  - A "Porcje" outlined `ListInput` (`inputmode="decimal"`, id `mealFieldDomId('servings')`). Its change handler calls `rescaleMealDraft`.
+  - Read-only lists of the Ingredients (`name`, `formatAmount`, unit label) and the four Macros (`formatKcal` / `formatMacro`) under "Składniki (w tym posiłku)" and "Makro (ten posiłek)".
+  - A "Zapisz" toolbar link that calls `saveMeal`:
+    - `invalid` marks the fields
+    - `gone` shows the alert `goneMessage` and closes
+    - otherwise the sheet closes
+  - "Anuluj" or swipe-to-close discards the draft (FR-018).
+  - Set the sheet height through Framework7's sheet CSS variable in `src/ui/styles/app.css`.
+- [ ] T051 [US2] Write `tests/ui/meal-sheet.test.tsx` (key interaction): open "Owsianka" from the Day page, type "1,5" into "Porcje" and tap "Zapisz". The Day page row reads "1,5 porcji · 525 kcal" with no "zmieniony" badge. Typing "0" and tapping "Zapisz" keeps the sheet open with "Wartość musi być większa od zera.".
+
+**Checkpoint**: US1 and US2 work together. Quickstart rows 1–5 pass.
+
+---
+
+## Phase 5: User Story 3 - Adjust one Meal without touching its Dish (Priority: P2)
+
+**Goal**:
+- The Meal sheet edits name, Ingredients and Macros.
+- A real change detaches the Meal: it gets the "zmieniony" badge and no longer follows its Dish.
+- "Przywróć z dania" links it again.
+
+**Independent Test**: Plan "Owsianka" twice. Change an amount in one, edit the Dish's Macros, and only the untouched Meal changes. Restore the edited Meal, and it matches the Dish (spec US3, quickstart rows 6–8, 17).
+
+### Tests for User Story 3
+
+- [ ] T052 [P] [US3] Extend `tests/domain/meals.test.ts` (detach part):
+  - The US3-1 example: "płatki owsiane" 50 → 80 g at 1 Serving with yield 2 → `detached.ingredients` amount 160, "mleko" 300 copied exactly, Macros 700 / 25 / 15 / 110 copied exactly, `servingsYield: 2`, `detachedNow: true`.
+  - The same Detached Meal saved at Servings 2 → `scaleMeal` gives 160 g, 300 ml and 700 kcal (US3-2).
+  - Each of these detaches: a name change, an added Ingredient, a removed Ingredient, and a change to each Macro.
+  - A change to an already Detached Meal updates its copy, with `detachedNow: false`.
+  - Servings and a field changed together → the copy is converted back at the new Servings.
+  - `addMealIngredient` with an existing Product returns `{ existed: true, index }`.
+  - `restoreMeal` keeps `servings` and sets `detached: null`.
+- [ ] T053 [P] [US3] Extend `tests/app/save-meal.test.ts`:
+  - The US3-1 flow stores `detached.ingredients[0].amount === 160` and returns `detachedNow: true`.
+  - `restoreMealFromDish` → `restored`. After `dishes.put` with 800 kcal, `scaleMeal(mealSource(...))` gives 600 kcal at 1,5 Servings.
+  - A Linked Meal whose Dish is then archived through `deleteDish` still resolves to the Dish's values.
+  - Restoring a missing Meal → `gone`.
+- [ ] T054 [P] [US3] Extend `tests/ui/meal-sheet.test.tsx`:
+  - Change "płatki owsiane" to 80 and save. The row shows the "zmieniony" badge and the toast `detachToast` appears.
+  - Reopen the sheet: it shows "Przywróć z dania". Confirm it, and the badge disappears.
+  - A Linked Meal's sheet has no "Przywróć z dania".
+
+### Implementation for User Story 3
+
+- [ ] T055 [US3] In `src/domain/meals.ts`, complete `decideMealSave` with the detach branch per research R7:
+  - The copy starts from the source's whole-recipe values.
+  - Each changed per-Meal value becomes `roundTo2(value × servingsYield / servings)`, while unchanged values are copied exactly.
+  - Added Ingredients are converted the same way. Removed Ingredients are dropped.
+  - `detachedNow = meal.detached === null`.
+
+  Add `restoreMeal`. This makes T052 pass at 100% coverage.
+- [ ] T056 [US3] Add `restoreMealFromDish(deps: { week }, mealId)` to `src/app/week.ts`: load → `gone`, otherwise `putMeal(restoreMeal(meal))`. Make T053 pass.
+- [ ] T057 [P] [US3] Add to `src/ui/view-models/meal-sheet.ts`:
+  - `restoreConfirmMessage(dishName)`: "Przywrócić „{nazwa dania}” z dania? Zmiany w tym posiłku zostaną utracone."
+  - `detachedNote`: "Posiłek zmieniony – zmiany w daniu go nie dotyczą."
+
+  Include tests in `tests/ui/meal-sheet-vm.test.ts`.
+- [ ] T058 [US3] Make `src/ui/components/MealSheet.tsx` fully editable:
+  - **Fields**:
+    - a "Nazwa" outlined `ListInput`
+    - `IngredientRow`s with editable amounts and remove buttons, plus a `ProductPicker` that calls `addMealIngredient`, showing the toast `mealErrorMessage('duplicateProduct')` and focusing the existing row when the Product is already there
+    - four outlined Macro inputs
+  - **Detached Meals only**: the `detachedNote` above the fields, and a "Przywróć z dania" list button that confirms with `restoreConfirmMessage(dish.name)` and calls `restoreMealFromDish`.
+  - **After saving**: on `saved` with `detachedNow`, show the toast `detachToast`.
+
+  Make T054 pass.
+- [ ] T059 [US3] Check `src/ui/pages/DayPage.tsx`: `mealRow` shows the `Badge` "zmieniony" for Detached Meals and the placeholder of the Meal's displayed name when the Dish has no photo (spec Edge Cases "Photo of a Meal"). Add a `tests/ui/week-vm.test.ts` case for a renamed Detached Meal's avatar name.
+
+**Checkpoint**: US1–US3 work. Quickstart rows 1–8 and 17–18 pass.
+
+---
+
+## Phase 6: User Story 4 - Move between Weeks (Priority: P2)
+
+**Goal**: ← and → move between Weeks without limit. Past Weeks keep their Meals. The app opens on the current Week, and the today mark follows the real day.
+
+**Independent Test**: Plan the current Week, then → next Week and plan different Meals. ← twice, then back: each Week shows only its own Meals. Reopen on another Week, and it opens on the current Week (spec US4, quickstart rows 9–10).
+
+### Tests for User Story 4
+
+- [ ] T060 [P] [US4] Write `tests/ui/week-page.test.tsx` (key interaction) with `FixedClock('2026-11-04')`:
+  - The title is "2–8 lis 2026" and the Wednesday row has `day-today`.
+  - Tapping "Następny tydzień" shows "9–15 lis 2026" and a Meal seeded on `2026-11-10`.
+  - Tapping "Poprzedni tydzień" twice shows "26 paź – 1 lis 2026".
+  - After `clock.set('2026-11-05')` and a dispatched `visibilitychange`, the today mark moves to Thursday while the viewed Week stays put.
+
+### Implementation for User Story 4
+
+- [ ] T061 [US4] Extend `src/ui/pages/WeekPage.tsx`:
+  - A `Navbar` with ordered `NavLeft` / `NavTitle` / `NavRight` (research R11):
+    - ← `Link` with `iconF7="chevron_left"` and `aria-label="Poprzedni tydzień"` → `setWeekStart(addDays(weekStart, -7))`
+    - → `Link` with `iconF7="chevron_right"` and `aria-label="Następny tydzień"` → `+7`
+  - Re-read `deps.clock.today()` into `today` on `document` `visibilitychange` (when visible), without changing `weekStart` (research R2).
+  - The live query depends on `weekStart`.
+
+  Make T060 pass.
+- [ ] T062 [US4] Confirm in `src/ui/pages/WeekPage.tsx` that going back from the Day page keeps `weekStart`: the Framework7 page stack keeps `WeekPage` mounted. Extend `tests/ui/week-page.test.tsx`: → once, open a day, go back, and the title is still "9–15 lis 2026" (FR-007).
+
+**Checkpoint**: US1–US4 work. Quickstart rows 9–10 pass.
+
+---
+
+## Phase 7: User Story 5 - Add a Slot to one day (Priority: P3)
+
+**Goal**:
+- "dodaj kolejny" adds one Slot to one day, kept while empty.
+- Ustawienia offers "Liczba slotów" (1–10, initially 4), applied to every day of every Week.
+
+**Independent Test**: Tap "dodaj kolejny" twice on Saturday: Saturday has two more Slots than Friday, still after a reopen. Set "Liczba slotów" to 3, then 6, and check the day counts (spec US5, quickstart rows 11–12).
+
+### Tests for User Story 5
+
+- [ ] T063 [P] [US5] Extend `tests/data/week-repository.test.ts` with `setDaySlotCount('2026-11-07', 5)`: it creates the record, a second call with 6 replaces it, and `listDaySlots` returns it.
+- [ ] T064 [P] [US5] Extend `tests/data/settings-repository.test.ts` with `setSlotsPerDay`:
+  - 6 → `saved`, then `get()` gives 6.
+  - 0, 11 and 2.5 → `invalid`, with nothing written.
+- [ ] T065 [P] [US5] Write `tests/app/add-slot.test.ts`:
+  - With the default of 4 and no Meals, `addSlotToDay(deps, '2026-11-07')` returns 5 and stores `{ slotCount: 5 }`. A second call returns 6.
+  - With a Meal in Slot 7, it returns 8.
+  - With `slotsPerDay` 6 and a record of 5, it returns 7.
+- [ ] T066 [P] [US5] Write `tests/ui/settings-page.test.tsx` (key interaction):
+  - The "Liczba slotów" stepper shows 4. Tapping the plus button stores 5.
+  - The minus button is disabled at 1 and the plus button at 10 (Framework7 `Stepper` `min` and `max`).
+
+### Implementation for User Story 5
+
+- [ ] T067 [US5] Add `setDaySlotCount(date, slotCount)` (`daySlots.put({ date, slotCount })`) to `src/data/week-repository.ts`. Add `setSlotsPerDay(n)` (rejects unless `isValidSlotsPerDay(n)`, then `settings.put({ id: 'app', slotsPerDay: n })`) to `src/data/settings-repository.ts`. This makes T063 and T064 pass.
+- [ ] T068 [US5] Add `addSlotToDay(deps: { week; settings }, date)` to `src/app/week.ts`: read that date's Meals, its `DaySlots` and the settings, then store `nextSlotCount(slotCountForDay(...))` and return it. This makes T065 pass.
+- [ ] T069 [US5] In `src/ui/pages/DayPage.tsx`, add a `List` below the last Slot with one list button "dodaj kolejny" that calls `addSlotToDay`. The live query updates the Slots. Extend `tests/ui/day-page.test.tsx`: tapping "dodaj kolejny" shows a `BlockTitle` "5".
+- [ ] T070 [US5] Create `src/ui/pages/SettingsPage.tsx`:
+  - A `Navbar` "Ustawienia".
+  - A `List` with one `ListItem` "Liczba slotów". Its `after` content is a Framework7 `Stepper` (`min={SLOTS_PER_DAY.min}`, `max={SLOTS_PER_DAY.max}`, `step={1}`, `small`, `round`), with its value from `useLiveQuery(() => deps.settings.get())`. `onStepperChange` calls `setSlotsPerDay`.
+  - The list footer reads "Domyślna liczba slotów w każdym dniu. Dzień może mieć ich więcej."
+  - A `Block` reads "Cele i kopia zapasowa pojawią się w kolejnej wersji."
+  - `.page-wide` wrapper.
+
+  In `src/ui/routes.ts`, set `settingsRoutes = [{ path: '/', component: SettingsPage }]`. Update `tests/ui/app-shell.test.tsx`: Ustawienia no longer shows the placeholder notice. This makes T066 pass.
+
+**Checkpoint**: US1–US5 work. Quickstart rows 11–12 pass.
+
+---
+
+## Phase 8: User Story 6 - Copy a Week to the next one (Priority: P3)
+
+**Goal**: "Skopiuj do następnego tygodnia" replaces the next Week's Meals and added Slots with copies from the viewed Week, all or nothing:
+- It asks first if the next Week has a plan.
+- It is disabled for an empty Week.
+- It stays on the viewed Week and shows a toast.
+
+**Independent Test**: Plan a Week with Linked and Detached Meals and an added Slot, copy it, and → shows a matching next Week. Change the original and copy again: the replacement is confirmed, and the result matches exactly (spec US6, quickstart rows 13–16).
+
+### Tests for User Story 6
+
+- [ ] T071 [P] [US6] Extend `tests/domain/week.test.ts`:
+  - `weekHasPlan`: no records → false, one Meal → true, only one `DaySlots` record → true.
+  - `planWeekCopy('2026-11-30', …)`:
+    - Dates move + 7 across the month boundary (`2026-12-06` → `2026-12-13`) and the year boundary (from Week `2026-12-28`, `2027-01-03` → `2027-01-10`).
+    - New ids come from `FixedIdGenerator`.
+    - `slot`, `position`, `dishId` and `servings` are kept.
+    - `detached` is deep-copied: mutating `result.meals[0].detached.ingredients[0].amount` leaves the input unchanged.
+    - Records dated outside the source Week are ignored.
+- [ ] T072 [P] [US6] Extend `tests/data/week-repository.test.ts` with `replaceWeek('2026-11-09', plan)`:
+  - The target Week's old Meals and old `daySlots` are removed and the new ones stored.
+  - Meals on `2026-11-08` and `2026-11-16` are untouched.
+  - A plan containing two Meals with the same id makes `bulkAdd` fail, and afterwards the target Week is exactly as before (FR-038).
+- [ ] T073 [P] [US6] Write `tests/app/copy-week.test.ts`:
+  - The US6-1 and US6-2 examples: "Owsianka" ×1.5 on Monday Slot 1, a Detached "Leczo" on Friday Slot 3 and `{ date: '2026-11-07', slotCount: 5 }`. After `copyWeekToNext(deps, '2026-11-02')`, `2026-11-09` Slot 1 holds a Linked "Owsianka" ×1.5, `2026-11-13` Slot 3 holds a Detached "Leczo" with equal `detached`, and `2026-11-14` has `slotCount` 5.
+  - Copying twice gives the same Week contents as copying once (ids differ).
+  - An empty source → `{ kind: 'empty' }`, with the next Week untouched.
+  - `weekHasPlanAt` → true after the copy.
+  - Editing the copy's `detached` leaves the original alone (FR-035).
+- [ ] T074 [P] [US6] Extend `tests/ui/week-page.test.tsx` (key interaction):
+  - The copy button is disabled on an empty Week.
+  - With a Meal this Week and the next Week empty, tapping it shows the toast "Skopiowano do następnego tygodnia." with no dialog, and the title stays "2–8 lis 2026".
+  - With a Meal in the next Week too, a dialog with the confirm text appears. Cancelling leaves the next Week's Meal in place.
+
+### Implementation for User Story 6
+
+- [ ] T075 [US6] Add `weekHasPlan` and `planWeekCopy` to `src/domain/week.ts` per [contracts/domain-api.md](contracts/domain-api.md) and research R8, making T071 pass at 100% coverage.
+- [ ] T076 [US6] Add `replaceWeek(weekStart, { meals, daySlots })` to `src/data/week-repository.ts`. In one `rw` transaction over `meals` and `daySlots`, it deletes every record with `date` between `weekStart` and `addDays(weekStart, 6)`, then calls `bulkAdd` for both. This makes T072 pass.
+- [ ] T077 [US6] Add to `src/app/week.ts`:
+  - `weekHasPlanAt(deps: { week }, weekStart)`
+  - `copyWeekToNext(deps: { week; ids }, weekStart)`: read the source Week; if `!weekHasPlan` return `empty`; otherwise `replaceWeek(addDays(weekStart, 7), planWeekCopy(...))` and return `{ kind: 'copied', meals: n }`
+
+  This makes T073 pass.
+- [ ] T078 [US6] Add to `src/ui/view-models/week.ts`, with tests in `tests/ui/week-vm.test.ts`:
+  - `copyConfirmMessage`: "Następny tydzień ma już plan. Zastąpić go planem z tego tygodnia?"
+  - `copyDoneToast`: "Skopiowano do następnego tygodnia."
+  - `copyFailedMessage`: "Nie udało się skopiować tygodnia. Następny tydzień nie został zmieniony."
+- [ ] T079 [US6] In `src/ui/pages/WeekPage.tsx`, add a `Block` below the navbar with an outlined `Button` "Skopiuj do następnego tygodnia":
+  - It is disabled when `weekHasPlan` is false for the viewed Week's live data (FR-036).
+  - On tap, `await weekHasPlanAt(next)`. If true, use `f7.dialog.confirm(copyConfirmMessage, run)`, otherwise `run()`.
+  - `run` calls `copyWeekToNext` and shows `copyDoneToast`. On a thrown error, it shows `f7.dialog.alert(copyFailedMessage)`.
+  - It never changes `weekStart` (FR-037).
+
+  This makes T074 pass.
+
+**Checkpoint**: All six stories work. Quickstart rows 1–20 can be run.
+
+---
+
+## Phase 9: Polish & Cross-Cutting Concerns
+
+- [ ] T080 [P] Extend `src/dev/seed.ts` with `?seed=weeks-52`:
+  - It seeds 20 Dishes (reusing `seedDishes`) and 52 past Weeks plus the current one, each with 35 Meals (5 per day in Slots 1–5). Every fifth Meal is Detached, with a copy of its Dish.
+  - It uses the counter id generator and dates from `weekStartOf(deps.clock.today())` going back. It never uses `Math.random`.
+
+  Verify that the production `npm run build` output contains no seed code (SC-005, SC-006 spot checks).
+- [ ] T081 [P] Review the Week, Day and Settings pages and both sheets at ≥ 1024 px against [contracts/ui.md](contracts/ui.md) "Desktop": a centred `.page-wide` column, no lost functions, no grid (FR-041). Review them at 375 pt with an iOS user agent too. Fix any gaps in `src/ui/styles/app.css`.
+- [ ] T082 [P] Run `grep -rniE "\b(extra|entry|multiplier|quantity|posilek|pora)\b" src/` and rename any domain identifier that matches (Principle II, research R4). Confirm every user-facing string written in `src/ui/**` is Polish (Principle I). Framework7's default labels are exempt.
+- [ ] T083 [P] Record as-built details in this feature's contracts: any Polish string written beyond [contracts/ui.md](contracts/ui.md), and the `inUse.breakdown` and `listAllDetachedIngredientLists` additions in [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md). In [../001-shell-products-dishes/analysis-followups.md](../001-shell-products-dishes/analysis-followups.md), tick item L2 with a note that T027 and T028 resolved it. Do not edit feature 001's spec, plan or contracts, which are immutable records.
+- [ ] T084 Run `npm run lint`, `npm run typecheck`, `npm test`, `npm run coverage` (100% on `src/domain/**`) and `npm run build`. Fix anything that fails.
+- [ ] T085 Run every manual and performance check in [quickstart.md](quickstart.md) on an iPhone (current iOS Safari) and a desktop browser, using the `preview` or `seed` deploy. Record the results, and any deviations, at the bottom of `specs/002-week-planning/quickstart.md`. Android stays deferred, as in feature 001 (T084 there).
+
+---
+
+## Dependencies & Execution Order
+
+### Phase dependencies
+
+- **Setup (Phase 1)** → **Foundational (Phase 2)** → user story phases → **Polish (Phase 9)**.
+- **US1 (Phase 3)** comes first among the stories. It creates `meals.ts` (resolution), `week.ts` (selectors), `app/week.ts`, `WeekPage`, `DayPage`, `MealSheet` and the routes.
+- **US2 (Phase 4)** depends on US1, because it extends `MealSheet`.
+- **US3 (Phase 5)** depends on US2: it completes `decideMealSave` and makes the sheet editable.
+- **US4 (Phase 6)** depends on US1 only (`WeekPage`).
+- **US5 (Phase 7)** depends on US1 only (`DayPage`, `routes.ts`).
+- **US6 (Phase 8)** depends on US1. Its tests seed Detached Meals and `daySlots` records directly, so it does not need US3 or US5.
+
+### Shared files between stories
+
+| File | Edited by |
+|---|---|
+| `src/domain/meals.ts` | T021, T034, T047, T055 |
+| `src/domain/week.ts` | T035, T075 |
+| `src/app/week.ts` | T036, T048, T056, T068, T077 |
+| `src/ui/pages/WeekPage.tsx` | T041, T061, T079 |
+| `src/ui/pages/DayPage.tsx` | T040, T059, T069 |
+| `src/ui/components/MealSheet.tsx` | T039, T050, T058 |
+| `src/data/week-repository.ts` | T021, T028, T067, T076 |
+| `src/ui/routes.ts` and `tests/ui/app-shell.test.tsx` | T042, T070 |
+
+Run these tasks one after another when stories are worked on together.
+
+### Within each story
+
+- Tests are written first and must fail before their implementation task.
+- Order: domain → repository → use case → view-model → components → pages → routes.
+
+### Parallel opportunities
+
+- **Foundational**:
+  - Tests T002–T008 in parallel.
+  - Then T010–T017 in parallel after T009.
+  - T019 and T020 in parallel after T018.
+  - T024, T025 and T027 in parallel.
+- **US1**: tests T029–T033 in parallel. Then T037 and T038 in parallel with T034–T036.
+- **US2**: tests T043–T045 in parallel. T049 in parallel with T046–T048.
+- **US3**: tests T052–T054 in parallel. T057 in parallel with T055 and T056.
+- **US4**: a single test file and page. The story is short and sequential.
+- **US5**: tests T063–T066 in parallel.
+- **US6**: tests T071–T074 in parallel.
+- **Across stories**: after US1, the US4, US5 and US6 lines can proceed alongside US2 → US3, apart from the shared files above.
+- **Polish**: T080–T083 in parallel.
+
+---
+
+## Parallel Example: Foundational
+
+```text
+# Write all domain tests together:
+Task: "T002 tests/domain/dates.test.ts"
+Task: "T003 tests/domain/numbers.test.ts (roundTo, formatDecimal places)"
+Task: "T004 tests/domain/nutrition.test.ts"
+Task: "T005 tests/domain/units.test.ts (formatAmount)"
+Task: "T006 tests/domain/settings.test.ts"
+Task: "T007 tests/domain/slots.test.ts"
+Task: "T008 tests/domain/products-maintenance.test.ts (productUsageBreakdown)"
+
+# Then, after T009 (types), the implementations together:
+Task: "T010 src/domain/dates.ts"
+Task: "T011 src/domain/numbers.ts"
+Task: "T012 src/domain/nutrition.ts"
+Task: "T013 src/domain/units.ts"
+Task: "T014 src/domain/settings.ts"
+Task: "T015 src/domain/slots.ts"
+Task: "T016 src/domain/products.ts"
+Task: "T017 src/domain/ports.ts + src/adapters/system-clock.ts + tests/fakes/fixed-clock.ts"
+```
+
+## Parallel Example: User Story 1
+
+```text
+Task: "T029 tests/domain/meals.test.ts (resolution, scaling)"
+Task: "T030 tests/domain/week.test.ts (selectors)"
+Task: "T031 tests/app/week-meals.test.ts"
+Task: "T032 tests/ui/week-vm.test.ts"
+Task: "T033 tests/ui/day-page.test.tsx"
+
+# Then:
+Task: "T037 src/ui/view-models/week.ts"
+Task: "T038 src/ui/components/DishPickerSheet.tsx"
+```
+
+## Parallel Example: User Story 6
+
+```text
+Task: "T071 tests/domain/week.test.ts (weekHasPlan, planWeekCopy)"
+Task: "T072 tests/data/week-repository.test.ts (replaceWeek)"
+Task: "T073 tests/app/copy-week.test.ts"
+Task: "T074 tests/ui/week-page.test.tsx (copy flow)"
+```
+
+---
+
+## Implementation Strategy
+
+### MVP first (US1 + US2)
+
+1. Phase 1, then Phase 2. Lint, typecheck and the coverage gate pass, and feature 001 now sees Meals.
+2. Phase 3 (US1): Meals can be planned for the current Week.
+3. Phase 4 (US2): Servings scale.
+4. **Stop and validate** with quickstart rows 1–5 on a real iPhone. This is the first usable planner: one Week with correct per-Meal numbers.
+
+### Incremental delivery
+
+1. US3 (detach and restore), then quickstart rows 6–8 and 17–18.
+2. US4 (← / →), then rows 9–10. This is what makes planning next Week possible, so do it right after US3, or before it if next Week's plan is needed sooner.
+3. US5 ("dodaj kolejny", Liczba slotów), then rows 11–12.
+4. US6 (copy), then rows 13–16.
+5. Phase 9 Polish, then the full quickstart run on an iPhone and a desktop browser.
