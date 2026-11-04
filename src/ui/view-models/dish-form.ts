@@ -1,6 +1,7 @@
+import type { PhotoChange, PhotoError } from '../../app/dishes';
 import type { DishFieldError, DishFieldErrors } from '../../domain/dishes';
 import { normalizeName } from '../../domain/names';
-import type { Product, Unit } from '../../domain/types';
+import type { DishPhotoRef, Product, Unit } from '../../domain/types';
 
 const MESSAGES: Record<DishFieldError, string> = {
   required: 'To pole jest wymagane.',
@@ -59,4 +60,27 @@ export function indexProducts(products: readonly Product[]): ReadonlyMap<string,
 
 export function createProductLabel(query: string): string {
   return `Dodaj „${normalizeName(query)}”`;
+}
+
+const PHOTO_ERROR_MESSAGES: Record<PhotoError, string> = {
+  decode: 'Nie udało się wczytać zdjęcia. Spróbuj innego pliku.',
+  quota: 'Brak miejsca na urządzeniu. Danie zapisano bez nowego zdjęcia.',
+};
+
+export function photoErrorMessage(error: PhotoError): string {
+  return PHOTO_ERROR_MESSAGES[error];
+}
+
+/** What the form's photo section shows for the stored photo and the unsaved change. */
+export function photoSection(
+  stored: DishPhotoRef | null,
+  change: PhotoChange,
+): { shows: 'stored' | 'pending' | 'none'; pickLabel: string; canRemove: boolean } {
+  const shows =
+    change.kind === 'set' ? 'pending' : change.kind === 'keep' && stored ? 'stored' : 'none';
+  return {
+    shows,
+    pickLabel: shows === 'none' ? 'Dodaj zdjęcie' : 'Zmień zdjęcie',
+    canRemove: shows !== 'none',
+  };
 }

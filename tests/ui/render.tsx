@@ -8,7 +8,9 @@ import type { Deps } from '../../src/app/deps';
 import { createDishRepository } from '../../src/data/dish-repository';
 import { createProductRepository } from '../../src/data/product-repository';
 import { DepsProvider } from '../../src/ui/hooks/useDeps';
+import { FakeImageCompressor } from '../fakes/fake-image-compressor';
 import { FixedIdGenerator } from '../fakes/fixed-id-generator';
+import { InMemoryPhotoStore } from '../fakes/in-memory-photo-store';
 import { createTestDb } from '../fakes/test-db';
 
 // eslint-disable-next-line react-hooks/rules-of-hooks -- Framework7 plugin registration, not a React hook
@@ -22,6 +24,8 @@ export function createTestDeps(): Deps {
     ids,
     products: createProductRepository(db, ids),
     dishes: createDishRepository(db),
+    photos: new InMemoryPhotoStore(),
+    compressor: new FakeImageCompressor(),
   };
 }
 

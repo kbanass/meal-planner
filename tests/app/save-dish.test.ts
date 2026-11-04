@@ -4,7 +4,9 @@ import type { PlannerDb } from '../../src/data/db';
 import { createDishRepository, type DishRepository } from '../../src/data/dish-repository';
 import type { DishDraft } from '../../src/domain/dishes';
 import type { Dish, Product } from '../../src/domain/types';
+import { FakeImageCompressor } from '../fakes/fake-image-compressor';
 import { FixedIdGenerator } from '../fakes/fixed-id-generator';
+import { InMemoryPhotoStore } from '../fakes/in-memory-photo-store';
 import { createTestDb } from '../fakes/test-db';
 
 const mleko: Product = { id: 'p-mleko', name: 'mleko', unit: 'ml' };
@@ -20,12 +22,17 @@ const draft: DishDraft = {
 
 let db: PlannerDb;
 let dishes: DishRepository;
-let deps: { dishes: DishRepository; ids: FixedIdGenerator };
+let deps: Parameters<typeof saveDish>[0];
 
 beforeEach(() => {
   db = createTestDb();
   dishes = createDishRepository(db);
-  deps = { dishes, ids: new FixedIdGenerator() };
+  deps = {
+    dishes,
+    photos: new InMemoryPhotoStore(),
+    compressor: new FakeImageCompressor(),
+    ids: new FixedIdGenerator(),
+  };
 });
 
 describe('saveDish', () => {

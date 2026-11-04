@@ -278,67 +278,67 @@ description: "Task list for App Shell, Products and Dishes"
 
 ### Tests for User Story 2
 
-- [ ] T048 [P] [US2] Write `tests/domain/placeholder.test.ts` before the implementation:
+- [X] T048 [P] [US2] Write `tests/domain/placeholder.test.ts` before the implementation:
   - `fnv1a32("")` equals the FNV-1a offset basis `2166136261`, and known vectors hold: `fnv1a32("a") === 0xe40c292c`, `fnv1a32("foobar") === 0xbf9cf968`
   - `placeholderFor("Owsianka").initials === "O"`, `"Leczo z kiełbasą"` → `"LZ"`, `"  2 jajka"` → `"2J"`, `"!!!"` → `"•"`, `"łosoś wędzony"` → `"ŁW"`
   - the same name always gives the same colour, and `"  Owsianka "` gives the same colour as `"Owsianka"`
   - `PLACEHOLDER_PALETTE.length === 12`, and every entry has a WCAG contrast ratio ≥ 4.5 against `#FFFFFF`, computed by a test helper `contrastRatio(hex, '#ffffff')` in the test file
-- [ ] T049 [P] [US2] Write `tests/domain/photo-size.test.ts` before the implementation:
+- [X] T049 [P] [US2] Write `tests/domain/photo-size.test.ts` before the implementation:
   - `fitWithin(4000, 3000, 800)` → `{800, 600}`
   - `fitWithin(3000, 4000, 800)` → `{600, 800}`
   - `fitWithin(1000, 1000, 800)` → `{800, 800}`
   - `fitWithin(640, 480, 800)` → `{640, 480}`, never upscaled
   - `fitWithin(8000, 1, 800)` → `{800, 1}`, minimum 1 px
-- [ ] T050 [P] [US2] Write `tests/app/save-dish-photo.test.ts` before the implementation, using `InMemoryPhotoStore` and `FakeImageCompressor`:
+- [X] T050 [P] [US2] Write `tests/app/save-dish-photo.test.ts` before the implementation, using `InMemoryPhotoStore` and `FakeImageCompressor`:
   - `set` on a new Dish writes one photo and stores `photo: { id, mimeType: 'image/webp' }`
   - `set` on a Dish that has a photo writes the new one, commits, then deletes the old one (the store holds exactly one id)
   - `remove` sets `photo: null` and deletes the file
   - a decode error → `{ kind: 'saved', photoError: 'decode' }`, with the other edits saved and the old photo kept
   - `failNextWriteWith = new PhotoQuotaError()` → `photoError: 'quota'`, with the other edits saved and the old photo kept
   - an invalid draft with `set` calls neither the compressor nor the store
-- [ ] T051 [P] [US2] Write `tests/app/sweep-orphan-photos.test.ts` before the implementation: with photo files `a`, `b`, `c` and Dishes referencing `a` (active) and `b` (archived), `sweepOrphanPhotos` deletes only `c` and returns `1`.
+- [X] T051 [P] [US2] Write `tests/app/sweep-orphan-photos.test.ts` before the implementation: with photo files `a`, `b`, `c` and Dishes referencing `a` (active) and `b` (archived), `sweepOrphanPhotos` deletes only `c` and returns `1`.
 
 ### Implementation for User Story 2
 
-- [ ] T052 [P] [US2] Implement `src/domain/placeholder.ts` (research R5), making T048 pass:
+- [X] T052 [P] [US2] Implement `src/domain/placeholder.ts` (research R5), making T048 pass:
   - `fnv1a32(input)` over the code points (`for…of`, `codePointAt`), using `Math.imul(h, 16777619) >>> 0`.
   - `PLACEHOLDER_PALETTE`: 12 hex colours, all dark enough for white text.
   - `placeholderFor(name)` → `{ color: PALETTE[fnv1a32(normalizeName(name)) % 12], initials }`. For the initials: split the normalised name on spaces, keep words whose first code point matches `/[\p{L}\p{N}]/u`, take the first code point of the first two words, apply `.toUpperCase()`, and fall back to `"•"`.
-- [ ] T053 [P] [US2] Implement `src/domain/photo-size.ts`, `fitWithin(width, height, maxEdge)`: scale = `min(1, maxEdge / max(width, height))`, each side `max(1, Math.round(side * scale))`. Make T049 pass.
-- [ ] T054 [P] [US2] Create `src/adapters/opfs-photo-store.ts`, `createOpfsPhotoStore(): PhotoStore` (research R6):
+- [X] T053 [P] [US2] Implement `src/domain/photo-size.ts`, `fitWithin(width, height, maxEdge)`: scale = `min(1, maxEdge / max(width, height))`, each side `max(1, Math.round(side * scale))`. Make T049 pass.
+- [X] T054 [P] [US2] Create `src/adapters/opfs-photo-store.ts`, `createOpfsPhotoStore(): PhotoStore` (research R6):
   - Root is `navigator.storage.getDirectory()` → `getDirectoryHandle('photos', { create: true })`.
   - The file name is `${ref.id}.${ref.mimeType === 'image/webp' ? 'webp' : 'jpg'}`.
   - `write` uses `getFileHandle(name, { create: true })` → `createWritable()` → `write(blob)` → `close()`, mapping `QuotaExceededError` to `PhotoQuotaError`.
   - `read` uses `getFile()`, returning `null` on `NotFoundError`.
   - `delete` uses `removeEntry`, ignoring `NotFoundError`.
   - `listIds` iterates `entries()` and strips the extensions.
-- [ ] T055 [P] [US2] Create `src/adapters/canvas-image-compressor.ts`, `createCanvasImageCompressor(): ImageCompressor` (research R7):
+- [X] T055 [P] [US2] Create `src/adapters/canvas-image-compressor.ts`, `createCanvasImageCompressor(): ImageCompressor` (research R7):
   - Decode with `createImageBitmap(file, { imageOrientation: 'from-image' })`, wrapped so any failure throws `PhotoDecodeError`.
   - Size the canvas with `fitWithin(bitmap.width, bitmap.height, maxEdge)`, then `drawImage`.
   - `toBlob('image/webp', 0.8)`. If the blob is null or `blob.type !== 'image/webp'`, re-encode with `toBlob('image/jpeg', 0.8)`.
   - Return `{ blob, mimeType }` and `bitmap.close()`.
-- [ ] T056 [US2] Extend `saveDish` in `src/app/dishes.ts` for `photoChange.kind === 'set' | 'remove'`, following the "Order of operations" in [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md):
+- [X] T056 [US2] Extend `saveDish` in `src/app/dishes.ts` for `photoChange.kind === 'set' | 'remove'`, following the "Order of operations" in [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md):
   1. Validate.
   2. Compress with `maxEdge = 800`, then write with a new `DishPhotoRef` id. On `PhotoDecodeError` set `photoError = 'decode'`, on `PhotoQuotaError` set `photoError = 'quota'`, and keep the old reference in both cases.
   3. Put the Dish.
   4. Delete the old file if the reference changed, swallowing errors.
 
   Add `photos: PhotoStore` and `compressor: ImageCompressor` to the `saveDish` deps. Make T050 pass.
-- [ ] T057 [P] [US2] Implement `sweepOrphanPhotos(deps: { dishes; photos })` in `src/app/photos.ts`. It lists all Dishes, including archived ones, collects `photo.id`, deletes every `photos.listIds()` entry not in that set, and returns the count. Make T051 pass.
-- [ ] T058 [US2] Extend `Deps` in `src/app/deps.ts` with `photos: PhotoStore` (`createOpfsPhotoStore()`) and `compressor: ImageCompressor` (`createCanvasImageCompressor()`). In `src/main.tsx`, call `void sweepOrphanPhotos(deps)` after rendering. Update the `tests/ui/render.tsx` defaults with the in-memory fakes.
-- [ ] T059 [US2] Create `src/ui/hooks/usePhotoUrl.ts`: `usePhotoUrl(ref: DishPhotoRef | null, elementRef)`. It waits until the element intersects the viewport (`IntersectionObserver`, `rootMargin: '200px'`), then reads the blob via `deps.photos.read(ref)` and creates an object URL. It revokes the URL on unmount or when the ref changes, and returns `string | null` (SC-003).
-- [ ] T060 [US2] Create `src/ui/components/DishAvatar.tsx` with props `{ name, photo, size }`:
+- [X] T057 [P] [US2] Implement `sweepOrphanPhotos(deps: { dishes; photos })` in `src/app/photos.ts`. It lists all Dishes, including archived ones, collects `photo.id`, deletes every `photos.listIds()` entry not in that set, and returns the count. Make T051 pass.
+- [X] T058 [US2] Extend `Deps` in `src/app/deps.ts` with `photos: PhotoStore` (`createOpfsPhotoStore()`) and `compressor: ImageCompressor` (`createCanvasImageCompressor()`). In `src/main.tsx`, call `void sweepOrphanPhotos(deps)` after rendering. Update the `tests/ui/render.tsx` defaults with the in-memory fakes.
+- [X] T059 [US2] Create `src/ui/hooks/usePhotoUrl.ts`: `usePhotoUrl(ref: DishPhotoRef | null, elementRef)`. It waits until the element intersects the viewport (`IntersectionObserver`, `rootMargin: '200px'`), then reads the blob via `deps.photos.read(ref)` and creates an object URL. It revokes the URL on unmount or when the ref changes, and returns `string | null` (SC-003).
+- [X] T060 [US2] Create `src/ui/components/DishAvatar.tsx` with props `{ name, photo, size }`:
   - Renders the `<img>` from `usePhotoUrl` when available.
   - Otherwise renders a circle with `background: placeholderFor(name).color`, white text and the `initials`.
   - `alt`/`aria-label` is the Dish name.
-- [ ] T061 [US2] Add the photo section to the top of `src/ui/pages/DishFormPage.tsx`:
+- [X] T061 [US2] Add the photo section to the top of `src/ui/pages/DishFormPage.tsx`:
   - `DishAvatar` at 160 px.
   - A hidden `<input type="file" accept="image/*">` triggered by "Dodaj zdjęcie" or "Zmień zdjęcie".
   - "Usuń zdjęcie" when a photo or pending file exists.
   - Track a `photoChange` state (`keep`/`set`/`remove`) and pass it to `saveDish`.
   - On `photoError`, show the toast from [contracts/ui.md](contracts/ui.md): "Nie udało się wczytać zdjęcia. Spróbuj innego pliku." or "Brak miejsca na urządzeniu. Danie zapisano bez nowego zdjęcia."
   - The placeholder updates live as Nazwa changes (US2-5).
-- [ ] T062 [US2] In `src/ui/pages/DishLibraryPage.tsx`, render a 48 px `DishAvatar` in each row, and a larger one in the card layout at ≥ 1024 px.
+- [X] T062 [US2] In `src/ui/pages/DishLibraryPage.tsx`, render a 48 px `DishAvatar` in each row, and a larger one in the card layout at ≥ 1024 px.
 
 **Checkpoint**: US2 works on top of US1. Quickstart rows 5–6 pass.
 

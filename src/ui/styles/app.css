@@ -24,7 +24,69 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 16px;
+    padding: 16px;
+    background: none;
   }
+  .card-grid > ul::before,
+  .card-grid > ul::after {
+    display: none;
+  }
+  .card-grid > ul > li {
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--f7-list-bg-color);
+  }
+  .card-grid .item-content {
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 8px;
+  }
+  .card-grid .item-media {
+    padding: 0 0 8px;
+  }
+  .card-grid .item-inner {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+  .card-grid .item-inner::after,
+  .card-grid .item-inner::before {
+    display: none;
+  }
+  .card-grid .item-link .item-inner {
+    padding-right: 0;
+  }
+}
+
+/* Dish avatar: the photo, or a coloured circle with initials (US2). */
+.dish-avatar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+  color: #ffffff;
+  font-weight: 600;
+  user-select: none;
+}
+.dish-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.dish-photo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 16px 0;
+}
+.dish-photo-actions {
+  display: flex;
+  gap: 8px;
 }
 
 /* Ingredient rows: amount input with a fixed unit suffix (US1-5). */

@@ -7,6 +7,7 @@ import Framework7React from 'framework7-react';
 import { createRoot } from 'react-dom/client';
 import { requestPersistentStorage } from './adapters/persist-storage';
 import { createDeps } from './app/deps';
+import { sweepOrphanPhotos } from './app/photos';
 import { AppShell } from './ui/App';
 import { DepsProvider } from './ui/hooks/useDeps';
 
@@ -22,3 +23,5 @@ createRoot(document.getElementById('app')!).render(
     <AppShell />
   </DepsProvider>,
 );
+
+void sweepOrphanPhotos(deps);

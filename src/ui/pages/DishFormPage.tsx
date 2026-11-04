@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
   BlockTitle,
+  Button,
   f7,
   Link,
   List,
@@ -10,8 +11,8 @@ import {
   Page,
 } from 'framework7-react';
 import type { Router } from 'framework7/types';
-import { useState } from 'react';
-import { saveDish } from '../../app/dishes';
+import { useRef, useState } from 'react';
+import { saveDish, type PhotoChange } from '../../app/dishes';
 import {
   addIngredient,
   draftFromDish,
@@ -21,14 +22,18 @@ import {
   type DishFieldErrors,
 } from '../../domain/dishes';
 import type { Product } from '../../domain/types';
+import { DishAvatar } from '../components/DishAvatar';
 import { IngredientRow } from '../components/IngredientRow';
 import { ProductPicker } from '../components/ProductPicker';
 import { useDeps } from '../hooks/useDeps';
+import { useBlobUrl } from '../hooks/usePhotoUrl';
 import {
   errorMessage,
   fieldDomId,
   firstInvalidField,
   indexProducts,
+  photoErrorMessage,
+  photoSection,
   unitLabel,
 } from '../view-models/dish-form';
 
@@ -61,6 +66,11 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
   const draft = edited ?? (stored ? draftFromDish(stored) : stored === null ? emptyDishDraft() : null);
   const [errors, setErrors] = useState<DishFieldErrors>({});
   const [saving, setSaving] = useState(false);
+  const [photoChange, setPhotoChange] = useState<PhotoChange>({ kind: 'keep' });
+  const pendingPhotoUrl = useBlobUrl(photoChange.kind === 'set' ? photoChange.file : null);
+  const storedPhoto = stored?.photo ?? null;
+  const photo = photoSection(storedPhoto, photoChange);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const error = (path: string) => {
     const code = errors[path];
@@ -95,9 +105,12 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
         id: dishId,
         draft,
         productsById,
-        photoChange: { kind: 'keep' },
+        photoChange,
       });
       if (result.kind === 'saved') {
+        if (result.photoError) {
+          f7.toast.show({ text: photoErrorMessage(result.photoError), closeTimeout: 4000 });
+        }
         f7router.back();
         return;
       }
@@ -118,6 +131,42 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
       </Navbar>
       {draft && (
         <div className="page-wide">
+          <section className="dish-photo" aria-label="Zdjęcie">
+            <DishAvatar
+              name={draft.name}
+              photo={photo.shows === 'stored' ? storedPhoto : null}
+              src={photo.shows === 'pending' ? pendingPhotoUrl : null}
+              size={160}
+            />
+            <div className="dish-photo-actions">
+              <Button type="button" small tonal onClick={() => fileInput.current?.click()}>
+                {photo.pickLabel}
+              </Button>
+              {photo.canRemove && (
+                <Button
+                  type="button"
+                  small
+                  color="red"
+                  onClick={() => setPhotoChange({ kind: 'remove' })}
+                >
+                  Usuń zdjęcie
+                </Button>
+              )}
+            </div>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) setPhotoChange({ kind: 'set', file });
+                // Allow picking the same file again after removing it.
+                event.target.value = '';
+              }}
+            />
+          </section>
+
           <List>
             <ListInput
               label="Nazwa"

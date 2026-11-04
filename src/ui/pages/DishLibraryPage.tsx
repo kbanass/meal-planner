@@ -1,12 +1,15 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Block, Link, List, ListItem, Navbar, NavRight, Page } from 'framework7-react';
 import { selectLibrary } from '../../domain/dishes';
+import { DishAvatar } from '../components/DishAvatar';
 import { useDeps } from '../hooks/useDeps';
+import { DESKTOP_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
 
 export function DishLibraryPage() {
   const deps = useDeps();
   const dishes = useLiveQuery(() => deps.dishes.list(), [deps]);
   const library = selectLibrary(dishes ?? []);
+  const avatarSize = useMediaQuery(DESKTOP_QUERY) ? 120 : 48;
 
   return (
     <Page>
@@ -23,7 +26,11 @@ export function DishLibraryPage() {
         ) : (
           <List className="card-grid">
             {library.map((dish) => (
-              <ListItem key={dish.id} link={`/dishes/${dish.id}/`} title={dish.name} />
+              <ListItem key={dish.id} link={`/dishes/${dish.id}/`} title={dish.name}>
+                <div slot="media">
+                  <DishAvatar name={dish.name} photo={dish.photo} size={avatarSize} />
+                </div>
+              </ListItem>
             ))}
           </List>
         )}

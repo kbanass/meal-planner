@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { DishFieldError } from '../../src/domain/dishes';
-import { errorMessage, firstInvalidField, unitLabel } from '../../src/ui/view-models/dish-form';
+import {
+  errorMessage,
+  firstInvalidField,
+  photoErrorMessage,
+  photoSection,
+  unitLabel,
+} from '../../src/ui/view-models/dish-form';
 
 describe('errorMessage', () => {
   it.each<[DishFieldError, string]>([
@@ -49,5 +55,51 @@ describe('firstInvalidField', () => {
 
   it('returns null when there are no errors', () => {
     expect(firstInvalidField({})).toBeNull();
+  });
+});
+
+describe('photoErrorMessage', () => {
+  it('explains decode and quota failures in Polish', () => {
+    expect(photoErrorMessage('decode')).toBe('Nie udało się wczytać zdjęcia. Spróbuj innego pliku.');
+    expect(photoErrorMessage('quota')).toBe(
+      'Brak miejsca na urządzeniu. Danie zapisano bez nowego zdjęcia.',
+    );
+  });
+});
+
+describe('photoSection', () => {
+  const stored = { id: 'photo-1', mimeType: 'image/webp' } as const;
+  const file = new Blob(['x']);
+
+  it('offers to add a photo when there is none', () => {
+    expect(photoSection(null, { kind: 'keep' })).toEqual({
+      shows: 'none',
+      pickLabel: 'Dodaj zdjęcie',
+      canRemove: false,
+    });
+  });
+
+  it('shows the stored photo until it changes', () => {
+    expect(photoSection(stored, { kind: 'keep' })).toEqual({
+      shows: 'stored',
+      pickLabel: 'Zmień zdjęcie',
+      canRemove: true,
+    });
+  });
+
+  it('shows a picked file before saving', () => {
+    expect(photoSection(null, { kind: 'set', file })).toEqual({
+      shows: 'pending',
+      pickLabel: 'Zmień zdjęcie',
+      canRemove: true,
+    });
+  });
+
+  it('shows the placeholder after removing', () => {
+    expect(photoSection(stored, { kind: 'remove' })).toEqual({
+      shows: 'none',
+      pickLabel: 'Dodaj zdjęcie',
+      canRemove: false,
+    });
   });
 });
