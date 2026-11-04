@@ -29,6 +29,25 @@ export const MONTH_ABBREVIATIONS: readonly string[] = [
   'gru',
 ];
 
+/** Day strip labels on the Week page, Monday first. */
+export const SHORT_DAY_NAMES: readonly string[] = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
+
+/** Month names in the nominative, for "Listopad 2026". */
+export const MONTH_NAMES: readonly string[] = [
+  'styczeń',
+  'luty',
+  'marzec',
+  'kwiecień',
+  'maj',
+  'czerwiec',
+  'lipiec',
+  'sierpień',
+  'wrzesień',
+  'październik',
+  'listopad',
+  'grudzień',
+];
+
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 interface Civil {
@@ -136,4 +155,31 @@ export function weekRangeLabel(weekStart: IsoDate): string {
     return `${first.day} ${monthName(first.month)} – ${last.day} ${monthName(last.month)} ${last.year}`;
   }
   return `${first.day}–${last.day} ${monthName(last.month)} ${last.year}`;
+}
+
+export function dayOfMonth(date: IsoDate): number {
+  return parse(date).day;
+}
+
+/** The day with the same weekday as `date` in the Week starting `weekStart`. */
+export function sameWeekday(date: IsoDate, weekStart: IsoDate): IsoDate {
+  return addDays(weekStart, weekdayIndex(date));
+}
+
+function fullMonth(month: number, capitalised: boolean): string {
+  const name = MONTH_NAMES[month - 1] as string;
+  return capitalised ? name.charAt(0).toUpperCase() + name.slice(1) : name;
+}
+
+/** "Listopad 2026", "Listopad – grudzień 2026", "Grudzień 2026 – styczeń 2027". */
+export function weekMonthLabel(weekStart: IsoDate): string {
+  const first = parse(weekStart);
+  const last = parse(addDays(weekStart, 6));
+  if (first.year !== last.year) {
+    return `${fullMonth(first.month, true)} ${first.year} – ${fullMonth(last.month, false)} ${last.year}`;
+  }
+  if (first.month !== last.month) {
+    return `${fullMonth(first.month, true)} – ${fullMonth(last.month, false)} ${last.year}`;
+  }
+  return `${fullMonth(first.month, true)} ${first.year}`;
 }

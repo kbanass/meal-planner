@@ -58,13 +58,23 @@ export function scaleMeal(source: MealSource, servings: number): ScaledMeal {
   };
 }
 
+/** Which Polish plural form follows `n`: 1 → one; 2–4 (not 12–14) → few; else, fractions too → many. */
+function pluralForm(n: number): 'one' | 'few' | 'many' {
+  if (n === 1) return 'one';
+  const lastDigit = n % 10;
+  const lastTwo = n % 100;
+  const few = lastDigit >= 2 && lastDigit <= 4 && !(lastTwo >= 12 && lastTwo <= 14);
+  return Number.isInteger(n) && few ? 'few' : 'many';
+}
+
 /** The Polish word after a number of Servings: 1 porcja, 2 porcje, 5 porcji, 1,5 porcji. */
 export function servingsWord(servings: number): 'porcja' | 'porcje' | 'porcji' {
-  if (servings === 1) return 'porcja';
-  const lastDigit = servings % 10;
-  const lastTwo = servings % 100;
-  const few = lastDigit >= 2 && lastDigit <= 4 && !(lastTwo >= 12 && lastTwo <= 14);
-  return Number.isInteger(servings) && few ? 'porcje' : 'porcji';
+  return ({ one: 'porcja', few: 'porcje', many: 'porcji' } as const)[pluralForm(servings)];
+}
+
+/** The Polish word after a number of Meals: 1 posiłek, 2 posiłki, 5 posiłków. */
+export function mealsWord(count: number): 'posiłek' | 'posiłki' | 'posiłków' {
+  return ({ one: 'posiłek', few: 'posiłki', many: 'posiłków' } as const)[pluralForm(count)];
 }
 
 const MACRO_KEYS = ['kcal', 'protein', 'fat', 'carbs'] as const;

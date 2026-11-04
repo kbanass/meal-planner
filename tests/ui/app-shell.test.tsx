@@ -46,7 +46,7 @@ describe('AppShell', () => {
     const week = document.getElementById('view-week')!;
     expect(week).toHaveClass('tab-active');
     // createTestDeps fixes today at Wednesday 2026-11-04.
-    expect(await within(week).findByText('2–8 lis 2026')).toBeInTheDocument();
+    expect(await within(week).findByText('Listopad 2026')).toBeInTheDocument();
     expect(within(week).queryByText(NOTICE)).not.toBeInTheDocument();
   });
 
@@ -71,20 +71,21 @@ describe('AppShell', () => {
     expect(await within(shopping).findByText(NOTICE)).toBeInTheDocument();
   });
 
-  it('comes back from a day to the same Week (FR-007)', async () => {
+  it('keeps the Week and the selected day when switching tabs (FR-007)', async () => {
     renderShell();
     const week = document.getElementById('view-week')!;
-    await within(week).findByText('2–8 lis 2026');
+    await within(week).findByText('Listopad 2026');
 
     await userEvent.click(within(week).getByLabelText('Następny tydzień'));
-    await within(week).findByText('9–15 lis 2026');
-    await userEvent.click(within(week).getByText('Czwartek'));
-    expect(await within(week).findByText('Czwartek, 12 lis')).toBeInTheDocument();
+    await userEvent.click(within(week).getByRole('button', { name: 'Piątek, 13 lis' }));
+    await userEvent.click(screen.getByText('Dania', { selector: '.tab-link *' }));
+    await userEvent.click(screen.getByText('Tydzień', { selector: '.tab-link *' }));
 
-    await userEvent.click(week.querySelector<HTMLElement>('.page-current .navbar .back')!);
-    await waitFor(() =>
-      expect(week.querySelector('.page-current .navbar .title')).not.toHaveTextContent('Czwartek, 12 lis'),
+    await waitFor(() => expect(week).toHaveClass('tab-active'));
+    expect(within(week).getByRole('button', { name: 'Piątek, 13 lis' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
     );
-    expect(await within(week).findByText('9–15 lis 2026')).toBeInTheDocument();
+    expect(week.querySelector('.day-heading h3')).toHaveTextContent('Piątek, 13 lis');
   });
 });

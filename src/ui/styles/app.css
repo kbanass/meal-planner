@@ -42,6 +42,12 @@ html {
   .page-wide-grid {
     max-width: none;
   }
+  /* The Week page's large title lines up with its 640 px column of cards. */
+  #view-week .title-large-text {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 
   .card-grid > ul {
     display: grid;
@@ -94,6 +100,9 @@ html {
   color: #ffffff;
   font-weight: 600;
   user-select: none;
+}
+.dish-avatar-square {
+  border-radius: 0;
 }
 .dish-avatar img {
   width: 100%;
@@ -167,11 +176,6 @@ html {
   color: var(--f7-input-error-text-color, #ff3b30);
 }
 
-/* Week page: today's row gets an accent edge (FR-003). */
-.day-today {
-  box-shadow: inset 4px 0 0 var(--f7-theme-color);
-}
-
 /* Dish picker: a horizontal strip of tiles (research R11). Framework7 has no horizontal
    list, so this is the one custom layout. */
 .dish-picker-strip {
@@ -210,4 +214,272 @@ html {
 /* The Meal sheet holds a whole form, so it is taller than Framework7's default 260 px. */
 .meal-sheet {
   --f7-sheet-height: 85%;
+}
+
+/* Week page redesign (spec Revisions 2026-11-04, contracts/ui.md "Look"). A warm page, white
+   rounded cards and the app's green accent, scoped to the Tydzień tab. */
+#view-week {
+  --planner-accent: #2f6f4f;
+  --planner-accent-soft: rgba(47, 111, 79, 0.12);
+  --planner-page-bg: #f5f1ec;
+  --planner-card-bg: #ffffff;
+  --planner-card-radius: 24px;
+  --planner-card-shadow: 0 8px 24px rgba(60, 30, 20, 0.08);
+  --planner-muted: #8e8a86;
+  --planner-text: #1c1a19;
+  --f7-theme-color: var(--planner-accent);
+  --f7-theme-color-rgb: 47, 111, 79;
+  --f7-page-bg-color: var(--planner-page-bg);
+  --f7-navbar-bg-color: var(--planner-page-bg);
+  --f7-bars-bg-color: var(--planner-page-bg);
+  --f7-navbar-large-collapsed-bg-color: var(--planner-page-bg);
+}
+.week-content {
+  padding: 8px 16px calc(32px + var(--f7-safe-area-bottom, 0px));
+  color: var(--planner-text);
+}
+
+.week-card {
+  padding: 20px 16px 12px;
+  border-radius: var(--planner-card-radius);
+  background: var(--planner-card-bg);
+  box-shadow: var(--planner-card-shadow);
+}
+.week-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 4px 16px;
+}
+.week-card-month {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.week-card-nav {
+  display: flex;
+  flex: none;
+  gap: 10px;
+}
+.round-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--planner-card-bg);
+  box-shadow: 0 2px 10px rgba(60, 30, 20, 0.14);
+  color: var(--planner-text);
+  cursor: pointer;
+}
+.round-button .icon {
+  font-size: 20px;
+}
+
+/* Seven equal columns; the selected day is a filled green pill. */
+.day-strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.day-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 0 8px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  color: var(--planner-text);
+  font: inherit;
+  cursor: pointer;
+}
+.day-pill-name {
+  font-size: 14px;
+  color: var(--planner-muted);
+}
+.day-pill-number {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+.day-pill-kcal {
+  min-height: 13px;
+  font-size: 11px;
+  line-height: 13px;
+  color: var(--planner-muted);
+}
+.day-pill-today .day-pill-name,
+.day-pill-today .day-pill-number {
+  color: var(--planner-accent);
+}
+.day-pill-selected {
+  background: var(--planner-accent);
+  box-shadow: 0 6px 14px rgba(47, 111, 79, 0.3);
+}
+.day-pill-selected .day-pill-name,
+.day-pill-selected .day-pill-number,
+.day-pill-selected .day-pill-kcal {
+  color: #ffffff;
+}
+
+.week-card-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--planner-accent);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.week-card-copy .icon {
+  font-size: 18px;
+}
+.week-card-copy:disabled {
+  color: var(--planner-muted);
+  opacity: 0.6;
+  cursor: default;
+}
+
+.day-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 28px 4px 4px;
+}
+.day-heading h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+.day-heading-summary {
+  flex: none;
+  font-size: 15px;
+  color: var(--planner-muted);
+}
+
+.slot {
+  margin-top: 14px;
+}
+.slot-label {
+  margin: 0 4px 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--planner-muted);
+}
+
+/* A Meal: square photo filling the left side, text on the right (FR-042). */
+.meal-card {
+  position: relative;
+  display: flex;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--planner-card-radius);
+  background: var(--planner-card-bg);
+  box-shadow: var(--planner-card-shadow);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.meal-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 44px 12px 16px;
+}
+.meal-card-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.meal-card-subtitle {
+  font-size: 14px;
+  color: var(--planner-muted);
+}
+.meal-card-chip {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--planner-accent-soft);
+  color: var(--planner-accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+.meal-card-edit {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-size: 20px;
+  color: var(--planner-text);
+}
+
+/* Adding: a dashed card for an empty Slot or "dodaj kolejny", a small link under Meals. */
+.slot-add-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 56px;
+  margin-bottom: 10px;
+  border: 1.5px dashed rgba(142, 138, 134, 0.6);
+  border-radius: var(--planner-card-radius);
+  background: none;
+  color: var(--planner-muted);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.slot-add-card .icon,
+.slot-add-link .icon {
+  font-size: 18px;
+}
+.slot > .slot-add-card {
+  margin-bottom: 0;
+}
+.week-content > .slot-add-card {
+  margin-top: 20px;
+}
+.slot-add-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 4px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--planner-accent);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
 }

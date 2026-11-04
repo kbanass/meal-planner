@@ -561,19 +561,19 @@ The Day page goes away. Behaviour and data are unchanged.
 
 ### Tests for the redesign
 
-- [ ] T086 [P] Extend `tests/domain/dates.test.ts`:
+- [X] T086 [P] Extend `tests/domain/dates.test.ts`:
   - `SHORT_DAY_NAMES` equals `['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd']`, and `MONTH_NAMES` equals the 12 nominative names (`'styczeń'` … `'grudzień'`).
   - `weekMonthLabel`: `'2026-11-02'` → "Listopad 2026", `'2026-11-30'` → "Listopad – grudzień 2026", `'2026-12-28'` → "Grudzień 2026 – styczeń 2027".
   - `dayOfMonth('2026-11-05') === 5`.
   - `sameWeekday('2026-11-05', '2026-11-09') === '2026-11-12'` and `sameWeekday('2026-11-08', '2026-10-26') === '2026-11-01'`.
-- [ ] T087 [P] Extend `tests/domain/meals.test.ts` with `mealsWord`: 1 → posiłek, 2 → posiłki, 4 → posiłki, 5 → posiłków, 12 → posiłków, 22 → posiłki, 0 → posiłków.
-- [ ] T088 [P] Extend `tests/ui/week-vm.test.ts` for the new `weekPage(weekStart, today, selected, data)` model:
+- [X] T087 [P] Extend `tests/domain/meals.test.ts` with `mealsWord`: 1 → posiłek, 2 → posiłki, 4 → posiłki, 5 → posiłków, 12 → posiłków, 22 → posiłki, 0 → posiłków.
+- [X] T088 [P] Extend `tests/ui/week-vm.test.ts` for the new `weekPage(weekStart, today, selected, data)` model:
   - `monthLabel` is "Listopad 2026".
   - `strip` has 7 cells `{ date, shortName, dayNumber, kcal, isToday, isSelected }`, with `kcal: ''` for an empty day and "350" for a planned one.
   - `heading` is "Czwartek, 5 lis", and `summary` is "2 posiłki · 875 kcal" or "brak posiłków".
   - `slots` reuse the `dayPage` rows.
   - `canCopy` is unchanged.
-- [ ] T089 [P] Rewrite `tests/ui/week-page.test.tsx` for the one-screen flow, moving the cases from `tests/ui/day-page.test.tsx` and deleting that file:
+- [X] T089 [P] Rewrite `tests/ui/week-page.test.tsx` for the one-screen flow, moving the cases from `tests/ui/day-page.test.tsx` and deleting that file:
   - It opens with Wednesday's pill `aria-pressed="true"` and "Środa, 4 lis".
   - Tapping "Cz 5" shows "Czwartek, 5 lis" without navigating.
   - → keeps Thursday selected and shows "Czwartek, 12 lis".
@@ -583,28 +583,28 @@ The Day page goes away. Behaviour and data are unchanged.
 
 ### Implementation for the redesign
 
-- [ ] T090 [P] Add `SHORT_DAY_NAMES`, `MONTH_NAMES`, `weekMonthLabel`, `dayOfMonth` and `sameWeekday` to `src/domain/dates.ts`, and `mealsWord` to `src/domain/meals.ts`, per [contracts/domain-api.md](contracts/domain-api.md). This makes T086 and T087 pass at 100% coverage.
-- [ ] T091 [P] Add the redesign tokens and component styles to `src/ui/styles/app.css`, per [contracts/ui.md](contracts/ui.md) "Look":
+- [X] T090 [P] Add `SHORT_DAY_NAMES`, `MONTH_NAMES`, `weekMonthLabel`, `dayOfMonth` and `sameWeekday` to `src/domain/dates.ts`, and `mealsWord` to `src/domain/meals.ts`, per [contracts/domain-api.md](contracts/domain-api.md). This makes T086 and T087 pass at 100% coverage.
+- [X] T091 [P] Add the redesign tokens and component styles to `src/ui/styles/app.css`, per [contracts/ui.md](contracts/ui.md) "Look":
   - `--planner-page-bg`, `--planner-card-*`, `--planner-accent`, `--planner-muted`
   - `.week-card`, `.day-strip`, `.day-pill`, `.meal-card`, `.slot-add-card`
   - Scope them to `#view-week`, with `--planner-accent: #2f6f4f` and `--f7-theme-color` set to the same green within `#view-week`.
   - Remove the now unused `.day-today` style.
-- [ ] T092 Rework `src/ui/view-models/week.ts`:
+- [X] T092 Rework `src/ui/view-models/week.ts`:
   - `weekPage(weekStart, today, selected, { meals, daySlots, dishes, settings })` returns `{ monthLabel, strip, heading, summary, slots, canCopy }`, built from `selectWeekDays`, `selectDay`, `weekMonthLabel` and `mealsWord`.
   - Drop `dayRow` and `dayPage` once nothing uses them.
 
   This makes T088 pass.
-- [ ] T093 [P] Create `src/ui/components/DayStrip.tsx`: 7 `button`s with `aria-pressed`, `aria-label` "{dayName}, {dateText}" and `onSelect(date)`. It renders the `strip` cells only.
-- [ ] T094 [P] Create `src/ui/components/MealCard.tsx`: the Meal card from contracts/ui.md, with the `DishAvatar` square variant filling the left side. Add a `shape?: 'circle' | 'square'` prop to `DishAvatar` (default `'circle'`, so the Dish library is unchanged). Also create the `SlotAddCard` dashed card used for empty Slots and "dodaj kolejny".
-- [ ] T095 Rewrite `src/ui/pages/WeekPage.tsx` as one screen:
+- [X] T093 [P] Create `src/ui/components/DayStrip.tsx`: 7 `button`s with `aria-pressed`, `aria-label` "{dayName}, {dateText}" and `onSelect(date)`. It renders the `strip` cells only.
+- [X] T094 [P] Create `src/ui/components/MealCard.tsx`: the Meal card from contracts/ui.md, with the `DishAvatar` square variant filling the left side. Add a `shape?: 'circle' | 'square'` prop to `DishAvatar` (default `'circle'`, so the Dish library is unchanged). Also create the `SlotAddCard` dashed card used for empty Slots and "dodaj kolejny".
+- [X] T095 Rewrite `src/ui/pages/WeekPage.tsx` as one screen:
   - A large "Tydzień" title, then the Week card (month label, round ← / → `Button`s, `DayStrip`, copy action), the day heading and summary, the Slots with `MealCard`s and "Dodaj posiłek" actions, and "dodaj kolejny".
   - It renders `DishPickerSheet` and `MealSheet` once.
   - State: `weekStart`, `selected` (today on open) and `today`. ← / → set `weekStart ± 7` and `selected = sameWeekday(selected, newStart)`.
   - The live queries cover the whole Week (Meals, DaySlots), Dishes and settings.
 
   Then delete `src/ui/pages/DayPage.tsx` and its route in `src/ui/routes.ts`. This makes T089 pass.
-- [ ] T096 Check the screen at 390×844 (iOS user agent) and at 1280 px with the headless-Chrome screenshot flow (project memory). Compare it with the reference: card radius and shadow, pill, Meal card proportions, spacing. Check that the strip fits 375 pt without wrapping, with "1850" under each day. Fix gaps in `src/ui/styles/app.css`.
-- [ ] T097 Update [quickstart.md](quickstart.md) rows 1–3, 7, 9 and 11 for the one-screen flow, and record the final colour, spacing and component names in [contracts/ui.md](contracts/ui.md).
+- [X] T096 Check the screen at 390×844 (iOS user agent) and at 1280 px with the headless-Chrome screenshot flow (project memory). Compare it with the reference: card radius and shadow, pill, Meal card proportions, spacing. Check that the strip fits 375 pt without wrapping, with "1850" under each day. Fix gaps in `src/ui/styles/app.css`.
+- [X] T097 Update [quickstart.md](quickstart.md) rows 1–3, 7, 9 and 11 for the one-screen flow, and record the final colour, spacing and component names in [contracts/ui.md](contracts/ui.md).
 
 **Checkpoint**: the redesigned Tydzień tab passes T089 and the quickstart rows, and lint, typecheck and the 100% domain coverage gate pass.
 

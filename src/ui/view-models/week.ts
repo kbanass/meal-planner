@@ -1,35 +1,9 @@
-import { dayLabel, isIsoDate, weekRangeLabel } from '../../domain/dates';
-import { servingsWord } from '../../domain/meals';
+import { dayLabel, dayOfMonth, SHORT_DAY_NAMES, weekMonthLabel } from '../../domain/dates';
+import { mealsWord, servingsWord } from '../../domain/meals';
 import { formatKcal, formatServings } from '../../domain/nutrition';
 import { DEFAULT_SETTINGS } from '../../domain/settings';
 import type { DaySlots, Dish, DishPhotoRef, IsoDate, Meal, Settings } from '../../domain/types';
-import {
-  selectDay,
-  selectWeekDays,
-  weekHasPlan,
-  type DayView,
-  type MealView,
-} from '../../domain/week';
-
-export interface DayRow {
-  date: IsoDate;
-  title: string;
-  subtitle: string;
-  after: string;
-  isToday: boolean;
-}
-
-/** One day on the Week page: "Czwartek", "5 lis", "1850 kcal" (FR-001, FR-003, FR-004). */
-export function dayRow(day: DayView): DayRow {
-  const { dayName, dateText } = dayLabel(day.date);
-  return {
-    date: day.date,
-    title: dayName,
-    subtitle: day.isToday ? `${dateText} · dziś` : dateText,
-    after: day.mealCount === 0 ? 'brak posiłków' : `${formatKcal(day.plannedKcal)} kcal`,
-    isToday: day.isToday,
-  };
-}
+import { selectDay, selectWeekDays, weekHasPlan, type MealView } from '../../domain/week';
 
 export interface MealRow {
   id: string;
@@ -41,7 +15,7 @@ export interface MealRow {
   photo: DishPhotoRef | null;
 }
 
-/** One Meal in a Slot: "Owsianka", "1,5 porcji · 525 kcal", and "zmieniony" if detached. */
+/** One Meal card: "Owsianka", "1,5 porcji · 525 kcal", and "zmieniony" if detached (FR-042). */
 export function mealRow(view: MealView): MealRow {
   const title = view.missingDish ? 'Nieznane danie' : view.name;
   return {
@@ -62,40 +36,8 @@ export function dayTitle(date: IsoDate): string {
 
 export const pickerEmptyMessage = 'Nie masz jeszcze żadnych dań. Dodaj je w zakładce Dania.';
 
-export const invalidDayMessage = 'Nie ma takiego dnia.';
-
 export function removeMealConfirmMessage(name: string): string {
   return `Usunąć posiłek „${name}”?`;
-}
-
-export function indexDishes(dishes: readonly Dish[]): ReadonlyMap<string, Dish> {
-  return new Map(dishes.map((dish) => [dish.id, dish]));
-}
-
-export interface WeekPageModel {
-  title: string;
-  days: DayRow[];
-  /** "Skopiuj do następnego tygodnia" is offered only for a Week with a plan (FR-036). */
-  canCopy: boolean;
-}
-
-/** Everything the Week page shows. Live data is `undefined` while it loads. */
-export function weekPage(
-  weekStart: IsoDate,
-  today: IsoDate,
-  data: {
-    meals: readonly Meal[] | undefined;
-    daySlots: readonly DaySlots[] | undefined;
-    dishes: readonly Dish[] | undefined;
-  },
-): WeekPageModel {
-  const meals = data.meals ?? [];
-  const days = selectWeekDays(weekStart, today, meals, indexDishes(data.dishes ?? []));
-  return {
-    title: weekRangeLabel(weekStart),
-    days: days.map(dayRow),
-    canCopy: weekHasPlan(meals, data.daySlots ?? []),
-  };
 }
 
 export const copyConfirmMessage =
@@ -106,33 +48,79 @@ export const copyDoneToast = 'Skopiowano do następnego tygodnia.';
 export const copyFailedMessage =
   'Nie udało się skopiować tygodnia. Następny tydzień nie został zmieniony.';
 
-export interface DayPageModel {
-  valid: boolean;
-  title: string;
-  slots: { number: number; rows: MealRow[] }[];
+export function indexDishes(dishes: readonly Dish[]): ReadonlyMap<string, Dish> {
+  return new Map(dishes.map((dish) => [dish.id, dish]));
 }
 
-/** Everything the Day page shows. An invalid route date gives `valid: false`. */
-export function dayPage(
-  date: string,
+/** One day in the Week card's strip (FR-001, FR-003, FR-004). */
+export interface StripCell {
+  date: IsoDate;
+  shortName: string;
+  dayNumber: number;
+  /** Planned kcal, or '' for a day with no Meals. */
+  kcal: string;
+  isToday: boolean;
+  isSelected: boolean;
+  ariaLabel: string;
+}
+
+export interface WeekPageModel {
+  monthLabel: string;
+  strip: StripCell[];
+  /** The selected day: "Czwartek, 5 lis". */
+  heading: string;
+  /** "2 posiłki · 875 kcal", or "brak posiłków". */
+  summary: string;
+  slots: { number: number; rows: MealRow[] }[];
+  /** "Skopiuj do następnego tygodnia" is offered only for a Week with a plan (FR-036). */
+  canCopy: boolean;
+}
+
+/**
+ * Everything the one-screen Week page shows: the Week card with its day strip, and the selected
+ * day's Slots (spec Revisions 2026-11-04). Live data is `undefined` while it loads.
+ */
+export function weekPage(
+  weekStart: IsoDate,
+  today: IsoDate,
+  selected: IsoDate,
   data: {
     meals: readonly Meal[] | undefined;
     daySlots: readonly DaySlots[] | undefined;
     dishes: readonly Dish[] | undefined;
     settings: Settings | undefined;
   },
-): DayPageModel {
-  if (!isIsoDate(date)) return { valid: false, title: '', slots: [] };
+): WeekPageModel {
+  const meals = data.meals ?? [];
+  const daySlots = data.daySlots ?? [];
+  const dishesById = indexDishes(data.dishes ?? []);
+  const days = selectWeekDays(weekStart, today, meals, dishesById);
+  const selectedDay = days.find((day) => day.date === selected);
+  const mealCount = selectedDay?.mealCount ?? 0;
   const slots = selectDay(
-    date,
-    data.meals ?? [],
-    data.daySlots?.find((record) => record.date === date),
-    indexDishes(data.dishes ?? []),
+    selected,
+    meals,
+    daySlots.find((record) => record.date === selected),
+    dishesById,
     data.settings ?? DEFAULT_SETTINGS,
   );
   return {
-    valid: true,
-    title: dayTitle(date),
+    monthLabel: weekMonthLabel(weekStart),
+    strip: days.map((day, index) => ({
+      date: day.date,
+      shortName: SHORT_DAY_NAMES[index] as string,
+      dayNumber: dayOfMonth(day.date),
+      kcal: day.mealCount === 0 ? '' : formatKcal(day.plannedKcal),
+      isToday: day.isToday,
+      isSelected: day.date === selected,
+      ariaLabel: dayTitle(day.date),
+    })),
+    heading: dayTitle(selected),
+    summary:
+      mealCount === 0
+        ? 'brak posiłków'
+        : `${mealCount} ${mealsWord(mealCount)} · ${formatKcal(selectedDay?.plannedKcal ?? 0)} kcal`,
     slots: slots.map((slot) => ({ number: slot.number, rows: slot.meals.map(mealRow) })),
+    canCopy: weekHasPlan(meals, daySlots),
   };
 }

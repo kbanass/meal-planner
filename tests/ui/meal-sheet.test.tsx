@@ -1,8 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { Router } from 'framework7/types';
 import { describe, expect, it } from 'vitest';
-import { DayPage } from '../../src/ui/pages/DayPage';
+import { WeekPage } from '../../src/ui/pages/WeekPage';
 import { owsianka } from '../fakes/dishes';
 import { createTestDeps, renderWithApp } from './render';
 
@@ -21,11 +20,9 @@ async function renderDayWithMeal() {
     ],
   };
   await deps.dishes.put(dish);
-  await deps.week.addMeal({ date: '2026-11-05', slot: 1, dishId: dish.id });
-  const result = renderWithApp(
-    <DayPage f7route={{ params: { date: '2026-11-05' } } as unknown as Router.Route} />,
-    deps,
-  );
+  // Today (FixedClock 2026-11-04) is selected when the Week page opens.
+  await deps.week.addMeal({ date: '2026-11-04', slot: 1, dishId: dish.id });
+  const result = renderWithApp(<WeekPage />, deps);
   return { ...result, deps };
 }
 
@@ -80,7 +77,7 @@ describe('MealSheet', () => {
 
     expect(await within(slot1(container)).findByText('1,5 porcji · 525 kcal')).toBeInTheDocument();
     expect(within(slot1(container)).queryByText('zmieniony')).not.toBeInTheDocument();
-    const [stored] = await deps.week.listMeals({ start: '2026-11-05', end: '2026-11-05' });
+    const [stored] = await deps.week.listMeals({ start: '2026-11-04', end: '2026-11-04' });
     expect(stored).toMatchObject({ servings: 1.5, detached: null });
   });
 
@@ -94,7 +91,7 @@ describe('MealSheet', () => {
 
     expect(await within(sheet).findByText('Wartość musi być większa od zera.')).toBeInTheDocument();
     await waitFor(() => expect(sheet).toHaveClass('modal-in'));
-    const [stored] = await deps.week.listMeals({ start: '2026-11-05', end: '2026-11-05' });
+    const [stored] = await deps.week.listMeals({ start: '2026-11-04', end: '2026-11-04' });
     expect(stored?.servings).toBe(1);
   });
 
@@ -112,7 +109,7 @@ describe('MealSheet', () => {
     expect(
       await screen.findByText('Posiłek zmieniony – nie będzie już śledził zmian w daniu.'),
     ).toBeInTheDocument();
-    const [detached] = await deps.week.listMeals({ start: '2026-11-05', end: '2026-11-05' });
+    const [detached] = await deps.week.listMeals({ start: '2026-11-04', end: '2026-11-04' });
     expect(detached?.detached?.ingredients[0]?.amount).toBe(160);
     await waitFor(() => expect(sheet).not.toHaveClass('modal-in'));
 
@@ -124,7 +121,7 @@ describe('MealSheet', () => {
     await waitFor(() =>
       expect(within(slot1(container)).queryByText('zmieniony')).not.toBeInTheDocument(),
     );
-    const [restored] = await deps.week.listMeals({ start: '2026-11-05', end: '2026-11-05' });
+    const [restored] = await deps.week.listMeals({ start: '2026-11-04', end: '2026-11-04' });
     expect(restored?.detached).toBeNull();
   });
 

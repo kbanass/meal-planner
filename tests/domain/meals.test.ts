@@ -5,6 +5,7 @@ import {
   draftFromMeal,
   isDetached,
   mealSource,
+  mealsWord,
   newMeal,
   removeMealIngredient,
   rescaleMealDraft,
@@ -411,5 +412,19 @@ describe('restoreMeal', () => {
   it('drops the copy and keeps the Servings (FR-029)', () => {
     const detached = meal({ id: 'm-1', servings: 2, detached: { ...owsianka, name: 'Inna' } });
     expect(restoreMeal(detached)).toEqual({ ...detached, detached: null });
+  });
+});
+
+describe('mealsWord', () => {
+  it.each([
+    [1, 'posiłek'],
+    [2, 'posiłki'],
+    [4, 'posiłki'],
+    [5, 'posiłków'],
+    [12, 'posiłków'],
+    [22, 'posiłki'],
+    [0, 'posiłków'],
+  ])('%d → %s', (count, word) => {
+    expect(mealsWord(count)).toBe(word);
   });
 });

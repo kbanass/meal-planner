@@ -48,7 +48,7 @@ The screenshot is a reference for the general look only, not a design to match e
 
 **Structure, top to bottom:**
 
-1. **Page title**: "Tydzień", large and left-aligned (no Framework7 navbar, matching the reference). On iOS it respects the top safe area.
+1. **Page title**: "Tydzień" in Framework7's large navbar (`Navbar large transparent`). It handles the safe area and collapses on scroll as on iOS. Its background is the page colour, and on desktop the title lines up with the 640 px column. (As built: Framework7's own large title replaced the hand-made one planned here.)
 2. **Week card** (`WeekCard`):
    - **Top row**: the month label on the left, `weekMonthLabel`: "Listopad 2026", "Listopad – grudzień 2026", "Grudzień 2026 – styczeń 2027". On the right, two round 44 px buttons with `arrow_left` / `arrow_right` icons, `aria-label` "Poprzedni tydzień" / "Następny tydzień".
    - **Day strip** (`DayStrip`): 7 equal columns, each a `button` with `aria-pressed` for the selected day:
@@ -64,7 +64,7 @@ The screenshot is a reference for the general look only, not a design to match e
 3. **Day heading row**: "Czwartek, 5 lis" on the left (22 px, 700). The summary on the right, muted: "2 posiłki · 875 kcal", "1 posiłek · 350 kcal", "5 posiłków · …", or "brak posiłków".
 4. **Slots**: for each Slot, a small muted label with just its number, then:
    - **Meal cards** (`MealCard`), in the order added. Each is a white card, about 112 px tall:
-     - On the left, a square photo or placeholder filling the card height (`DishAvatar` with square corners).
+     - On the left, a square photo or placeholder filling the card height (`DishAvatar shape="square"`, 104 px).
      - On the right, the name (17 px, 700, at most 2 lines) and "1,5 porcji · 525 kcal" (muted).
      - At the bottom, a "zmieniony" chip for a Detached Meal: rounded, light accent background.
      - In the top-right corner, a `pencil` icon.
@@ -73,6 +73,12 @@ The screenshot is a reference for the general look only, not a design to match e
    - **Empty Slot**: one outlined card, dashed 1.5 px border in the muted colour, with a `plus` icon and "Dodaj posiłek". Tapping it opens the Dish picker for that Slot.
    - **Slot with Meals**: below its cards, a small text action "+ Dodaj posiłek" that opens the same picker.
 5. **"dodaj kolejny"**: a dashed outlined card like the empty Slot, labelled "dodaj kolejny" (FR-010).
+
+**As built (2026-11-04):**
+- `WeekCard` is markup inside `WeekPage.tsx` rather than its own component.
+- `DayStrip` and `MealCard`/`SlotAddCard` live in `src/ui/components/`.
+- The ← / → and copy controls are plain `button`s styled as round buttons and a text button.
+- The tokens are set on `#view-week`, and so is `--f7-theme-color` (green). The navbar background matches the page.
 
 **Behaviour:**
 - `weekStart` and the selected date are React state of the Week page.

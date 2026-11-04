@@ -4,16 +4,13 @@ import {
   copyConfirmMessage,
   copyDoneToast,
   copyFailedMessage,
-  dayPage,
-  dayRow,
   dayTitle,
-  invalidDayMessage,
   mealRow,
   pickerEmptyMessage,
   removeMealConfirmMessage,
   weekPage,
 } from '../../src/ui/view-models/week';
-import { meal, owsianka } from '../fakes/dishes';
+import { dish, meal, owsianka } from '../fakes/dishes';
 
 function view(overrides: Partial<MealView> = {}): MealView {
   return {
@@ -27,28 +24,6 @@ function view(overrides: Partial<MealView> = {}): MealView {
     ...overrides,
   };
 }
-
-describe('dayRow', () => {
-  it('shows the day name, date and Planned kcal', () => {
-    expect(dayRow({ date: '2026-11-05', isToday: false, mealCount: 2, plannedKcal: 1849.6 })).toEqual({
-      date: '2026-11-05',
-      title: 'Czwartek',
-      subtitle: '5 lis',
-      after: '1850 kcal',
-      isToday: false,
-    });
-  });
-
-  it('marks today and an empty day', () => {
-    expect(dayRow({ date: '2026-11-04', isToday: true, mealCount: 0, plannedKcal: 0 })).toEqual({
-      date: '2026-11-04',
-      title: 'Środa',
-      subtitle: '4 lis · dziś',
-      after: 'brak posiłków',
-      isToday: true,
-    });
-  });
-});
 
 describe('mealRow', () => {
   it('shows Servings and kcal, with the Polish word for the Servings', () => {
@@ -81,98 +56,100 @@ describe('mealRow', () => {
   });
 });
 
-describe('Day page texts', () => {
-  it('titles the day', () => {
+describe('Week page texts', () => {
+  it('titles a day', () => {
     expect(dayTitle('2026-11-05')).toBe('Czwartek, 5 lis');
   });
 
-  it('words the picker, removal and invalid-day messages', () => {
+  it('words the picker, removal and copy messages', () => {
     expect(pickerEmptyMessage).toBe('Nie masz jeszcze żadnych dań. Dodaj je w zakładce Dania.');
     expect(removeMealConfirmMessage('Owsianka')).toBe('Usunąć posiłek „Owsianka”?');
-    expect(invalidDayMessage).toBe('Nie ma takiego dnia.');
-  });
-});
-
-describe('weekPage', () => {
-  it('titles the Week and lists its seven days, today marked', () => {
-    const model = weekPage('2026-11-02', '2026-11-04', {
-      meals: [meal({ id: 'm-1', date: '2026-11-02' })],
-      daySlots: [],
-      dishes: [owsianka],
-    });
-
-    expect(model.title).toBe('2–8 lis 2026');
-    expect(model.days.map((d) => d.title)).toEqual([
-      'Poniedziałek',
-      'Wtorek',
-      'Środa',
-      'Czwartek',
-      'Piątek',
-      'Sobota',
-      'Niedziela',
-    ]);
-    expect(model.days[0]?.after).toBe('350 kcal');
-    expect(model.days[2]?.isToday).toBe(true);
-    expect(model.canCopy).toBe(true);
-  });
-
-  it('shows empty days, and offers no copy, while the data loads', () => {
-    const model = weekPage('2026-11-02', '2026-11-04', {
-      meals: undefined,
-      daySlots: undefined,
-      dishes: undefined,
-    });
-    expect(model.days.every((d) => d.after === 'brak posiłków')).toBe(true);
-    expect(model.canCopy).toBe(false);
-  });
-
-  it('offers the copy for a Week with only Added Slots', () => {
-    const model = weekPage('2026-11-02', '2026-11-04', {
-      meals: [],
-      daySlots: [{ date: '2026-11-07', slotCount: 5 }],
-      dishes: [],
-    });
-    expect(model.canCopy).toBe(true);
-  });
-
-  it('words the copy confirmation, toast and failure', () => {
     expect(copyConfirmMessage).toBe('Następny tydzień ma już plan. Zastąpić go planem z tego tygodnia?');
     expect(copyDoneToast).toBe('Skopiowano do następnego tygodnia.');
     expect(copyFailedMessage).toBe(
       'Nie udało się skopiować tygodnia. Następny tydzień nie został zmieniony.',
     );
   });
-
 });
 
-describe('dayPage', () => {
+describe('weekPage', () => {
+  const banan = dish({ id: 'd-banan', name: 'Banan', macros: { kcal: 525, protein: 1, fat: 0, carbs: 25 } });
   const loaded = {
-    meals: [meal({ id: 'm-1', slot: 2 })],
+    meals: [
+      meal({ id: 'm-mon', date: '2026-11-02' }),
+      meal({ id: 'm-thu-1', date: '2026-11-05', slot: 2 }),
+      meal({ id: 'm-thu-2', date: '2026-11-05', slot: 2, position: 1, dishId: banan.id }),
+    ],
     daySlots: [{ date: '2026-11-05', slotCount: 5 }],
-    dishes: [owsianka],
+    dishes: [owsianka, banan],
     settings: { slotsPerDay: 4 },
   };
 
-  it('titles the day and lists its Slots with Meal rows', () => {
-    const model = dayPage('2026-11-05', loaded);
+  it('labels the Week by month and lists its seven days in the strip', () => {
+    const model = weekPage('2026-11-02', '2026-11-04', '2026-11-05', loaded);
 
-    expect(model.valid).toBe(true);
-    expect(model.title).toBe('Czwartek, 5 lis');
-    expect(model.slots.map((s) => s.number)).toEqual([1, 2, 3, 4, 5]);
-    expect(model.slots[1]?.rows.map((r) => r.title)).toEqual(['Owsianka']);
+    expect(model.monthLabel).toBe('Listopad 2026');
+    expect(model.strip.map((cell) => `${cell.shortName} ${cell.dayNumber}`)).toEqual([
+      'Pn 2',
+      'Wt 3',
+      'Śr 4',
+      'Cz 5',
+      'Pt 6',
+      'So 7',
+      'Nd 8',
+    ]);
+    expect(model.strip[0]).toEqual({
+      date: '2026-11-02',
+      shortName: 'Pn',
+      dayNumber: 2,
+      kcal: '350',
+      isToday: false,
+      isSelected: false,
+      ariaLabel: 'Poniedziałek, 2 lis',
+    });
+    expect(model.strip[1]?.kcal).toBe('');
+    expect(model.strip[2]).toMatchObject({ isToday: true, isSelected: false });
+    expect(model.strip[3]).toMatchObject({ isToday: false, isSelected: true, kcal: '875' });
   });
 
-  it('uses the default Slots while the data loads', () => {
-    const model = dayPage('2026-11-05', {
+  it("shows the selected day's heading, summary and Slots", () => {
+    const model = weekPage('2026-11-02', '2026-11-04', '2026-11-05', loaded);
+
+    expect(model.heading).toBe('Czwartek, 5 lis');
+    expect(model.summary).toBe('2 posiłki · 875 kcal');
+    expect(model.slots.map((slot) => slot.number)).toEqual([1, 2, 3, 4, 5]);
+    expect(model.slots[1]?.rows.map((row) => row.title)).toEqual(['Owsianka', 'Banan']);
+    expect(model.canCopy).toBe(true);
+  });
+
+  it('words a day with one Meal and an empty day', () => {
+    expect(weekPage('2026-11-02', '2026-11-04', '2026-11-02', loaded).summary).toBe(
+      '1 posiłek · 350 kcal',
+    );
+    expect(weekPage('2026-11-02', '2026-11-04', '2026-11-03', loaded).summary).toBe('brak posiłków');
+  });
+
+  it('shows empty days with the default Slots, and offers no copy, while the data loads', () => {
+    const model = weekPage('2026-11-02', '2026-11-04', '2026-11-04', {
       meals: undefined,
       daySlots: undefined,
       dishes: undefined,
       settings: undefined,
     });
+
+    expect(model.strip.every((cell) => cell.kcal === '')).toBe(true);
     expect(model.slots).toHaveLength(4);
+    expect(model.summary).toBe('brak posiłków');
+    expect(model.canCopy).toBe(false);
   });
 
-  it('rejects an invalid date', () => {
-    expect(dayPage('2026-02-30', loaded)).toEqual({ valid: false, title: '', slots: [] });
+  it('offers the copy for a Week with only Added Slots', () => {
+    const model = weekPage('2026-11-02', '2026-11-04', '2026-11-04', {
+      meals: [],
+      daySlots: [{ date: '2026-11-07', slotCount: 5 }],
+      dishes: [],
+      settings: undefined,
+    });
+    expect(model.canCopy).toBe(true);
   });
 });

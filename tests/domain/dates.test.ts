@@ -3,13 +3,18 @@ import {
   addDays,
   DAY_NAMES,
   dayLabel,
+  dayOfMonth,
   fromDayNumber,
   isIsoDate,
   MONTH_ABBREVIATIONS,
+  MONTH_NAMES,
+  sameWeekday,
+  SHORT_DAY_NAMES,
   toDayNumber,
   weekDates,
   weekdayIndex,
   weekRange,
+  weekMonthLabel,
   weekRangeLabel,
   weekStartOf,
 } from '../../src/domain/dates';
@@ -168,5 +173,44 @@ describe('labels', () => {
     ['2026-12-28', '28 gru 2026 – 3 sty 2027'],
   ])('labels the Week of %s as %j', (weekStart, label) => {
     expect(weekRangeLabel(weekStart)).toBe(label);
+  });
+});
+
+describe('Week view redesign labels', () => {
+  it('has short day names and nominative month names', () => {
+    expect(SHORT_DAY_NAMES).toEqual(['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd']);
+    expect(MONTH_NAMES).toEqual([
+      'styczeń',
+      'luty',
+      'marzec',
+      'kwiecień',
+      'maj',
+      'czerwiec',
+      'lipiec',
+      'sierpień',
+      'wrzesień',
+      'październik',
+      'listopad',
+      'grudzień',
+    ]);
+  });
+
+  it.each([
+    ['2026-11-02', 'Listopad 2026'],
+    ['2026-11-30', 'Listopad – grudzień 2026'],
+    ['2026-12-28', 'Grudzień 2026 – styczeń 2027'],
+  ])('labels the Week of %s as %j', (weekStart, label) => {
+    expect(weekMonthLabel(weekStart)).toBe(label);
+  });
+
+  it('reads the day of the month', () => {
+    expect(dayOfMonth('2026-11-05')).toBe(5);
+    expect(dayOfMonth('2026-11-30')).toBe(30);
+  });
+
+  it('finds the same weekday in another Week', () => {
+    expect(sameWeekday('2026-11-05', '2026-11-09')).toBe('2026-11-12');
+    expect(sameWeekday('2026-11-08', '2026-10-26')).toBe('2026-11-01');
+    expect(sameWeekday('2026-11-02', '2026-11-02')).toBe('2026-11-02');
   });
 });
