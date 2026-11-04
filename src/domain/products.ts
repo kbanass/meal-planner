@@ -35,12 +35,18 @@ export function shouldOfferCreate(products: readonly Product[], query: string): 
  * productId → number of Dishes (archived included) and Detached Meal Ingredient lists that
  * use the Product (FR-017). Unused Products are absent, meaning 0.
  */
+/** How many Dishes (archived included) and Detached Meals use one Product. */
+export interface UsageBreakdown {
+  dishes: number;
+  meals: number;
+}
+
 /** Per Product: how many Dishes (archived included) and Detached Meals use it. */
 export function productUsageBreakdown(
   dishes: readonly Dish[],
   detachedMealIngredientLists: readonly (readonly Ingredient[])[],
-): ReadonlyMap<string, { dishes: number; meals: number }> {
-  const usage = new Map<string, { dishes: number; meals: number }>();
+): ReadonlyMap<string, UsageBreakdown> {
+  const usage = new Map<string, UsageBreakdown>();
   const count = (list: readonly Ingredient[], key: 'dishes' | 'meals') => {
     for (const productId of new Set(list.map((ingredient) => ingredient.productId))) {
       const entry = usage.get(productId) ?? { dishes: 0, meals: 0 };

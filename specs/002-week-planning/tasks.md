@@ -117,26 +117,26 @@ description: "Task list for Week Planning"
 
 ### Storage, repositories and wiring
 
-- [ ] T018 Add `db.version(2).stores({ meals: 'id, date, dishId', daySlots: 'date', settings: 'id' })` to `src/data/db.ts`, keeping `version(1)` unchanged. Declare the tables:
+- [X] T018 Add `db.version(2).stores({ meals: 'id, date, dishId', daySlots: 'date', settings: 'id' })` to `src/data/db.ts`, keeping `version(1)` unchanged. Declare the tables:
   - `meals: Table<Meal, string>`
   - `daySlots: Table<DaySlots, string>`
   - `settings: Table<Settings & { id: 'app' }, string>`
 
   No upgrade function (data-model.md).
-- [ ] T019 [P] Write `tests/data/week-repository.test.ts` (on `createTestDb()` and `FixedIdGenerator`) for the core members:
+- [X] T019 [P] Write `tests/data/week-repository.test.ts` (on `createTestDb()` and `FixedIdGenerator`) for the core members:
   - `listMeals({ start: '2026-11-02', end: '2026-11-08' })` returns Meals dated `2026-11-02` and `2026-11-08`, but not `2026-11-01` or `2026-11-09`. `listDaySlots` behaves the same way.
   - Three `addMeal({ date, slot: 2, dishId })` calls on the same date and Slot get positions 0, 1 and 2. A Meal in another Slot starts at 0.
   - `addMeal` returns `servings: 1` and `detached: null`.
   - `putMeal` replaces the record, `getMeal` reads it back, and `removeMeal` deletes it.
-- [ ] T020 [P] Write `tests/data/settings-repository.test.ts` for `get()`: an empty db → `{ slotsPerDay: 4 }`. A stored record `{ id: 'app', slotsPerDay: 99 }` written directly into the table → `{ slotsPerDay: 4 }`.
-- [ ] T021 Create `src/data/week-repository.ts` exporting `WeekRepository`, `DateRange` and `createWeekRepository(db, ids)`, with `listMeals`, `listDaySlots`, `getMeal`, `addMeal`, `putMeal` and `removeMeal` per [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md):
+- [X] T020 [P] Write `tests/data/settings-repository.test.ts` for `get()`: an empty db → `{ slotsPerDay: 4 }`. A stored record `{ id: 'app', slotsPerDay: 99 }` written directly into the table → `{ slotsPerDay: 4 }`.
+- [X] T021 Create `src/data/week-repository.ts` exporting `WeekRepository`, `DateRange` and `createWeekRepository(db, ids)`, with `listMeals`, `listDaySlots`, `getMeal`, `addMeal`, `putMeal` and `removeMeal` per [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md):
   - Range reads use `where('date').between(start, end, true, true)`.
   - `addMeal` runs in one `rw` transaction over `meals`, computing `nextPosition` from the Meals of that `(date, slot)`.
   - `setDaySlotCount` and `replaceWeek` come in US5 and US6.
 
   Add `newMeal` to `src/domain/meals.ts` (servings 1, `detached` null) in this task, with its test in `tests/domain/meals.test.ts`. This makes T019 pass.
-- [ ] T022 Create `src/data/settings-repository.ts` exporting `SettingsRepository` and `createSettingsRepository(db)`, with `get()` = `readSettings(await db.settings.get('app'))`. `setSlotsPerDay` comes in US5. This makes T020 pass.
-- [ ] T023 Wire the new dependencies:
+- [X] T022 Create `src/data/settings-repository.ts` exporting `SettingsRepository` and `createSettingsRepository(db)`, with `get()` = `readSettings(await db.settings.get('app'))`. `setSlotsPerDay` comes in US5. This makes T020 pass.
+- [X] T023 Wire the new dependencies:
   - In `src/app/deps.ts`, add `clock: Clock` (`systemClock`), `week: WeekRepository` and `settings: SettingsRepository` to `Deps` and `createDeps()`.
   - In `tests/ui/render.tsx`, update `createTestDeps()` the same way, using `new FixedClock('2026-11-04')` and the repositories over the test db.
 
@@ -144,14 +144,14 @@ description: "Task list for Week Planning"
 
 ### Feature 001 handoff (research R10)
 
-- [ ] T024 [P] Extend `tests/data/dish-repository.test.ts` with `removeOrArchive`:
+- [X] T024 [P] Extend `tests/data/dish-repository.test.ts` with `removeOrArchive`:
   - A Dish with 0 Meals → `{ kind: 'deleted', photo }`, and the record is gone.
   - A Dish used only by a Detached Meal (`detached` not `null`) → `{ kind: 'archived' }`, with `archived: true` and the record kept.
   - A Dish used by a Linked Meal → `archived`.
-- [ ] T025 [P] Extend `tests/data/product-repository-maintenance.test.ts`:
+- [X] T025 [P] Extend `tests/data/product-repository-maintenance.test.ts`:
   - `delete` and `changeUnit` return `inUse` for a Product used only in a Detached Meal's `detached.ingredients`. `inUse` carries `usage: 1` and `breakdown: { dishes: 0, meals: 1 }`.
   - `merge('pomidor', 'pomidory')` rewrites a Detached Meal that holds both: one Ingredient at the first position, with the amounts summed. It leaves a Linked Meal record untouched, and returns `{ kind: 'merged', dishesUpdated, mealsUpdated: 1 }`.
-- [ ] T026 Implement the handoff:
+- [X] T026 Implement the handoff:
   - **`src/data/dish-repository.ts`**: add `removeOrArchive(id)`. In one `rw` transaction over `dishes` and `meals`, it counts `meals.where('dishId').equals(id)`, applies `decideDishRemoval`, then deletes or archives the Dish.
   - **`src/app/dishes.ts`**: `deleteDish` now takes `deps: { dishes; photos }`, calls `removeOrArchive`, and deletes the returned photo after the commit (failure ignored).
   - **`src/data/product-repository.ts`**:
@@ -163,7 +163,7 @@ description: "Task list for Week Planning"
   - **Update `tests/app/delete-dish.test.ts`** to seed a real Meal through `WeekRepository.addMeal` for the archive case, instead of a fake count.
 
   This makes T024 and T025 pass.
-- [ ] T027 [P] Extend `tests/ui/products-vm.test.ts`, then `src/ui/view-models/products.ts`:
+- [X] T027 [P] Extend `tests/ui/products-vm.test.ts`, then `src/ui/view-models/products.ts`:
   - Add `mealCountPhrase(n)`: "1 posiłku", otherwise "N posiłkach".
   - `deleteHint(breakdown)` and `unitHint(breakdown)` take `{ dishes, meals }` and produce the three cases in [contracts/ui.md](contracts/ui.md) "Produkty hints":
     - dishes only: unchanged text
@@ -171,7 +171,7 @@ description: "Task list for Week Planning"
     - both: "w 2 daniach i 3 posiłkach"
   - `productMenu` takes the row's breakdown.
   - `usageLabel` shows the total.
-- [ ] T028 Add `listAllDetachedIngredientLists()` to `src/data/week-repository.ts`, per [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md): it returns `detached.ingredients` for every Meal whose `detached` is not `null`, across all Weeks.
+- [X] T028 Add `listAllDetachedIngredientLists()` to `src/data/week-repository.ts`, per [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md): it returns `detached.ingredients` for every Meal whose `detached` is not `null`, across all Weeks.
   - Test it first in `tests/data/week-repository.test.ts` (Principle IV, repository integration test): with one Linked and two Detached Meals in different Weeks, it returns exactly the two `detached.ingredients` lists, and `[]` when no Meal is detached.
   - Then update `src/ui/pages/ProductsPage.tsx`:
     - read the lists with `useLiveQuery(() => deps.week.listAllDetachedIngredientLists())`

@@ -3,7 +3,7 @@ import type { PlannerDb } from '../../src/data/db';
 import { createDishRepository, type DishRepository } from '../../src/data/dish-repository';
 import { createProductRepository, type ProductRepository } from '../../src/data/product-repository';
 import { countProductUsage } from '../../src/domain/products';
-import type { Dish, Ingredient, Product, Unit } from '../../src/domain/types';
+import type { Dish, Ingredient, Meal, Product, Unit } from '../../src/domain/types';
 import { FixedIdGenerator } from '../fakes/fixed-id-generator';
 import { createTestDb } from '../fakes/test-db';
 
@@ -37,6 +37,25 @@ async function dish(id: string, ingredients: Ingredient[], archived = false): Pr
   await dishes.put(value);
 }
 
+async function meal(id: string, ingredients: Ingredient[] | null): Promise<Meal> {
+  const value: Meal = {
+    id,
+    date: '2026-11-05',
+    slot: 1,
+    position: 0,
+    dishId: 'd-1',
+    servings: 1,
+    detached: ingredients && {
+      name: 'Posiłek',
+      servingsYield: 1,
+      ingredients,
+      macros: { kcal: 0, protein: 0, fat: 0, carbs: 0 },
+    },
+  };
+  await db.meals.add(value);
+  return value;
+}
+
 async function usageOf(productId: string): Promise<number> {
   return countProductUsage(await dishes.list(), []).get(productId) ?? 0;
 }
@@ -51,7 +70,7 @@ describe('merge', () => {
 
     const result = await products.merge(pomidory.id, pomidor.id);
 
-    expect(result).toEqual({ kind: 'merged', dishesUpdated: 1 });
+    expect(result).toEqual({ kind: 'merged', dishesUpdated: 1, mealsUpdated: 0 });
     expect((await products.list()).map((p) => p.name)).toEqual(['pomidor']);
     expect(await usageOf(pomidor.id)).toBe(3);
     expect((await dishes.get('d-3'))?.ingredients).toEqual([{ productId: pomidor.id, amount: 80 }]);
@@ -68,6 +87,25 @@ describe('merge', () => {
     await products.merge(pomidory.id, pomidor.id);
 
     expect((await dishes.get('d-1'))?.ingredients).toEqual([{ productId: pomidor.id, amount: 300 }]);
+  });
+
+  it('rewrites Detached Meals that use the merged Product, summing both', async () => {
+    const pomidor = await product('pomidor');
+    const pomidory = await product('pomidory');
+    await dish('d-1', [{ productId: pomidor.id, amount: 100 }]);
+    await meal('m-both', [
+      { productId: pomidor.id, amount: 200 },
+      { productId: pomidory.id, amount: 100 },
+    ]);
+    const linked = await meal('m-linked', null);
+
+    const result = await products.merge(pomidory.id, pomidor.id);
+
+    expect(result).toEqual({ kind: 'merged', dishesUpdated: 0, mealsUpdated: 1 });
+    expect((await db.meals.get('m-both'))?.detached?.ingredients).toEqual([
+      { productId: pomidor.id, amount: 300 },
+    ]);
+    expect(await db.meals.get('m-linked')).toEqual(linked);
   });
 
   it('refuses Products with different units (US3-3)', async () => {
@@ -140,9 +178,26 @@ describe('delete and changeUnit', () => {
     const pomidor = await product('pomidor');
     await dish('d-archived', [{ productId: pomidor.id, amount: 100 }], true);
 
-    expect(await products.delete(pomidor.id)).toEqual({ kind: 'inUse', usage: 1 });
-    expect(await products.changeUnit(pomidor.id, 'ml')).toEqual({ kind: 'inUse', usage: 1 });
+    const inUse = { kind: 'inUse', usage: 1, breakdown: { dishes: 1, meals: 0 } };
+    expect(await products.delete(pomidor.id)).toEqual(inUse);
+    expect(await products.changeUnit(pomidor.id, 'ml')).toEqual(inUse);
     expect(await products.list()).toEqual([pomidor]);
+  });
+
+  it('refuses both for a Product used only in a Detached Meal', async () => {
+    const pomidor = await product('pomidor');
+    await meal('m-1', [{ productId: pomidor.id, amount: 30 }]);
+
+    const inUse = { kind: 'inUse', usage: 1, breakdown: { dishes: 0, meals: 1 } };
+    expect(await products.delete(pomidor.id)).toEqual(inUse);
+    expect(await products.changeUnit(pomidor.id, 'ml')).toEqual(inUse);
+  });
+
+  it('ignores Linked Meals, whose Ingredients belong to the Dish', async () => {
+    const pomidor = await product('pomidor');
+    await meal('m-linked', null);
+
+    expect(await products.delete(pomidor.id)).toEqual({ kind: 'deleted' });
   });
 
   it('deletes an unused Product (US3-7)', async () => {

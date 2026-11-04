@@ -7,8 +7,11 @@ import { afterEach } from 'vitest';
 import type { Deps } from '../../src/app/deps';
 import { createDishRepository } from '../../src/data/dish-repository';
 import { createProductRepository } from '../../src/data/product-repository';
+import { createSettingsRepository } from '../../src/data/settings-repository';
+import { createWeekRepository } from '../../src/data/week-repository';
 import { DepsProvider } from '../../src/ui/hooks/useDeps';
 import { FakeImageCompressor } from '../fakes/fake-image-compressor';
+import { FixedClock } from '../fakes/fixed-clock';
 import { FixedIdGenerator } from '../fakes/fixed-id-generator';
 import { InMemoryPhotoStore } from '../fakes/in-memory-photo-store';
 import { createTestDb } from '../fakes/test-db';
@@ -22,13 +25,14 @@ export function createTestDeps(): Deps {
   return {
     db,
     ids,
+    // The spec's example "today": Wednesday of the Week 2026-11-02 to 2026-11-08.
+    clock: new FixedClock('2026-11-04'),
     products: createProductRepository(db, ids),
     dishes: createDishRepository(db),
     photos: new InMemoryPhotoStore(),
     compressor: new FakeImageCompressor(),
-    // No Meals exist until the Week planning feature; see
-    // specs/001-shell-products-dishes/research.md R13
-    countMealsUsingDish: async () => 0,
+    week: createWeekRepository(db, ids),
+    settings: createSettingsRepository(db),
   };
 }
 

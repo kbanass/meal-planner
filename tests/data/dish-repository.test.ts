@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { PlannerDb } from '../../src/data/db';
 import { createDishRepository, type DishRepository } from '../../src/data/dish-repository';
-import type { Dish } from '../../src/domain/types';
+import type { Dish, Meal } from '../../src/domain/types';
 import { createTestDb } from '../fakes/test-db';
 
 let db: PlannerDb;
@@ -67,5 +67,36 @@ describe('archive and deletePermanently', () => {
 
     expect(await repo.get('d-1')).toBeUndefined();
     expect(await db.dishes.count()).toBe(0);
+  });
+});
+
+describe('removeOrArchive', () => {
+  function meal(id: string, detached: Meal['detached'] = null): Meal {
+    return { id, date: '2026-11-05', slot: 1, position: 0, dishId: 'd-1', servings: 1, detached };
+  }
+
+  it('deletes a Dish no Meal uses and returns its photo for cleanup', async () => {
+    const photo = { id: 'photo-1', mimeType: 'image/webp' } as const;
+    await repo.put({ ...owsianka, photo });
+
+    expect(await repo.removeOrArchive('d-1')).toEqual({ kind: 'deleted', photo });
+    expect(await repo.get('d-1')).toBeUndefined();
+  });
+
+  it('archives a Dish that only a Detached Meal uses', async () => {
+    await repo.put(owsianka);
+    const { name, servingsYield, ingredients, macros } = owsianka;
+    await db.meals.add(meal('m-1', { name, servingsYield, ingredients, macros }));
+
+    expect(await repo.removeOrArchive('d-1')).toEqual({ kind: 'archived' });
+    expect(await repo.get('d-1')).toEqual({ ...owsianka, archived: true });
+  });
+
+  it('archives a Dish that a Linked Meal uses', async () => {
+    await repo.put(owsianka);
+    await db.meals.add(meal('m-1'));
+
+    expect(await repo.removeOrArchive('d-1')).toEqual({ kind: 'archived' });
+    expect(await repo.get('d-1')).toMatchObject({ archived: true });
   });
 });
