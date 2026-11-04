@@ -24,8 +24,9 @@ createRoot(document.getElementById('app')!).render(
   </DepsProvider>,
 );
 
-void sweepOrphanPhotos(deps);
-
-if (import.meta.env.DEV) {
-  void import('./dev/seed').then(({ seedFromUrl }) => seedFromUrl(deps));
-}
+// In development, seed first: the sweep would otherwise race the seed and could delete
+// freshly written photos before their Dishes are saved.
+const seeded = import.meta.env.DEV
+  ? import('./dev/seed').then(({ seedFromUrl }) => seedFromUrl(deps))
+  : Promise.resolve();
+void seeded.then(() => sweepOrphanPhotos(deps));

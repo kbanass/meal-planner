@@ -2,6 +2,7 @@
 // main.tsx imports this module only when import.meta.env.DEV is true, so production
 // builds never contain it. Everything here is deterministic: names, units and colours
 // come from counters, never from randomness.
+import { f7, f7ready } from 'framework7-react';
 import type { Deps } from '../app/deps';
 import { nameKey } from '../domain/names';
 import type { Dish, Product, Unit } from '../domain/types';
@@ -108,4 +109,7 @@ export async function seedFromUrl(deps: Deps): Promise<void> {
   url.searchParams.delete('seed');
   window.history.replaceState(null, '', url);
   console.info(`Seeded "${seed}".`);
+  f7ready(() =>
+    f7.toast.show({ text: `Dane testowe wczytane: ${seed}`, closeTimeout: 4000, position: 'center' }),
+  );
 }
