@@ -25,3 +25,7 @@ createRoot(document.getElementById('app')!).render(
 );
 
 void sweepOrphanPhotos(deps);
+
+if (import.meta.env.DEV) {
+  void import('./dev/seed').then(({ seedFromUrl }) => seedFromUrl(deps));
+}

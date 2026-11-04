@@ -10,7 +10,7 @@ import {
   Segmented,
   Sheet,
 } from 'framework7-react';
-import { useState } from 'react';
+import { useDeferredValue, useState } from 'react';
 import { normalizeName } from '../../domain/names';
 import { shouldOfferCreate, suggestProducts } from '../../domain/products';
 import type { Product, Unit } from '../../domain/types';
@@ -22,6 +22,9 @@ export function ProductPicker({ onPick }: { onPick(product: Product): void }) {
   const deps = useDeps();
   const products = useLiveQuery(() => deps.products.list(), [deps]) ?? [];
   const [query, setQuery] = useState('');
+  // The input echoes every keystroke at once; the list renders in interruptible slices,
+  // so 500 Products keep typing responsive (SC-002).
+  const listQuery = useDeferredValue(query);
   const [sheetOpened, setSheetOpened] = useState(false);
   const [unit, setUnit] = useState<Unit>('g');
 
@@ -50,7 +53,7 @@ export function ProductPicker({ onPick }: { onPick(product: Product): void }) {
           value={query}
           onInput={(event) => setQuery((event.target as HTMLInputElement).value)}
         />
-        {suggestProducts(products, query).map((product) => (
+        {suggestProducts(products, listQuery).map((product) => (
           <ListItem
             key={product.id}
             link
@@ -59,8 +62,8 @@ export function ProductPicker({ onPick }: { onPick(product: Product): void }) {
             onClick={() => pick(product)}
           />
         ))}
-        {shouldOfferCreate(products, query) && (
-          <ListItem link title={createProductLabel(query)} onClick={openCreateSheet} />
+        {shouldOfferCreate(products, listQuery) && (
+          <ListItem link title={createProductLabel(listQuery)} onClick={openCreateSheet} />
         )}
       </List>
 

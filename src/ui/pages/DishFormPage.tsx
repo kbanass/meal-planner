@@ -218,8 +218,8 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
                     onAmountChange={(amount) =>
                       setDraft({
                         ...draft,
-                        ingredients: draft.ingredients.map((item, i) =>
-                          i === index ? { ...item, amount } : item,
+                        ingredients: draft.ingredients.map((other, i) =>
+                          i === index ? { ...other, amount } : other,
                         ),
                       })
                     }
