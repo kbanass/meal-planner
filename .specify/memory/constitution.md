@@ -1,17 +1,3 @@
-<!--
-Sync Impact Report
-- Version change: (template, unversioned) → 1.0.0
-- Principles defined (all new):
-  I. English Code, Polish UI
-  II. Glossary-Bound Domain Language
-  III. Single-User, Local-Only
-  IV. Deterministic Testability (NON-NEGOTIABLE)
-  V. Simplicity and MVP Scope
-- Added sections: Technology Constraints, Development Workflow, Governance
-- Removed sections: none
-- Deferred TODOs: none
--->
-
 # Meal Planner Constitution
 
 Source documents: `docs/SPEC.md` (product contract), `GLOSSARY.md` (domain language) and
@@ -31,8 +17,8 @@ contributors.
 ### II. Glossary-Bound Domain Language
 
 - Domain terms in code, specs, plans and tasks MUST match `GLOSSARY.md` exactly: Product,
-  Ingredient, Dish, Archived Dish, Week, Slot, Meal, Linked Meal, Detached Meal, Servings, Macros,
-  Daily Goal, Weekly Goal, Planned, Shopping List, Adjustment, Extra.
+  Ingredient, Dish, Archived Dish, Week, Slot, Added Slot, Meal, Linked Meal, Detached Meal,
+  Servings, Macros, Daily Goal, Weekly Goal, Planned, Shopping List, Adjustment, Extra.
 - Terms listed under `_Avoid_` in the glossary MUST NOT be used as identifiers.
 - A new domain concept MUST be added to `GLOSSARY.md` before it appears in code or specs.
 
@@ -143,4 +129,4 @@ alone.
   - MINOR: a principle or section is added or materially expanded
   - PATCH: clarifications
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-03 | **Last Amended**: 2026-11-03
+**Version**: 1.0.1 | **Ratified**: 2026-11-03 | **Last Amended**: 2026-11-04
