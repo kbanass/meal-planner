@@ -24,9 +24,11 @@ createRoot(document.getElementById('app')!).render(
   </DepsProvider>,
 );
 
-// In development, seed first: the sweep would otherwise race the seed and could delete
+// Seeding exists only in development and in the `npm run deploy:seed` test build
+// (VITE_SEED=true). Seed first: the sweep would otherwise race the seed and could delete
 // freshly written photos before their Dishes are saved.
-const seeded = import.meta.env.DEV
-  ? import('./dev/seed').then(({ seedFromUrl }) => seedFromUrl(deps))
-  : Promise.resolve();
+const seeded =
+  import.meta.env.DEV || import.meta.env.VITE_SEED === 'true'
+    ? import('./dev/seed').then(({ seedFromUrl }) => seedFromUrl(deps))
+    : Promise.resolve();
 void seeded.then(() => sweepOrphanPhotos(deps));

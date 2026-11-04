@@ -45,10 +45,17 @@ The archive path (US4-2) cannot be reached manually in this feature, because the
 
 ## Performance spot checks
 
-Seeding is a dev-only module (`src/dev/seed.ts`). It loads only when `import.meta.env.DEV` is true, so production builds never include it. It replaces local data with fixed fixtures generated from a seeded counter, not randomness.
+Seeding (`src/dev/seed.ts`) replaces all local data with fixed fixtures generated from a counter, not randomness. A toast "Dane testowe wczytane: …" confirms it.
 
-- **SC-002**: Run `npm run dev`, open `/?seed=products-500`, then type in the ProductPicker. Suggestions keep up with typing, and the Performance panel shows each input task under 100 ms.
-- **SC-003**: Open `/?seed=dishes-200-photos-100` on a mid-range phone, then open Dania. The list shows within 1 s and scrolls smoothly. Photos load as their rows scroll into view.
+Seeding is only available in two places:
+
+- `npm run dev`, at <http://localhost:5173/?seed=…> on the desktop.
+- The seeded test deploy, for phones. Run `npm run deploy:seed`, which builds with `VITE_SEED=true` and deploys to the `seed` branch, then open <https://seed.planner-4ft.pages.dev/?seed=…>. It is a separate site with its own data, so testing there never touches the data in the app installed from the preview URL.
+
+The preview URL and normal production builds contain no seed code, so `?seed=` does nothing there.
+
+- **SC-002**: Open `?seed=products-500`, then go to Dania → + and type in "Dodaj składnik…". Products appear under Produkty, not on the Dania screen. Suggestions keep up with typing, and the Performance panel (desktop) shows each input task under 100 ms.
+- **SC-003**: On the reference phones, open `https://seed.planner-4ft.pages.dev/?seed=dishes-200-photos-100`, wait for the toast, then open Dania. The list shows within 1 s and scrolls smoothly. Photos load as their rows scroll into view.
 
 ## Results
 

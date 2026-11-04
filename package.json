@@ -14,7 +14,8 @@
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
     "coverage": "vitest run --coverage",
-    "deploy:preview": "npm run build && wrangler pages deploy dist --project-name planner --branch preview"
+    "deploy:preview": "npm run build && wrangler pages deploy dist --project-name planner --branch preview",
+    "deploy:seed": "VITE_SEED=true npm run build && wrangler pages deploy dist --project-name planner --branch seed"
   },
   "dependencies": {
     "dexie": "4.4.7",

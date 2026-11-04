@@ -1,6 +1,6 @@
-// DEV-only fixtures for the performance spot checks in quickstart.md (SC-002, SC-003).
-// main.tsx imports this module only when import.meta.env.DEV is true, so production
-// builds never contain it. Everything here is deterministic: names, units and colours
+// Fixtures for the performance spot checks in quickstart.md (SC-002, SC-003). main.tsx
+// imports this module only in development or in the `npm run deploy:seed` test build
+// (VITE_SEED=true), so normal production builds never contain it. Everything here is deterministic: names, units and colours
 // come from counters, never from randomness.
 import { f7, f7ready } from 'framework7-react';
 import type { Deps } from '../app/deps';
