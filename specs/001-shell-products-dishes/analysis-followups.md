@@ -52,10 +52,11 @@ Mark each item `[x]` when it is resolved, and say how.
   - Resolved in T085: the photo is folded into the Dish entity; the separate Dish photo bullet is removed.
 ## Carry-over to the Week planning feature
 
-- [ ] **L2: usage messages mention only Dishes.**
+- [x] **L2: usage messages mention only Dishes.**
   - Where: [spec.md](spec.md) US3-6 vs [contracts/ui.md](contracts/ui.md) Produkty hints.
   - Problem: the spec says the user is told how many "Dishes and Detached Meals" use a Product. The planned messages ("używany w N daniach") mention only Dishes. That is correct while no Meals exist.
   - Fix: no change in this feature. When Week planning adds Detached Meals, extend `dishCountPhrase` and the hints in `src/ui/view-models/products.ts` to count them too. Track this together with the other R13 handoff items in tasks.md, under "Handoff to the Week planning feature".
+  - Resolved in feature 002 (tasks T027, T028): `mealCountPhrase` was added, and the hints name both, e.g. "Produkt jest używany w 2 daniach i 3 posiłkach – nie można go usunąć."
 
 ## Not actionable
 

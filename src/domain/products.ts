@@ -49,8 +49,8 @@ export function productUsageBreakdown(
   const usage = new Map<string, UsageBreakdown>();
   const count = (list: readonly Ingredient[], key: 'dishes' | 'meals') => {
     for (const productId of new Set(list.map((ingredient) => ingredient.productId))) {
-      const entry = usage.get(productId) ?? { dishes: 0, meals: 0 };
-      usage.set(productId, { ...entry, [key]: entry[key] + 1 });
+      const counts = usage.get(productId) ?? { dishes: 0, meals: 0 };
+      usage.set(productId, { ...counts, [key]: counts[key] + 1 });
     }
   };
   dishes.forEach((dish) => count(dish.ingredients, 'dishes'));

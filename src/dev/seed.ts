@@ -4,8 +4,9 @@
 // come from counters, never from randomness.
 import { f7, f7ready } from 'framework7-react';
 import type { Deps } from '../app/deps';
+import { addDays, weekDates, weekStartOf } from '../domain/dates';
 import { nameKey } from '../domain/names';
-import type { Dish, Product, Unit } from '../domain/types';
+import type { Dish, Meal, Product, Unit } from '../domain/types';
 import { UNITS } from '../domain/units';
 
 const INGREDIENTS_PER_DISH = 5;
@@ -50,17 +51,25 @@ async function clearPhotos(deps: Deps): Promise<void> {
   }
 }
 
+/** Replaces all local data. Meals and Added Slots go too, so none point at a missing Dish. */
 async function replaceData(deps: Deps, products: Product[], dishes: Dish[]): Promise<void> {
-  await deps.db.transaction('rw', deps.db.products, deps.db.dishes, async () => {
-    await deps.db.products.clear();
-    await deps.db.dishes.clear();
+  const { db } = deps;
+  await db.transaction('rw', [db.products, db.dishes, db.meals, db.daySlots], async () => {
+    await db.meals.clear();
+    await db.daySlots.clear();
+    await db.products.clear();
+    await db.dishes.clear();
     await deps.db.products.bulkPut(products.map((p) => ({ ...p, nameKey: nameKey(p.name) })));
     await deps.db.dishes.bulkPut(dishes);
   });
 }
 
-async function seedDishes(deps: Deps, count: number, photoCount: number): Promise<void> {
-  const nextId = counterIds();
+async function seedDishes(
+  deps: Deps,
+  count: number,
+  photoCount: number,
+  nextId = counterIds(),
+): Promise<Dish[]> {
   const products = seedProducts(SEED_PRODUCTS_FOR_DISHES, nextId);
   const dishes: Dish[] = [];
   for (let i = 0; i < count; i += 1) {
@@ -85,9 +94,44 @@ async function seedDishes(deps: Deps, count: number, photoCount: number): Promis
     });
   }
   await replaceData(deps, products, dishes);
+  return dishes;
 }
 
-/** Reads `?seed=products-N` or `?seed=dishes-N-photos-M` and replaces local data. */
+const SEED_DISHES_FOR_WEEKS = 20;
+const SEED_SLOTS_PER_DAY = 5;
+
+/**
+ * The current Week and `pastWeeks` Weeks before it, each with 5 Meals a day in Slots 1–5
+ * (35 a Week). Every fifth Meal is a Detached Meal with a copy of its Dish. For the SC-005 and
+ * SC-006 spot checks in quickstart.md.
+ */
+async function seedWeeks(deps: Deps, pastWeeks: number): Promise<void> {
+  const nextId = counterIds();
+  const dishes = await seedDishes(deps, SEED_DISHES_FOR_WEEKS, 0, nextId);
+  const currentWeek = weekStartOf(deps.clock.today());
+  const meals: Meal[] = [];
+  for (let week = 0; week <= pastWeeks; week += 1) {
+    weekDates(addDays(currentWeek, -7 * week)).forEach((date, day) => {
+      for (let slot = 1; slot <= SEED_SLOTS_PER_DAY; slot += 1) {
+        const n = meals.length;
+        const dish = dishes[(week * 7 + day + slot) % dishes.length]!;
+        const { name, servingsYield, ingredients, macros } = dish;
+        meals.push({
+          id: nextId(),
+          date,
+          slot,
+          position: 0,
+          dishId: dish.id,
+          servings: 1,
+          detached: n % 5 === 4 ? { name: `${name} (zmienione)`, servingsYield, ingredients, macros } : null,
+        });
+      }
+    });
+  }
+  await deps.db.meals.bulkAdd(meals);
+}
+
+/** Reads `?seed=products-N`, `?seed=dishes-N-photos-M` or `?seed=weeks-N` and replaces local data. */
 export async function seedFromUrl(deps: Deps): Promise<void> {
   const url = new URL(window.location.href);
   const seed = url.searchParams.get('seed');
@@ -95,13 +139,16 @@ export async function seedFromUrl(deps: Deps): Promise<void> {
 
   const products = /^products-(\d+)$/.exec(seed);
   const dishes = /^dishes-(\d+)-photos-(\d+)$/.exec(seed);
-  if (products || dishes) await clearPhotos(deps);
+  const weeks = /^weeks-(\d+)$/.exec(seed);
+  if (products || dishes || weeks) await clearPhotos(deps);
   if (products) {
     await replaceData(deps, seedProducts(Number(products[1]), counterIds()), []);
   } else if (dishes) {
     await seedDishes(deps, Number(dishes[1]), Number(dishes[2]));
+  } else if (weeks) {
+    await seedWeeks(deps, Number(weeks[1]));
   } else {
-    console.warn(`Unknown seed "${seed}". Use products-N or dishes-N-photos-M.`);
+    console.warn(`Unknown seed "${seed}". Use products-N, dishes-N-photos-M or weeks-N.`);
     return;
   }
 

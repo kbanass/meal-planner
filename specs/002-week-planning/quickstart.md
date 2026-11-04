@@ -51,8 +51,26 @@ Use a fresh install with the Dishes from feature 001's US1:
 
 ## Performance spot checks
 
-The `seed` deploy (`npm run deploy:seed`) gains a fixture of 52 past Weeks × 35 Meals (`src/dev/seed.ts`), all deterministic.
+The `seed` deploy (`npm run deploy:seed`) has a fixture `?seed=weeks-52`: the current Week plus 52 past Weeks × 35 Meals, every fifth one Detached, all deterministic (`src/dev/seed.ts`). It replaces all local data.
 
 - **SC-006**: tapping ← or → shows the Week in under 300 ms. Check in Safari Web Inspector's timeline on the reference iPhone.
 - **SC-005**: copying a 35-Meal Week finishes, toast included, in under 1 s.
 - **SC-001**: plan 28 Meals from the library in under 5 minutes, timed by hand.
+
+## Results
+
+### 2026-11-04: automated checks and headless spot checks (by the assistant)
+
+- `npm run lint`, `npm run typecheck`, `npm run coverage` (100% on `src/domain/**`) and `npm run build` pass.
+- The production build contains no seed code.
+- **Spot checks:** headless Chrome 390×844 with an iOS user agent and the CPU throttled 4×, against a `VITE_SEED=true` production build (`vite preview`) with `?seed=weeks-52` (53 Weeks, 1855 Meals):
+  - **SC-006**: changing the Week took 46–66 ms per step over 6 steps (target < 300 ms).
+  - **SC-005**: copying a 35-Meal Week to an empty next Week took 31 ms, toast included (target < 1 s).
+- **Screens:** the Week page, the Dish picker, the Meal sheet (including the nested "Nowy produkt" sheet), Dania, the Dish form and Ustawienia with its slots sheet were checked at 390×844, and the Week page at 1280 px, from screenshots.
+
+### Still to do on a real device (T085)
+
+- Rows 1–20 on an iPhone with current iOS Safari: installed to the home screen, and in airplane mode for row 19.
+- SC-001 timed by hand.
+- Swipe feel on the Week card.
+- Android stays deferred, as in feature 001.

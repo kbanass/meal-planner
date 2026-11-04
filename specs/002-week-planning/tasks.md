@@ -530,15 +530,15 @@ description: "Task list for Week Planning"
 
 **Order note (2026-11-04)**: Phase 10, the Week view redesign, was added after this phase was written. Run T080, T082 and T083 at any time, but run T081, T084 and T085 after Phase 10, so they check the redesigned screen.
 
-- [ ] T080 [P] Extend `src/dev/seed.ts` with `?seed=weeks-52`:
+- [X] T080 [P] Extend `src/dev/seed.ts` with `?seed=weeks-52`:
   - It seeds 20 Dishes (reusing `seedDishes`) and 52 past Weeks plus the current one, each with 35 Meals (5 per day in Slots 1–5). Every fifth Meal is Detached, with a copy of its Dish.
   - It uses the counter id generator and dates from `weekStartOf(deps.clock.today())` going back. It never uses `Math.random`.
 
   Verify that the production `npm run build` output contains no seed code (SC-005, SC-006 spot checks).
-- [ ] T081 [P] Review the Week, Day and Settings pages and both sheets at ≥ 1024 px against [contracts/ui.md](contracts/ui.md) "Desktop": a centred `.page-wide` column, no lost functions, no grid (FR-041). Review them at 375 pt with an iOS user agent too. Fix any gaps in `src/ui/styles/app.css`.
-- [ ] T082 [P] Run `grep -rniE "\b(extra|entry|multiplier|quantity|posilek|pora)\b" src/` and rename any domain identifier that matches (Principle II, research R4). Confirm every user-facing string written in `src/ui/**` is Polish (Principle I). Framework7's default labels are exempt.
-- [ ] T083 [P] Record as-built details in this feature's contracts: any Polish string written beyond [contracts/ui.md](contracts/ui.md), and any repository or use-case signature that ended up different from [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md). `inUse.breakdown` and `listAllDetachedIngredientLists` are already there. In [../001-shell-products-dishes/analysis-followups.md](../001-shell-products-dishes/analysis-followups.md), tick item L2 with a note that T027 and T028 resolved it. Do not edit feature 001's spec, plan or contracts, which are immutable records.
-- [ ] T084 Run `npm run lint`, `npm run typecheck`, `npm test`, `npm run coverage` (100% on `src/domain/**`) and `npm run build`. Fix anything that fails.
+- [X] T081 [P] Review the Week, Day and Settings pages and both sheets at ≥ 1024 px against [contracts/ui.md](contracts/ui.md) "Desktop": a centred `.page-wide` column, no lost functions, no grid (FR-041). Review them at 375 pt with an iOS user agent too. Fix any gaps in `src/ui/styles/app.css`.
+- [X] T082 [P] Run `grep -rniE "\b(extra|entry|multiplier|quantity|posilek|pora)\b" src/` and rename any domain identifier that matches (Principle II, research R4). Confirm every user-facing string written in `src/ui/**` is Polish (Principle I). Framework7's default labels are exempt.
+- [X] T083 [P] Record as-built details in this feature's contracts: any Polish string written beyond [contracts/ui.md](contracts/ui.md), and any repository or use-case signature that ended up different from [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md). `inUse.breakdown` and `listAllDetachedIngredientLists` are already there. In [../001-shell-products-dishes/analysis-followups.md](../001-shell-products-dishes/analysis-followups.md), tick item L2 with a note that T027 and T028 resolved it. Do not edit feature 001's spec, plan or contracts, which are immutable records.
+- [X] T084 Run `npm run lint`, `npm run typecheck`, `npm test`, `npm run coverage` (100% on `src/domain/**`) and `npm run build`. Fix anything that fails.
 - [ ] T085 Run every manual and performance check in [quickstart.md](quickstart.md) on an iPhone (current iOS Safari) and a desktop browser, using the `preview` or `seed` deploy. Record the results, and any deviations, at the bottom of `specs/002-week-planning/quickstart.md`. Android stays deferred, as in feature 001 (T084 there).
 
 ---

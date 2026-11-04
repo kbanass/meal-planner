@@ -164,3 +164,13 @@ Removed in the 2026-11-04 redesign. The day title ("Czwartek, 5 lis"), the Slots
 - The Week and Settings pages use the existing `.page-wide` column (at most 640 px, centred) (FR-041). The Week card and Meal cards keep their mobile proportions inside it.
 - The sheets keep Framework7's default sheet behaviour.
 - No grid, side panel or drag and drop (spec Assumptions).
+
+## Strings written beyond this contract (as built)
+
+| Where | Text |
+|---|---|
+| Day strip group (`aria-label`) | "Dni tygodnia" |
+| Day pill (`aria-label`) | "{dayName}, {dateText}", e.g. "Czwartek, 5 lis" |
+| Macro totals (`aria-label` and `title`) | "Kalorie: 350 kcal", "Białko: 12,5 g", "Tłuszcz: 7,5 g", "Węglowodany: 55 g" |
+| Slots sheet in Ustawienia | title "Liczba slotów", link "Zamknij" |
+| Dev seed toast | "Dane testowe wczytane: {seed}" (development and `deploy:seed` builds only) |
