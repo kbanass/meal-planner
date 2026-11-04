@@ -19,6 +19,7 @@ interface WeekRepository {
   removeMeal(id: string): Promise<void>;
   setDaySlotCount(date: IsoDate, slotCount: number): Promise<void>;
   replaceWeek(weekStart: IsoDate, plan: { meals: Meal[]; daySlots: DaySlots[] }): Promise<void>;
+  listAllDetachedIngredientLists(): Promise<Ingredient[][]>; // detached.ingredients of every Detached Meal, all Weeks
 }
 
 interface SettingsRepository {
@@ -36,6 +37,7 @@ Rules:
   2. `bulkAdd` the new records.
 
   Any failure rolls the whole transaction back, which gives FR-038.
+- `listAllDetachedIngredientLists` reads every Meal whose `detached` is not `null`, across all Weeks. Linked Meals are left out, because their Ingredients belong to the Dish. The Produkty page feeds the result to `productUsageBreakdown`.
 - `setSlotsPerDay` rejects any value for which `isValidSlotsPerDay` is false before writing, as `isUnit` guards Products.
 
 ## Changes to feature 001 repositories
@@ -46,6 +48,10 @@ interface DishRepository {
   removeOrArchive(id: string): Promise<{ kind: 'deleted'; photo: DishPhotoRef | null } | { kind: 'archived' }>;
   // `deletePermanently` and `archive` stay for tests and the seed, but the UI no longer calls them
 }
+
+type InUse = { kind: 'inUse'; usage: number; breakdown: { dishes: number; meals: number } };
+// changeUnit and delete return InUse in place of feature 001's { kind: 'inUse'; usage }.
+// usage stays the total, so existing callers keep working.
 
 type MergeProductsResult =
   | { kind: 'merged'; dishesUpdated: number; mealsUpdated: number }  // mealsUpdated: Detached Meals rewritten
@@ -128,8 +134,9 @@ Required integration tests (minimum):
   - `replaceWeek` with a failing `bulkAdd` (a duplicate id injected) leaves the target Week exactly as it was.
 - **`SettingsRepository`**: defaults on an empty db. Saving 6 and then reading gives 6. 11 → `invalid`, with nothing written.
 - **`DishRepository.removeOrArchive`**: deletes a Dish with 0 Meals. Archives a Dish used only by a Detached Meal.
+- **`WeekRepository.listAllDetachedIngredientLists`**: with one Linked and two Detached Meals in different Weeks, it returns exactly the two `detached.ingredients` lists. It returns `[]` when no Meal is detached.
 - **`ProductRepository`**:
-  - `delete` and `changeUnit` refused for a Product used only in a Detached Meal.
+  - `delete` and `changeUnit` refused for a Product used only in a Detached Meal, with `breakdown: { dishes: 0, meals: 1 }`.
   - `merge` rewrites the Detached Meal's Ingredients, with the summed case, and reports `mealsUpdated`.
 - **`saveMeal`**:
   - The US3-1 example stores `detached.ingredients` "płatki owsiane" 160 and reports `detachedNow: true`.

@@ -171,12 +171,12 @@ description: "Task list for Week Planning"
     - both: "w 2 daniach i 3 posiłkach"
   - `productMenu` takes the row's breakdown.
   - `usageLabel` shows the total.
-- [ ] T028 Update `src/ui/pages/ProductsPage.tsx`:
-  - Read Meals with `useLiveQuery(() => deps.week.listAllDetachedIngredientLists())`, a small `WeekRepository` method added in this task: it returns `detached.ingredients` for each Detached Meal.
-  - Build rows with `productUsageBreakdown`, replacing the `TODO(week-planning)` comment.
-  - Pass the breakdown to the hints and to the `inUse` alerts.
-
-  Add the new method to the contract in [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md).
+- [ ] T028 Add `listAllDetachedIngredientLists()` to `src/data/week-repository.ts`, per [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md): it returns `detached.ingredients` for every Meal whose `detached` is not `null`, across all Weeks.
+  - Test it first in `tests/data/week-repository.test.ts` (Principle IV, repository integration test): with one Linked and two Detached Meals in different Weeks, it returns exactly the two `detached.ingredients` lists, and `[]` when no Meal is detached.
+  - Then update `src/ui/pages/ProductsPage.tsx`:
+    - read the lists with `useLiveQuery(() => deps.week.listAllDetachedIngredientLists())`
+    - build rows with `productUsageBreakdown`, replacing the `TODO(week-planning)` comment
+    - pass the breakdown to the hints and to the `inUse` alerts
 
 **Checkpoint**: Lint, typecheck, tests and the coverage gate pass. Feature 001 behaves as before, except that it now sees Meals.
 
@@ -295,7 +295,15 @@ description: "Task list for Week Planning"
   - `rescaleMealDraft` with `"0"`, `"abc"` or `""` returns the draft with only `servings` text updated and the numbers unchanged.
   - Drift: a source with `servingsYield` 3 and 100 g; rescaling 1 → 2 → 1 → 2 leaves the amount text equal to `formatDecimal(100 / 3 * 2)`.
   - `validateMealDraft`: `servings` `"0"` → `notPositive`, `"-1"` → `notPositive`, `"abc"` → `notANumber`, `""` → `required`. Every other code uses the same paths as the Dish draft.
-  - `decideMealSave`: an unchanged draft (including retyped `"50,00"` for 50) → `unchanged`. Only Servings changed → `{ kind: 'save', meal: { …, servings: 1.5, detached: null }, detachedNow: false }`.
+  - `decideMealSave`, Servings and no-change cases:
+    - An unchanged draft, including retyped `"50,00"` for 50 → `unchanged`.
+    - Only Servings changed → `{ kind: 'save', meal: { …, servings: 1.5, detached: null }, detachedNow: false }`.
+  - `decideMealSave`, detach cases (research R7). The US2 sheet cannot produce them yet, but the whole function is built and covered here, so the 100% gate holds at the US2 checkpoint:
+    - The US3-1 example: "płatki owsiane" 50 → 80 g at 1 Serving with yield 2 → `detached.ingredients` amount 160, "mleko" 300 copied exactly, Macros 700 / 25 / 15 / 110 copied exactly, `servingsYield: 2`, `detachedNow: true`.
+    - The same Detached Meal saved at Servings 2 → `scaleMeal` gives 160 g, 300 ml and 700 kcal (US3-2).
+    - Each of these detaches: a name change, an added Ingredient, a removed Ingredient, and a change to each Macro.
+    - A change to an already Detached Meal updates its copy, with `detachedNow: false`.
+    - Servings and a field changed together → the copy is converted back at the new Servings.
 - [ ] T044 [P] [US2] Write `tests/app/save-meal.test.ts` (Servings part):
   - `saveMeal` with Servings 1 → 1,5 stores `servings: 1.5` and leaves `detached` `null`, returning `{ kind: 'saved', detachedNow: false }`.
   - An unchanged draft → `{ kind: 'unchanged' }`, and the stored record is deep-equal to before.
@@ -310,10 +318,14 @@ description: "Task list for Week Planning"
 ### Implementation for User Story 2
 
 - [ ] T046 [US2] Create `src/domain/drafts.ts` with the shared field parser now private to `dishes.ts` (`parseField(text, 'positive' | 'nonNegative')`, returning a number or a `DishFieldError`). Make `dishes.ts` use it, with its public API and tests unchanged. Export `type FieldError = DishFieldError` from `meals.ts`.
-- [ ] T047 [US2] Extend `src/domain/meals.ts` with `MealDraft`, `ValidMealValue`, `draftFromMeal`, `rescaleMealDraft`, `addMealIngredient`, `removeMealIngredient`, `validateMealDraft` and `decideMealSave` per [contracts/domain-api.md](contracts/domain-api.md) and research R7.
-  - In this story, `decideMealSave` handles `unchanged` and Servings-only saves.
-  - The "real change" comparison (name via `normalizeName`, the Product id list in order, each amount and Macro vs `roundTo2(scaled source)` at the saved Servings) is implemented here, because it decides `unchanged`.
-  - The branch that builds a `detached` copy is added in US3 (T055).
+- [ ] T047 [US2] Extend `src/domain/meals.ts` with `MealDraft`, `ValidMealValue`, `draftFromMeal`, `rescaleMealDraft`, `validateMealDraft` and the complete `decideMealSave`, per [contracts/domain-api.md](contracts/domain-api.md) and research R7:
+  - A **real change** is checked in this order: the name via `normalizeName`, then the Product id list in order, then each amount and Macro vs `roundTo2(scaled source)` at the saved Servings. No real change → `unchanged`, or a Servings-only `save`.
+  - **Detach branch**:
+    - The copy starts from the source's whole-recipe values.
+    - Each changed per-Meal value becomes `roundTo2(value × servingsYield / servings)`, while unchanged values are copied exactly.
+    - Added Ingredients are converted the same way. Removed Ingredients are dropped.
+    - `detachedNow = meal.detached === null`.
+  - `addMealIngredient`, `removeMealIngredient` and `restoreMeal` come in US3 (T055), together with their tests.
 
   This makes T043 pass at 100% coverage.
 - [ ] T048 [US2] Add `saveMeal(deps: { week }, { mealId, draft, dishesById, productsById })` to `src/app/week.ts`, following the order in [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md): load → `gone`, source → `gone`, validate → `invalid`, `decideMealSave`, then `putMeal`. This makes T044 pass.
@@ -345,13 +357,9 @@ description: "Task list for Week Planning"
 
 ### Tests for User Story 3
 
-- [ ] T052 [P] [US3] Extend `tests/domain/meals.test.ts` (detach part):
-  - The US3-1 example: "płatki owsiane" 50 → 80 g at 1 Serving with yield 2 → `detached.ingredients` amount 160, "mleko" 300 copied exactly, Macros 700 / 25 / 15 / 110 copied exactly, `servingsYield: 2`, `detachedNow: true`.
-  - The same Detached Meal saved at Servings 2 → `scaleMeal` gives 160 g, 300 ml and 700 kcal (US3-2).
-  - Each of these detaches: a name change, an added Ingredient, a removed Ingredient, and a change to each Macro.
-  - A change to an already Detached Meal updates its copy, with `detachedNow: false`.
-  - Servings and a field changed together → the copy is converted back at the new Servings.
-  - `addMealIngredient` with an existing Product returns `{ existed: true, index }`.
+- [ ] T052 [P] [US3] Extend `tests/domain/meals.test.ts` (editing helpers and restore). The detach rules themselves are tested in T043.
+  - `addMealIngredient` appends a new Product with an empty amount and returns `{ existed: false, index }`. With a Product already in the draft it returns `{ existed: true, index }` and the draft unchanged.
+  - `removeMealIngredient` drops the row at the index and leaves the input draft unmutated.
   - `restoreMeal` keeps `servings` and sets `detached: null`.
 - [ ] T053 [P] [US3] Extend `tests/app/save-meal.test.ts`:
   - The US3-1 flow stores `detached.ingredients[0].amount === 160` and returns `detachedNow: true`.
@@ -362,16 +370,11 @@ description: "Task list for Week Planning"
   - Change "płatki owsiane" to 80 and save. The row shows the "zmieniony" badge and the toast `detachToast` appears.
   - Reopen the sheet: it shows "Przywróć z dania". Confirm it, and the badge disappears.
   - A Linked Meal's sheet has no "Przywróć z dania".
+  - Creating a new Product from inside the Meal sheet: type "jogurt grecki" in the picker, tap "Dodaj „jogurt grecki”", choose "g" in the "Nowy produkt" sheet and tap "Dodaj". The Meal sheet stays open and shows a "jogurt grecki" Ingredient row with an empty amount, and the Product exists in the repository.
 
 ### Implementation for User Story 3
 
-- [ ] T055 [US3] In `src/domain/meals.ts`, complete `decideMealSave` with the detach branch per research R7:
-  - The copy starts from the source's whole-recipe values.
-  - Each changed per-Meal value becomes `roundTo2(value × servingsYield / servings)`, while unchanged values are copied exactly.
-  - Added Ingredients are converted the same way. Removed Ingredients are dropped.
-  - `detachedNow = meal.detached === null`.
-
-  Add `restoreMeal`. This makes T052 pass at 100% coverage.
+- [ ] T055 [US3] Add `addMealIngredient`, `removeMealIngredient` and `restoreMeal` to `src/domain/meals.ts`, per [contracts/domain-api.md](contracts/domain-api.md). `addMealIngredient` mirrors the Dish draft's `addIngredient`. This makes T052 pass at 100% coverage.
 - [ ] T056 [US3] Add `restoreMealFromDish(deps: { week }, mealId)` to `src/app/week.ts`: load → `gone`, otherwise `putMeal(restoreMeal(meal))`. Make T053 pass.
 - [ ] T057 [P] [US3] Add to `src/ui/view-models/meal-sheet.ts`:
   - `restoreConfirmMessage(dishName)`: "Przywrócić „{nazwa dania}” z dania? Zmiany w tym posiłku zostaną utracone."
@@ -385,6 +388,7 @@ description: "Task list for Week Planning"
     - four outlined Macro inputs
   - **Detached Meals only**: the `detachedNote` above the fields, and a "Przywróć z dania" list button that confirms with `restoreConfirmMessage(dish.name)` and calls `restoreMealFromDish`.
   - **After saving**: on `saved` with `detachedNow`, show the toast `detachToast`.
+  - **Nested sheet**: `ProductPicker` opens its own "Nowy produkt" `Sheet` on top of the Meal sheet. Closing it must not close the Meal sheet or drop the draft. Check this at 375 pt with an iOS user agent (Framework7 iOS styling, project memory). If the two sheets fight over the backdrop or swipe gestures, give the inner sheet `closeByBackdropClick` and `swipeToClose` settings that keep the outer one open, and say so in a comment.
 
   Make T054 pass.
 - [ ] T059 [US3] Check `src/ui/pages/DayPage.tsx`: `mealRow` shows the `Badge` "zmieniony" for Detached Meals and the placeholder of the Meal's displayed name when the Dish has no photo (spec Edge Cases "Photo of a Meal"). Add a `tests/ui/week-vm.test.ts` case for a renamed Detached Meal's avatar name.
@@ -531,7 +535,7 @@ description: "Task list for Week Planning"
   Verify that the production `npm run build` output contains no seed code (SC-005, SC-006 spot checks).
 - [ ] T081 [P] Review the Week, Day and Settings pages and both sheets at ≥ 1024 px against [contracts/ui.md](contracts/ui.md) "Desktop": a centred `.page-wide` column, no lost functions, no grid (FR-041). Review them at 375 pt with an iOS user agent too. Fix any gaps in `src/ui/styles/app.css`.
 - [ ] T082 [P] Run `grep -rniE "\b(extra|entry|multiplier|quantity|posilek|pora)\b" src/` and rename any domain identifier that matches (Principle II, research R4). Confirm every user-facing string written in `src/ui/**` is Polish (Principle I). Framework7's default labels are exempt.
-- [ ] T083 [P] Record as-built details in this feature's contracts: any Polish string written beyond [contracts/ui.md](contracts/ui.md), and the `inUse.breakdown` and `listAllDetachedIngredientLists` additions in [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md). In [../001-shell-products-dishes/analysis-followups.md](../001-shell-products-dishes/analysis-followups.md), tick item L2 with a note that T027 and T028 resolved it. Do not edit feature 001's spec, plan or contracts, which are immutable records.
+- [ ] T083 [P] Record as-built details in this feature's contracts: any Polish string written beyond [contracts/ui.md](contracts/ui.md), and any repository or use-case signature that ended up different from [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md). `inUse.breakdown` and `listAllDetachedIngredientLists` are already there. In [../001-shell-products-dishes/analysis-followups.md](../001-shell-products-dishes/analysis-followups.md), tick item L2 with a note that T027 and T028 resolved it. Do not edit feature 001's spec, plan or contracts, which are immutable records.
 - [ ] T084 Run `npm run lint`, `npm run typecheck`, `npm test`, `npm run coverage` (100% on `src/domain/**`) and `npm run build`. Fix anything that fails.
 - [ ] T085 Run every manual and performance check in [quickstart.md](quickstart.md) on an iPhone (current iOS Safari) and a desktop browser, using the `preview` or `seed` deploy. Record the results, and any deviations, at the bottom of `specs/002-week-planning/quickstart.md`. Android stays deferred, as in feature 001 (T084 there).
 

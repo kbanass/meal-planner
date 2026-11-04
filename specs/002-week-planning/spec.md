@@ -165,7 +165,7 @@ When the coming Week should look much like this one, the user taps "Skopiuj do n
 **Day view and Slots**
 
 - **FR-008**: The Day view MUST show the day's Slots in order, labelled only with their numbers (1, 2, 3…), each listing its Meals in the order they were added, followed by a "dodaj kolejny" placeholder below the last Slot.
-- **FR-009**: Each day MUST show as many Slots as the largest of: the default number of Slots, the highest Slot number holding a Meal that day, and the number of Slots the user has added to that day.
+- **FR-009**: Each day MUST show as many Slots as the largest of: the default number of Slots, the highest Slot number holding a Meal that day, and the Slot count the day was raised to with "dodaj kolejny". Example: with a default of 4, one tap raises the day to 5 and two taps to 6. If the default is later set to 6, that day shows 6.
 - **FR-010**: Tapping "dodaj kolejny" MUST add one Slot after the last shown Slot, to that day only, and the added Slot MUST be kept while empty.
 - **FR-011**: The Ustawienia tab MUST offer a "Liczba slotów" setting for the default number of Slots per day: a whole number from 1 to 10, initially 4. A change MUST apply at once to every day of every Week, past ones included, following FR-009. The rest of the Ustawienia tab stays a placeholder until later features.
 - **FR-012**: Each Meal in a Slot MUST show its name, the source Dish's photo or the placeholder for the Meal's name, its Servings, its kcal, and the "modified" marker when it is a Detached Meal.
@@ -217,7 +217,8 @@ When the coming Week should look much like this one, the user taps "Skopiuj do n
 ### Key Entities
 
 - **Week**: Seven days, Monday to Sunday, identified by the date of its Monday. Not stored on its own: a Week is the set of Meals and added Slots that fall on its dates.
-- **Slot**: A numbered position (1, 2, 3…) in one day. Each day has a Slot count: the default number of Slots, raised by the Slots the user added to that day and by any Slot that holds a Meal. The number of Slots added to a day is stored per date.
+- **Slot**: A numbered position (1, 2, 3…) in one day. Each day shows a number of Slots worked out by FR-009.
+- **Added Slot**: A Slot given to one day only with "dodaj kolejny". For each date that has Added Slots, the Slot count the day was raised to is stored.
 - **Meal**: A Dish placed on a date and Slot number, with Servings and its position among the Slot's Meals. Always references its source Dish. A **Linked Meal** has no copy of its own. A **Detached Meal** holds its own name, Servings yield, Ingredients and Macros for the whole recipe.
 - **Dish** and **Archived Dish** (from feature 001): the source a Meal reads from or was copied from. Deleting a Dish used by a Meal archives it.
 - **Ingredient** (from feature 001): in a Detached Meal, a Product with an amount, owned by that Meal.
@@ -249,4 +250,4 @@ When the coming Week should look much like this one, the user taps "Skopiuj do n
 - **Confirmations**: Removing a Meal and "przywróć z Dania" ask for confirmation because both lose data with no undo. Adding a Meal and "dodaj kolejny" do not.
 - **No jump to today**: There is no "back to current Week" control. The app opens on the current Week at each start (FR-002).
 - **Day view stays within its day**: The Day view has no controls for moving to the previous or next day. The user goes back to the Week view.
-- **Glossary**: This spec adds no domain terms. "Added Slots" means the Slots a user added to one day with "dodaj kolejny". docs/SPEC.md calls them "extra Slots", but this spec avoids that wording because **Extra** already means a free-text Shopping List entry in the glossary. The "modified" marker and the picker are UI concepts.
+- **Glossary**: This spec adds one domain term, **Added Slot** (added to GLOSSARY.md on 2026-11-04). docs/SPEC.md used to call these "extra Slots", but that clashes with **Extra**, a free-text Shopping List entry, so docs/SPEC.md now says "added Slots" too. The "modified" marker and the picker are UI concepts.
