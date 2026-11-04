@@ -11,7 +11,7 @@ describe('renderWithApp', () => {
   it('mounts the UI inside a Framework7 App with test deps', () => {
     const { container, deps } = renderWithApp(<DbName />);
 
-    expect(container.querySelector('.framework7-root')).not.toBeNull();
+    expect(container).toHaveClass('framework7-root');
     expect(deps.db.name).toMatch(/^test-\d+$/);
     expect(screen.getByText(deps.db.name)).toBeInTheDocument();
   });

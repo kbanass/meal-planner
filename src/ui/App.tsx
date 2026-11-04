@@ -12,7 +12,7 @@ export function AppShell() {
           <Link tabLink="#view-settings" iconF7="gear" text="Ustawienia" />
         </Toolbar>
         <View id="view-week" main tab tabActive url="/" routes={weekRoutes} />
-        <View id="view-dishes" tab url="/" routes={dishesRoutes} />
+        <View id="view-dishes" tab url="/dishes/" routes={dishesRoutes} />
         <View id="view-shopping" tab url="/" routes={shoppingRoutes} />
         <View id="view-settings" tab url="/" routes={settingsRoutes} />
       </Views>

@@ -36,6 +36,10 @@ if (typeof window !== 'undefined') {
       }) as MediaQueryList;
   }
 
+  if (typeof Element.prototype.scrollIntoView !== 'function') {
+    Element.prototype.scrollIntoView = () => {};
+  }
+
   if (typeof URL.createObjectURL !== 'function') {
     URL.createObjectURL = () => 'blob:test';
   }

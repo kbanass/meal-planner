@@ -14,3 +14,8 @@ export function nameKey(input: string): string {
 export function compareNames(a: string, b: string): number {
   return collator.compare(a, b);
 }
+
+/** Total order for ids, used to break name ties. Branch-free so sorts stay deterministic. */
+export function compareIds(a: string, b: string): number {
+  return Number(a > b) - Number(a < b);
+}

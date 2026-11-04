@@ -20,9 +20,39 @@
     margin-right: auto;
   }
 
-  .card-grid {
+  .card-grid > ul {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 16px;
   }
+}
+
+/* Ingredient rows: amount input with a fixed unit suffix (US1-5). */
+.ingredient-amount {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ingredient-amount input {
+  flex: 1;
+}
+.ingredient-unit {
+  color: var(--f7-list-item-after-text-color);
+}
+.ingredient-remove {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin-left: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--f7-theme-color);
+  cursor: pointer;
+}
+
+/* Fit "Lista zakupów" in a four-tab bar on narrow phones. */
+.toolbar.tabbar .tabbar-label {
+  font-size: 11px;
+  text-overflow: clip;
 }

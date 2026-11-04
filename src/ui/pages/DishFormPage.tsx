@@ -1,0 +1,212 @@
+import { useLiveQuery } from 'dexie-react-hooks';
+import {
+  BlockTitle,
+  f7,
+  Link,
+  List,
+  ListInput,
+  Navbar,
+  NavRight,
+  Page,
+} from 'framework7-react';
+import type { Router } from 'framework7/types';
+import { useState } from 'react';
+import { saveDish } from '../../app/dishes';
+import {
+  addIngredient,
+  draftFromDish,
+  emptyDishDraft,
+  removeIngredient,
+  type DishDraft,
+  type DishFieldErrors,
+} from '../../domain/dishes';
+import type { Product } from '../../domain/types';
+import { IngredientRow } from '../components/IngredientRow';
+import { ProductPicker } from '../components/ProductPicker';
+import { useDeps } from '../hooks/useDeps';
+import {
+  errorMessage,
+  fieldDomId,
+  firstInvalidField,
+  indexProducts,
+  unitLabel,
+} from '../view-models/dish-form';
+
+type MacroKey = keyof DishDraft['macros'];
+
+const MACRO_FIELDS: { key: MacroKey; label: string }[] = [
+  { key: 'kcal', label: 'kcal' },
+  { key: 'protein', label: 'Białko (g)' },
+  { key: 'fat', label: 'Tłuszcz (g)' },
+  { key: 'carbs', label: 'Węglowodany (g)' },
+];
+
+interface DishFormPageProps {
+  f7route: Router.Route;
+  f7router: Router.Router;
+}
+
+export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
+  const deps = useDeps();
+  const dishId = f7route.params.dishId;
+  const stored = useLiveQuery(
+    async () => (dishId === undefined ? null : ((await deps.dishes.get(dishId)) ?? null)),
+    [deps, dishId],
+  );
+  const products = useLiveQuery(() => deps.products.list(), [deps]);
+  const productsById = indexProducts(products ?? []);
+
+  // The draft follows the stored Dish until the user makes the first edit.
+  const [edited, setDraft] = useState<DishDraft | null>(null);
+  const draft = edited ?? (stored ? draftFromDish(stored) : stored === null ? emptyDishDraft() : null);
+  const [errors, setErrors] = useState<DishFieldErrors>({});
+  const [saving, setSaving] = useState(false);
+
+  const error = (path: string) => {
+    const code = errors[path];
+    return code ? errorMessage(code) : undefined;
+  };
+
+  function focusField(path: string) {
+    const element = document.getElementById(fieldDomId(path));
+    element?.scrollIntoView({ block: 'center' });
+    element?.focus();
+  }
+
+  function pickProduct(product: Product) {
+    if (!draft) return;
+    const result = addIngredient(draft, product.id);
+    const amountPath = `ingredients[${result.index}].amount`;
+    if (result.existed) {
+      f7.toast.show({ text: errorMessage('duplicateProduct'), closeTimeout: 2000 });
+    } else {
+      setDraft(result.draft);
+      setErrors({});
+    }
+    // Wait for the new row to render before focusing it.
+    requestAnimationFrame(() => focusField(amountPath));
+  }
+
+  async function save() {
+    if (!draft || saving) return;
+    setSaving(true);
+    try {
+      const result = await saveDish(deps, {
+        id: dishId,
+        draft,
+        productsById,
+        photoChange: { kind: 'keep' },
+      });
+      if (result.kind === 'saved') {
+        f7router.back();
+        return;
+      }
+      setErrors(result.errors);
+      const first = firstInvalidField(result.errors);
+      if (first) requestAnimationFrame(() => focusField(first));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Page>
+      <Navbar title={dishId === undefined ? 'Nowe danie' : 'Edycja dania'} backLink>
+        <NavRight>
+          <Link onClick={save}>Zapisz</Link>
+        </NavRight>
+      </Navbar>
+      {draft && (
+        <div className="page-wide">
+          <List>
+            <ListInput
+              label="Nazwa"
+              type="text"
+              inputId={fieldDomId('name')}
+              value={draft.name}
+              onInput={(event) => setDraft({ ...draft, name: event.target.value })}
+              errorMessage={error('name')}
+              errorMessageForce={errors.name !== undefined}
+            />
+            <ListInput
+              label="Liczba porcji"
+              type="text"
+              inputmode="decimal"
+              inputId={fieldDomId('servingsYield')}
+              value={draft.servingsYield}
+              onInput={(event) => setDraft({ ...draft, servingsYield: event.target.value })}
+              errorMessage={error('servingsYield')}
+              errorMessageForce={errors.servingsYield !== undefined}
+            />
+          </List>
+
+          <BlockTitle>Składniki</BlockTitle>
+          {draft.ingredients.length > 0 && (
+            // Plain list markup: Framework7's <List> only puts its own item components inside <ul>.
+            <div className="list">
+              <ul>
+                {draft.ingredients.map((ingredient, index) => {
+                const product = productsById.get(ingredient.productId);
+                const path = `ingredients[${index}]`;
+                return (
+                  <IngredientRow
+                    key={ingredient.productId}
+                    inputId={fieldDomId(`${path}.amount`)}
+                    name={product?.name ?? ''}
+                    unit={product ? unitLabel(product.unit) : ''}
+                    amount={ingredient.amount}
+                    error={error(`${path}.productId`) ?? error(`${path}.amount`)}
+                    onAmountChange={(amount) =>
+                      setDraft({
+                        ...draft,
+                        ingredients: draft.ingredients.map((item, i) =>
+                          i === index ? { ...item, amount } : item,
+                        ),
+                      })
+                    }
+                    onRemove={() => {
+                      setDraft(removeIngredient(draft, index));
+                      setErrors({});
+                    }}
+                  />
+                );
+              })}
+              </ul>
+            </div>
+          )}
+          <ProductPicker onPick={pickProduct} />
+
+          <BlockTitle>Makro (całe danie)</BlockTitle>
+          <List>
+            {MACRO_FIELDS.map(({ key, label }) => (
+              <ListInput
+                key={key}
+                label={label}
+                type="text"
+                inputmode="decimal"
+                inputId={fieldDomId(`macros.${key}`)}
+                value={draft.macros[key]}
+                onInput={(event) =>
+                  setDraft({ ...draft, macros: { ...draft.macros, [key]: event.target.value } })
+                }
+                errorMessage={error(`macros.${key}`)}
+                errorMessageForce={errors[`macros.${key}`] !== undefined}
+              />
+            ))}
+          </List>
+
+          <List>
+            <ListInput
+              label="Notatki"
+              type="textarea"
+              resizable
+              inputId={fieldDomId('notes')}
+              value={draft.notes}
+              onInput={(event) => setDraft({ ...draft, notes: event.target.value })}
+            />
+          </List>
+        </div>
+      )}
+    </Page>
+  );
+}

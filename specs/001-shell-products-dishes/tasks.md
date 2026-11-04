@@ -179,12 +179,12 @@ description: "Task list for App Shell, Products and Dishes"
 
 ### Tests for User Story 1
 
-- [ ] T028 [P] [US1] Write `tests/domain/products-catalog.test.ts` before the implementation:
+- [X] T028 [P] [US1] Write `tests/domain/products-catalog.test.ts` before the implementation:
   - `validateProductName("   ") === 'required'`, and `"mleko"` → `null`
   - `findNameConflict`: `" Mleko "` vs existing `"mleko"` → that Product; the same name with `selfId` of that Product → `null`
   - `suggestProducts`: `"MLE"` and `"ml"` both return `"mleko"`; `"losos"` does not return `"łosoś"`; `""` and `"  "` return `[]`; results are sorted with `compareNames`
   - `shouldOfferCreate`: `false` for `" Mleko "` when `"mleko"` exists, `true` for `"jogurt grecki"`, `false` for `"  "`
-- [ ] T029 [P] [US1] Write `tests/domain/dishes.test.ts` before the implementation:
+- [X] T029 [P] [US1] Write `tests/domain/dishes.test.ts` before the implementation:
   - `emptyDishDraft()` has `servingsYield: "1"`, empty macros and `[]` ingredients
   - `draftFromDish` formats numbers with `formatDecimal` (`1.5 → "1,5"`)
   - `addIngredient` appends with `amount: ""`, and for an existing productId returns `{ existed: true, index }` with the draft unchanged
@@ -194,25 +194,25 @@ description: "Task list for App Shell, Products and Dishes"
     - field paths `name`, `servingsYield`, `macros.kcal`, `ingredients[1].amount`, `ingredients[1].productId`
     - a valid draft returns the normalised name, values rounded with `roundTo2`, and `notes` trimmed
   - `selectLibrary` excludes `archived: true` and sorts by `compareNames`, then by `id`
-- [ ] T030 [P] [US1] Write `tests/data/product-repository.test.ts` before the implementation, using `createTestDb()` and `FixedIdGenerator`:
+- [X] T030 [P] [US1] Write `tests/data/product-repository.test.ts` before the implementation, using `createTestDb()` and `FixedIdGenerator`:
   - `createFromName(" Mleko ", 'ml')` → `created`, with name `"Mleko"` and stored `nameKey` `"mleko"`
   - a second `createFromName("MLEKO", 'g')` → `exists`, returning the first Product
   - `createFromName("  ", 'g')` → `invalid`
   - `list()` returns all Products without the `nameKey` field
-- [ ] T031 [P] [US1] Write `tests/data/dish-repository.test.ts` before the implementation: a `put`/`get`/`list` roundtrip keeps the Ingredient order, the Macros, the empty `notes`, `photo: null` and `archived: false`.
-- [ ] T032 [P] [US1] Write `tests/app/save-dish.test.ts` before the implementation:
+- [X] T031 [P] [US1] Write `tests/data/dish-repository.test.ts` before the implementation: a `put`/`get`/`list` roundtrip keeps the Ingredient order, the Macros, the empty `notes`, `photo: null` and `archived: false`.
+- [X] T032 [P] [US1] Write `tests/app/save-dish.test.ts` before the implementation:
   - creating with a valid draft stores a Dish with an id from `FixedIdGenerator`, `photo: null` and `archived: false`
   - editing keeps the id and the existing `photo`
   - an invalid draft returns `{ kind: 'invalid', errors }` and writes nothing (the `dishes` table count is unchanged)
-- [ ] T033 [P] [US1] Write `tests/ui/dish-form-vm.test.ts` before the implementation:
+- [X] T033 [P] [US1] Write `tests/ui/dish-form-vm.test.ts` before the implementation:
   - `errorMessage(code)` returns the exact Polish messages from [contracts/ui.md](contracts/ui.md)
   - `unitLabel('pcs') === 'szt.'`
   - `firstInvalidField(errors)` follows form order: `name`, `servingsYield`, `ingredients[i]…`, `macros.kcal`, `macros.protein`, `macros.fat`, `macros.carbs`
 
 ### Implementation for User Story 1
 
-- [ ] T034 [P] [US1] In `src/domain/products.ts`, implement `validateProductName`, `findNameConflict(products, name, selfId?)`, `suggestProducts(products, query)` and `shouldOfferCreate(products, query)`, making T028 pass. Matching is `nameKey(product.name).includes(nameKey(query))`. Do not fold diacritics.
-- [ ] T035 [P] [US1] In `src/domain/dishes.ts`, implement `DishDraft`, `DishFieldError`, `emptyDishDraft`, `draftFromDish`, `addIngredient`, `removeIngredient`, `validateDishDraft(draft, productsById)` and `selectLibrary(dishes)`, making T029 pass. Rules from [data-model.md](data-model.md):
+- [X] T034 [P] [US1] In `src/domain/products.ts`, implement `validateProductName`, `findNameConflict(products, name, selfId?)`, `suggestProducts(products, query)` and `shouldOfferCreate(products, query)`, making T028 pass. Matching is `nameKey(product.name).includes(nameKey(query))`. Do not fold diacritics.
+- [X] T035 [P] [US1] In `src/domain/dishes.ts`, implement `DishDraft`, `DishFieldError`, `emptyDishDraft`, `draftFromDish`, `addIngredient`, `removeIngredient`, `validateDishDraft(draft, productsById)` and `selectLibrary(dishes)`, making T029 pass. Rules from [data-model.md](data-model.md):
   - "Dish name non-empty after `normalizeName`"
   - "Servings yield parses and is > 0"
   - "Each Macro parses and is ≥ 0, all four required"
@@ -220,51 +220,51 @@ description: "Task list for App Shell, Products and Dishes"
   - "No duplicate `productId` in a Dish"
   - "Every Ingredient's `productId` exists"
   - Use `parseDecimal` and `roundTo2`. The functions must never mutate their inputs.
-- [ ] T036 [US1] Implement `src/data/product-repository.ts`:
+- [X] T036 [US1] Implement `src/data/product-repository.ts`:
   - `createProductRepository(db, ids): ProductRepository`, with `list()` and `createFromName(name, unit)`, per [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md).
   - `nameKey` is always derived from `nameKey(name)` inside the repository. It is never accepted from callers.
   - A Dexie `ConstraintError` on `&nameKey` maps to `exists`.
   - Strip `nameKey` from returned objects.
   - Make T030 pass.
-- [ ] T037 [P] [US1] Implement `src/data/dish-repository.ts`: `createDishRepository(db): DishRepository`, with `list()`, `get(id)` and `put(dish)`. Make T031 pass.
-- [ ] T038 [US1] Implement `saveDish` in `src/app/dishes.ts` for the `photoChange: { kind: 'keep' }` case:
+- [X] T037 [P] [US1] Implement `src/data/dish-repository.ts`: `createDishRepository(db): DishRepository`, with `list()`, `get(id)` and `put(dish)`. Make T031 pass.
+- [X] T038 [US1] Implement `saveDish` in `src/app/dishes.ts` for the `photoChange: { kind: 'keep' }` case:
   1. `validateDishDraft`; if invalid, return `invalid` without writing.
   2. Build the `Dish`: on create, a new id from `deps.ids.next()`, `photo: null`, `archived: false`; on edit, keep `photo` and `archived` from the stored Dish.
   3. `dishes.put`.
   4. Return `{ kind: 'saved', id }`.
 
   Type `photoChange` with the full union from the contract. The `set` and `remove` branches are added in T056. Make T032 pass.
-- [ ] T039 [US1] Extend `Deps` in `src/app/deps.ts` with `products: ProductRepository` and `dishes: DishRepository`, wired in `createDeps()`. Update the defaults in `tests/ui/render.tsx` accordingly.
-- [ ] T040 [P] [US1] Create `src/ui/view-models/dish-form.ts` with `errorMessage(code)`, `unitLabel(unit)` and `firstInvalidField(errors)`, making T033 pass. All strings come from [contracts/ui.md](contracts/ui.md).
-- [ ] T041 [P] [US1] Create `src/ui/components/IngredientRow.tsx`:
+- [X] T039 [US1] Extend `Deps` in `src/app/deps.ts` with `products: ProductRepository` and `dishes: DishRepository`, wired in `createDeps()`. Update the defaults in `tests/ui/render.tsx` accordingly.
+- [X] T040 [P] [US1] Create `src/ui/view-models/dish-form.ts` with `errorMessage(code)`, `unitLabel(unit)` and `firstInvalidField(errors)`, making T033 pass. All strings come from [contracts/ui.md](contracts/ui.md).
+- [X] T041 [P] [US1] Create `src/ui/components/IngredientRow.tsx`:
   - Shows the Product name.
   - Has an amount `<input inputmode="decimal">`, with `unitLabel(product.unit)` as a non-editable suffix (US1-5).
   - Has a remove button with `aria-label="Usuń składnik"`.
   - Shows the error message when present.
   - Accepts a `ref` so the parent can focus it.
-- [ ] T042 [US1] Create `src/ui/components/ProductPicker.tsx` (research R11):
+- [X] T042 [US1] Create `src/ui/components/ProductPicker.tsx` (research R11):
   - A text input with placeholder "Dodaj składnik…".
   - A Framework7 `List` rendering `suggestProducts(products, query)`, each row showing the name and `unitLabel`.
   - When `shouldOfferCreate`, a last row "Dodaj „{query}”" that opens a Framework7 `Sheet` titled "Nowy produkt", with a `Segmented` control g/ml/szt. (g preselected) and the buttons "Dodaj" and "Anuluj". "Dodaj" calls `deps.products.createFromName`, then `onPick(product)`.
   - Products are read with `useLiveQuery(() => deps.products.list())`.
   - Clear the input after a pick.
-- [ ] T043 [US1] Create `src/ui/pages/DishFormPage.tsx`, handling both `/dishes/new/` and `/dishes/:dishId/`:
+- [X] T043 [US1] Create `src/ui/pages/DishFormPage.tsx`, handling both `/dishes/new/` and `/dishes/:dishId/`:
   - Holds a `DishDraft` in `useState`, initialised from `emptyDishDraft()` or `draftFromDish(stored)`.
   - Fields in the order and with the labels from [contracts/ui.md](contracts/ui.md): Nazwa, Liczba porcji, Składniki (`IngredientRow` list + `ProductPicker`), Makro (całe danie) (kcal, Białko (g), Tłuszcz (g), Węglowodany (g)), Notatki.
   - When a pick returns `existed: true`, focus that row and show a toast "Ten produkt jest już w daniu.".
   - Navbar "Zapisz" calls `saveDish`. On `invalid`, show the per-field messages and scroll `firstInvalidField` into view. On `saved`, `router.back()`.
   - Wrap the content in `.page-wide`.
-- [ ] T044 [US1] Create `src/ui/pages/DishLibraryPage.tsx`:
+- [X] T044 [US1] Create `src/ui/pages/DishLibraryPage.tsx`:
   - Navbar "Dania" with a right "+" link to `/dishes/new/`.
   - A list from `selectLibrary(useLiveQuery(() => deps.dishes.list()) ?? [])`, each row showing the name and linking to `/dishes/{id}/`. The container has the `card-grid` class at ≥ 1024 px.
   - Empty state "Nie masz jeszcze żadnych dań. Dodaj pierwsze przyciskiem +."
   - Wrap the content in `.page-wide`.
-- [ ] T045 [US1] Replace `dishesRoutes` in `src/ui/routes.ts` with `/` → redirect to `/dishes/`, plus `/dishes/` → `DishLibraryPage`, `/dishes/new/` → `DishFormPage` and `/dishes/:dishId/` → `DishFormPage`. Set `view-dishes` `url="/dishes/"` in `src/ui/App.tsx`.
-- [ ] T046 [P] [US1] Write `tests/ui/product-picker.test.tsx`:
+- [X] T045 [US1] Replace `dishesRoutes` in `src/ui/routes.ts` with `/` → redirect to `/dishes/`, plus `/dishes/` → `DishLibraryPage`, `/dishes/new/` → `DishFormPage` and `/dishes/:dishId/` → `DishFormPage`. Set `view-dishes` `url="/dishes/"` in `src/ui/App.tsx`.
+- [X] T046 [P] [US1] Write `tests/ui/product-picker.test.tsx`:
   - with "mleko" seeded, typing "MLE" shows "mleko"
   - typing "jogurt grecki" shows "Dodaj „jogurt grecki”"; choosing it opens the sheet with g selected; "Dodaj" calls `onPick` with a Product in unit `g`
   - typing "Mleko" does not show a "Dodaj" row
-- [ ] T047 [P] [US1] Write `tests/ui/dish-form.test.tsx`: clearing Nazwa, setting Liczba porcji to "0" and pressing "Zapisz" shows "To pole jest wymagane." and "Wartość musi być większa od zera.", and the `dishes` table stays empty (US1-6).
+- [X] T047 [P] [US1] Write `tests/ui/dish-form.test.tsx`: clearing Nazwa, setting Liczba porcji to "0" and pressing "Zapisz" shows "To pole jest wymagane." and "Wartość musi być większa od zera.", and the `dishes` table stays empty (US1-6).
 
 **Checkpoint**: MVP = US5 + US1. Quickstart rows 1–4 and 10–11 pass.
 
