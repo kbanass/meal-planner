@@ -37,12 +37,14 @@ The layout follows the reference screenshot in spec.md Revisions. It is built fr
 | `--planner-card-bg` | `#FFFFFF` | Week card and Meal cards |
 | `--planner-card-radius` | `24px` | cards. Day pill `16px` |
 | `--planner-card-shadow` | `0 8px 24px rgba(60, 30, 20, 0.08)` | cards |
-| `--planner-accent` | see the open question below | selected-day pill, today's mark, primary actions |
+| `--planner-accent` | `#2f6f4f`, the app's green | selected-day pill, today's mark, primary actions |
 | `--planner-muted` | `#8E8A86` | short day names, secondary text |
 
 Headings use the system font at weight 700, with a larger size than Framework7's defaults: about 28 px for the month, 22 px for the day heading.
 
-**Open question: the accent colour.** The app's theme colour is green `#2f6f4f` (PWA manifest, tabbar). The reference uses a deep burgundy. The proposal is a deep burgundy, about `#8C1D40`, for the whole app: `--f7-theme-color` and the manifest `theme_color`, so the tabbar matches. The alternative keeps green and changes only the layout. To be decided by the user.
+**Accent colour (decided by the user, 2026-11-04): the app's green `#2f6f4f`**, the colour of the app icon and manifest. It applies inside the Tydzień tab: the custom tokens, and `--f7-theme-color` within `#view-week`, so that tab's Framework7 parts match. The rest of the app, the tabbar included, keeps Framework7's default iOS blue for now.
+
+The screenshot is a reference for the general look only, not a design to match exactly (the user, 2026-11-04).
 
 **Structure, top to bottom:**
 

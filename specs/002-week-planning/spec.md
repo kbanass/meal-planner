@@ -21,6 +21,11 @@ The user shared a reference screenshot from another meal app and asked for the W
 - **The selected day's plan** below the card, on the same screen: a heading with the day ("Czwartek, 5 lis") and its summary ("2 posiłki · 875 kcal"), then its Slots, with each Meal shown as a card with the Dish photo or placeholder on the left. **Tapping a day selects it. There is no separate Day view any more.**
 - **Look**: a warm off-white page background, white cards with large rounded corners and a soft shadow, and one accent colour.
 
+Decided by the user later the same day:
+- The screenshot is a reference for the general look, not a design to match exactly.
+- The accent stays the app's green.
+- The Day page is removed: tapping a day only shows its Meals, without switching page.
+
 Changed requirements: US1, FR-001, FR-003, FR-004, FR-005, FR-007, FR-008 and FR-041. New: FR-042, FR-043. docs/SPEC.md's Tydzień screen description was updated to match. Nothing else about planning changes: Slots, the Dish picker, the Meal sheet, scaling, detaching and copying work as before.
 
 ## User Scenarios & Testing *(mandatory)*

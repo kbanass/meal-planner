@@ -557,7 +557,7 @@ The Day page goes away. Behaviour and data are unchanged.
 - ← / → keep the weekday.
 - Adding, editing, detaching, restoring and copying work as in quickstart rows 1–16.
 
-**Blocked on**: the accent colour (contracts/ui.md open question). T091 can start with a placeholder value.
+**Decided (2026-11-04)**: the screenshot is only a reference, the accent stays green `#2f6f4f`, and the Day page is removed.
 
 ### Tests for the redesign
 
@@ -587,8 +587,7 @@ The Day page goes away. Behaviour and data are unchanged.
 - [ ] T091 [P] Add the redesign tokens and component styles to `src/ui/styles/app.css`, per [contracts/ui.md](contracts/ui.md) "Look":
   - `--planner-page-bg`, `--planner-card-*`, `--planner-accent`, `--planner-muted`
   - `.week-card`, `.day-strip`, `.day-pill`, `.meal-card`, `.slot-add-card`
-  - Scope them to `#view-week`.
-  - If the user picks the app-wide accent, also set `--f7-theme-color` and the manifest `theme_color` in `vite.config.ts`.
+  - Scope them to `#view-week`, with `--planner-accent: #2f6f4f` and `--f7-theme-color` set to the same green within `#view-week`.
   - Remove the now unused `.day-today` style.
 - [ ] T092 Rework `src/ui/view-models/week.ts`:
   - `weekPage(weekStart, today, selected, { meals, daySlots, dishes, settings })` returns `{ monthLabel, strip, heading, summary, slots, canCopy }`, built from `selectWeekDays`, `selectDay`, `weekMonthLabel` and `mealsWord`.
