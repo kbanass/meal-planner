@@ -31,17 +31,17 @@ description: "Task list for App Shell, Products and Dishes"
 
 **Purpose**: Project scaffold, tooling and quality gates.
 
-- [ ] T001 Scaffold a Vite + React + TypeScript project at the repository root:
+- [X] T001 Scaffold a Vite + React + TypeScript project at the repository root:
   - `package.json`:
     - `"name": "planner"`, `"type": "module"`, `"engines": { "node": ">=24" }`
     - scripts `dev` (`vite`), `build` (`tsc -b && vite build`), `preview` (`vite preview`), `lint` (`eslint .`), `typecheck` (`tsc -b --noEmit`), `test` (`vitest run`), `coverage` (`vitest run --coverage`)
   - `tsconfig.json` with `strict: true`, `noUncheckedIndexedAccess: true`, `jsx: "react-jsx"`, `moduleResolution: "bundler"`, `target: "ES2022"`, `lib: ["ES2022", "DOM", "DOM.Iterable"]`, and `types: ["vite/client"]`.
   - `index.html` with `<html lang="pl">`, `<div id="app">`, and a `<script type="module" src="/src/main.tsx">`.
   - Empty folders (`.gitkeep`) for `src/domain`, `src/data`, `src/adapters`, `src/app`, `src/ui`, `src/dev`, `tests/domain`, `tests/data`, `tests/app`, `tests/ui`, `tests/fakes`.
-- [ ] T002 Install dependencies and pin exact versions in `package.json`:
+- [X] T002 Install dependencies and pin exact versions in `package.json`:
   - Runtime: `react@19`, `react-dom@19`, `framework7@9`, `framework7-react@9`, `framework7-icons`, `dexie@4`, `dexie-react-hooks`.
   - Dev: `vite`, `@vitejs/plugin-react`, `vite-plugin-pwa`, `@vite-pwa/assets-generator`, `typescript`, `@types/react`, `@types/react-dom`, `vitest`, `@vitest/coverage-v8`, `jsdom`, `fake-indexeddb`, `@testing-library/react`, `@testing-library/user-event`, `@testing-library/jest-dom`, `eslint`, `typescript-eslint`, `eslint-plugin-react-hooks`.
-- [ ] T003 [P] Create `vitest.config.ts`:
+- [X] T003 [P] Create `vitest.config.ts`:
   - Default environment `node`. Files under `tests/ui/**` run in `jsdom`, using Vitest `projects` (or `environmentMatchGlobs` if the installed Vitest version still supports it).
   - `setupFiles: ['tests/setup.ts']`, and create `tests/setup.ts` importing `fake-indexeddb/auto` and `@testing-library/jest-dom/vitest`.
   - In `tests/setup.ts`, also install test-only stand-ins for browser APIs that jsdom lacks, applied only when `typeof window !== 'undefined'` and the API is missing:
@@ -51,12 +51,12 @@ description: "Task list for App Shell, Products and Dishes"
   - `coverage: { provider: 'v8', include: ['src/domain/**'], thresholds: { lines: 100, branches: 100, functions: 100, statements: 100 } }`.
   - `restoreMocks: true`.
   - `sequence.shuffle: true`, so dependence on test order is caught.
-- [ ] T004 [P] Create `eslint.config.js` (flat config) with `typescript-eslint` recommended and `react-hooks`, plus an override for `src/domain/**` (research R2):
+- [X] T004 [P] Create `eslint.config.js` (flat config) with `typescript-eslint` recommended and `react-hooks`, plus an override for `src/domain/**` (research R2):
   - `no-restricted-imports` with patterns `react*`, `framework7*`, `dexie*`, and `../**` paths that leave `src/domain`.
   - `no-restricted-globals` for `window`, `document`, `navigator`, `crypto`, `localStorage`, `indexedDB`.
   - `no-restricted-properties` for `Date.now` and `Math.random`.
   - `no-restricted-syntax` banning `NewExpression[callee.name='Date'][arguments.length=0]` and any `localeCompare` / `toLocaleLowerCase` / `toLocaleUpperCase` / `toLocaleString` call without arguments.
-- [ ] T005 [P] Create `.gitignore` (`node_modules`, `dist`, `dev-dist`, `coverage`, `*.local`) and `.nvmrc` containing `24`.
+- [X] T005 [P] Create `.gitignore` (`node_modules`, `dist`, `dev-dist`, `coverage`, `*.local`) and `.nvmrc` containing `24`.
 
 ---
 
