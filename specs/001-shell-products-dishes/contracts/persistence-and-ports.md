@@ -10,14 +10,16 @@ interface ProductRepository {
   createFromName(name: string, unit: Unit): Promise<
     | { kind: 'created'; product: Product }
     | { kind: 'exists'; product: Product }        // nameKey already taken → return the existing Product
-    | { kind: 'invalid' }                          // empty after normalisation
+    | { kind: 'invalid' }                          // empty after normalisation, or not a Unit (isUnit)
   >;
   rename(id: string, newName: string): Promise<
     | { kind: 'renamed' }
     | { kind: 'invalid' }
     | { kind: 'conflict'; existing: Product; mergeAllowed: boolean }
   >;
-  changeUnit(id: string, unit: Unit): Promise<{ kind: 'changed' } | { kind: 'inUse'; usage: number }>;
+  changeUnit(id: string, unit: Unit): Promise<
+    { kind: 'changed' } | { kind: 'inUse'; usage: number } | { kind: 'invalid' } // invalid: not a Unit
+  >;
   delete(id: string): Promise<{ kind: 'deleted' } | { kind: 'inUse'; usage: number }>;
   merge(fromId: string, intoId: string): Promise<
     { kind: 'merged'; dishesUpdated: number } | { kind: 'unitMismatch' } | { kind: 'sameProduct' }
@@ -37,6 +39,7 @@ Rules:
 
 - `changeUnit`, `delete` and `merge` run in one Dexie `rw` transaction over `products` and `dishes`. They recompute usage inside it, using `countProductUsage` with `[]` as the Meal input in this feature.
 - `merge` rewrites every Dish whose Ingredients contain `fromId` using `mergeIngredients`, then deletes `fromId`, in the same transaction.
+- `createFromName` and `changeUnit` check the unit with `isUnit` before writing, so a value that is not a Unit never reaches storage, even from untyped data.
 - `nameKey` is always derived inside the repository. A unique-index `ConstraintError` maps to `exists` or `conflict`.
 - Live UI reads use `useLiveQuery(() => repo.list())`. There is no other state store.
 

@@ -158,4 +158,11 @@ describe('delete and changeUnit', () => {
     expect(await products.changeUnit(pomidor.id, 'ml')).toEqual({ kind: 'changed' });
     expect(await products.list()).toEqual([{ ...pomidor, unit: 'ml' }]);
   });
+
+  it('rejects a value that is not a Unit', async () => {
+    const pomidor = await product('pomidor');
+
+    expect(await products.changeUnit(pomidor.id, 'kg' as Unit)).toEqual({ kind: 'invalid' });
+    expect(await products.list()).toEqual([pomidor]);
+  });
 });

@@ -9,11 +9,17 @@ import {
   validateProductName,
 } from '../domain/products';
 import type { Product, Unit } from '../domain/types';
+import { isUnit } from '../domain/units';
 import type { PlannerDb, StoredProduct } from './db';
 
 export type CreateProductResult =
   | { kind: 'created'; product: Product }
   | { kind: 'exists'; product: Product }
+  | { kind: 'invalid' };
+
+export type ChangeUnitResult =
+  | { kind: 'changed' }
+  | { kind: 'inUse'; usage: number }
   | { kind: 'invalid' };
 
 export type RenameProductResult =
@@ -30,7 +36,7 @@ export interface ProductRepository {
   list(): Promise<Product[]>;
   createFromName(name: string, unit: Unit): Promise<CreateProductResult>;
   rename(id: string, newName: string): Promise<RenameProductResult>;
-  changeUnit(id: string, unit: Unit): Promise<{ kind: 'changed' } | { kind: 'inUse'; usage: number }>;
+  changeUnit(id: string, unit: Unit): Promise<ChangeUnitResult>;
   delete(id: string): Promise<{ kind: 'deleted' } | { kind: 'inUse'; usage: number }>;
   merge(fromId: string, intoId: string): Promise<MergeProductsResult>;
 }
@@ -69,7 +75,8 @@ export function createProductRepository(db: PlannerDb, ids: IdGenerator): Produc
     },
 
     async createFromName(name, unit) {
-      if (validateProductName(name) !== null) return { kind: 'invalid' };
+      // The type alone does not stop an unknown unit arriving from untyped data.
+      if (validateProductName(name) !== null || !isUnit(unit)) return { kind: 'invalid' };
       const key = nameKey(name);
       try {
         return await db.transaction('rw', db.products, async (): Promise<CreateProductResult> => {
@@ -105,7 +112,8 @@ export function createProductRepository(db: PlannerDb, ids: IdGenerator): Produc
       }
     },
 
-    changeUnit(id, unit) {
+    async changeUnit(id, unit) {
+      if (!isUnit(unit)) return { kind: 'invalid' };
       return db.transaction('rw', db.products, db.dishes, async () => {
         const usage = await usageOf(id);
         if (!productActions(usage).canChangeUnit) return { kind: 'inUse', usage } as const;

@@ -549,7 +549,7 @@ Task: "T057 src/app/photos.ts"
 ## Phase 9: Convergence
 
 - [X] T086 CRITICAL: move derived values out of components into view-model or selector functions, with tests, per Constitution IV (contradicts). Cover `normalizeName(query)` in `src/ui/components/ProductPicker.tsx`, merge availability from `candidates.length > 0` in `src/ui/pages/ProductsPage.tsx`, and the choice between the stored and the empty draft in `src/ui/pages/DishFormPage.tsx`.
-- [ ] T087 Guard Product units with `isUnit` where they enter storage, in `ProductRepository.createFromName` and `changeUnit` (reject a value that is not a Unit), with repository tests, per plan: `units.ts` / data-model validation rules (partial).
+- [X] T087 Guard Product units with `isUnit` where they enter storage, in `ProductRepository.createFromName` and `changeUnit` (reject a value that is not a Unit), with repository tests, per plan: `units.ts` / data-model validation rules (partial).
 - [ ] T088 Add `compareIds` (`names.ts`) and `mergeCandidates` (`products.ts`) to `contracts/domain-api.md`, per contracts/domain-api.md (unrequested).
 - [ ] T089 Define `dishesUpdated` in `contracts/persistence-and-ports.md` as the number of Dishes the merge rewrote (1 in the US3-1 example, not 3 as T064 said), per T064 (contradicts).
 - [ ] T090 Record the seeded test deploy (`VITE_SEED=true`, `npm run deploy:seed`, branch `seed`) next to `src/dev/seed.ts` in the plan.md Project Structure, per plan: Project Structure (unrequested).

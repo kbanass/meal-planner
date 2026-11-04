@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { PlannerDb } from '../../src/data/db';
 import { createProductRepository, type ProductRepository } from '../../src/data/product-repository';
+import type { Unit } from '../../src/domain/types';
 import { FixedIdGenerator } from '../fakes/fixed-id-generator';
 import { createTestDb } from '../fakes/test-db';
 
@@ -33,6 +34,11 @@ describe('createFromName', () => {
 
   it('rejects a blank name', async () => {
     expect(await repo.createFromName('  ', 'g')).toEqual({ kind: 'invalid' });
+    expect(await db.products.count()).toBe(0);
+  });
+
+  it('rejects a value that is not a Unit', async () => {
+    expect(await repo.createFromName('mleko', 'kg' as Unit)).toEqual({ kind: 'invalid' });
     expect(await db.products.count()).toBe(0);
   });
 });
