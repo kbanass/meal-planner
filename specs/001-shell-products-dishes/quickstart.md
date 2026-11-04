@@ -5,7 +5,7 @@ How to prove the feature works end to end. Behaviour details are in [spec.md](sp
 ## Prerequisites
 
 - Node 24 LTS and npm
-- For the manual checks: an iPhone with current iOS Safari and an Android phone with Chrome, on the same network as the dev machine or using a deployed preview URL. PWA install and the photo storage API need HTTPS or `localhost`.
+- For the manual checks: an iPhone with current iOS Safari and an Android phone with Chrome, opening the HTTPS preview from `npm run deploy:preview` (Cloudflare Pages, see T027). Phones need HTTPS for the service worker, installing and photo storage. Plain `npm run preview` over the local network is HTTP and will not work there. Fallback without Cloudflare access: `npm run preview -- --host` plus `cloudflared tunnel --url http://localhost:4173`.
 
 ## Automated checks
 
@@ -22,7 +22,7 @@ Expected: every command exits 0. `build` writes `dist/` containing `sw.js` and `
 
 ## Manual checks
 
-Run `npm run build && npm run preview` (or open the deployed preview), then follow each scenario.
+On desktop, run `npm run build && npm run preview` (localhost counts as secure). On phones, open the HTTPS preview URL. Then follow each scenario.
 
 | # | Scenario | Steps | Expected |
 |---|---|---|---|
@@ -30,7 +30,7 @@ Run `npm run build && npm run preview` (or open the deployed preview), then foll
 | 2 | Create a Dish (US1-1) | Dania → + → enter the "Owsianka" example from the spec, adding both Products through "Dodaj „…”" | The Dish is listed. Reopening it shows the exact values, with the units "g" and "ml" |
 | 3 | Autocomplete (US1-2/3) | In a new Dish, type "MLE", then "ml", then "losos" with "łosoś" existing | "mleko" is suggested for both "MLE" and "ml". "łosoś" is not suggested for "losos" |
 | 4 | Validation (US1-6) | Clear the name, set Liczba porcji to 0, then press Zapisz | Nothing is saved, and both fields show their messages |
-| 5 | Photo (US2) | Add a large (≥ 3000 px) phone photo, save, reopen | The photo is shown. In DevTools → Application → Storage → File System, `photos/` holds one file of at most 800 px on its longest edge. On iOS the file is `.jpg`, on Chrome `.webp` |
+| 5 | Photo (US2) | Add a large (≥ 3000 px) phone photo, save, reopen | The photo is shown. In DevTools → Application → Storage → File System, `photos/` holds one file of at most 800 px on its longest edge. On iOS the file is `.jpg`, on Chrome `.webp`. Compare its size with the original: it must be under 10% of the original file size (SC-007) |
 | 6 | Placeholder (US2-4/5) | Create "Leczo z kiełbasą" without a photo, then rename another Dish to the same name | Both show the same colour and "LZ". Renaming to "Kasza jaglana" shows "KJ" |
 | 7 | Merge (US3-1/2) | Set up the "pomidor"/"pomidory" example from the spec, then Produkty → pomidory → Scal z innym produktem… → pomidor | "pomidory" is gone, "pomidor" shows "używany: 3", and the Dish that had both shows 300 g |
 | 8 | Rules for used Products (US3-5/6) | Rename "pomidory" to "Pomidor". Open the actions for a used Product | The rename is rejected and a merge is offered. Zmień jednostkę and Usuń are disabled with an explanation |

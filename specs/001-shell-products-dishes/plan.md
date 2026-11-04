@@ -53,7 +53,7 @@ All Technical Context unknowns are resolved in [research.md](research.md). There
 
 | Principle / constraint | How this plan complies | Pre | Post |
 |---|---|---|---|
-| I. English code, Polish UI | Identifiers in English. All strings Polish and inline ([contracts/ui.md](contracts/ui.md)). No i18n library | ✅ | ✅ |
+| I. English code, Polish UI | Identifiers in English. All strings we write are Polish and inline ([contracts/ui.md](contracts/ui.md)). No i18n library. Framework7's default labels are a justified deviation (see Complexity Tracking) | ⚠️ | ⚠️ |
 | II. Glossary-bound language | Types and identifiers use Product, Ingredient, Dish, Archived Dish (`archived`), Macros, Servings (`servingsYield`). No avoided terms (item, recipe, template) as identifiers. No new domain terms, since usage count, placeholder and photo reference are UI or technical concepts | ✅ | ✅ |
 | III. Single-user, local-only | No backend. IndexedDB + OPFS only. UUIDs through `IdGenerator`. The service worker has no runtime caching of external origins (R8) | ✅ | ✅ |
 | IV. Functional core / imperative shell | Every rule listed for this feature (normalisation, merge, usage, validation, placeholder hash, photo sizing) is in `src/domain/` ([contracts/domain-api.md](contracts/domain-api.md)) | ✅ | ✅ |
@@ -68,7 +68,7 @@ All Technical Context unknowns are resolved in [research.md](research.md). There
 | Technology constraints | The stack is exactly the constitution's list. `navigator.storage.persist()` on startup (R9). JSON export/import is deferred to the Ustawienia feature (out of this feature's scope) | ✅ | ✅ |
 | Development workflow | Spec → plan done. `docs/SPEC.md` updated for the photo format, described in the next note | ✅ | ✅ |
 
-**Gate result: PASS** before and after Phase 1. There are no violations, so Complexity Tracking is empty.
+**Gate result: PASS** before and after Phase 1, with one justified deviation from Principle I, recorded under Complexity Tracking.
 
 **Note on SPEC.md**: SPEC.md says photos are stored as WebP. iOS Safari cannot encode WebP, so the plan uses WebP where the browser supports it and JPEG otherwise (R7). This is a format detail, not a scope change. Per the Development Workflow, SPEC.md has been updated (2026-11-03) to say "WebP, or JPEG where the browser cannot encode WebP".
 
@@ -163,4 +163,6 @@ tests/
 
 ## Complexity Tracking
 
-No constitution violations to justify.
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|-------------------------------------|
+| Principle I: Framework7's built-in default labels ("OK", "Cancel", "Back" in standard dialogs and back links) are shown in English. | Decided by the user on 2026-11-04: Polish UI is required for text we write, but Framework7's own short, widely understood labels may stay as shipped. This keeps standard dialogs (`f7.dialog.confirm`, `prompt`, `alert`) usable as-is. | Overriding every Framework7 default text, and building custom dialogs to get per-dialog button labels, adds code and upkeep for labels the user understands anyway. |

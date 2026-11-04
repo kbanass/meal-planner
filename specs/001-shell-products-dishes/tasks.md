@@ -19,7 +19,7 @@ description: "Task list for App Shell, Products and Dishes"
 
 ## Conventions for every task
 
-- Code, identifiers and comments are in English. All user-facing strings are Polish and inline (Principle I). Exact strings are in [contracts/ui.md](contracts/ui.md).
+- Code, identifiers and comments are in English. Every user-facing string we write is Polish and inline (Principle I). Exact strings are in [contracts/ui.md](contracts/ui.md). Framework7's own default labels (for example "OK", "Cancel", "Back" in standard dialogs and back links) stay as Framework7 ships them. Do not configure or override them (see the deviation in [plan.md](plan.md), Complexity Tracking).
 - Domain terms follow [GLOSSARY.md](../../GLOSSARY.md). Never use Item, Recipe, Template, Entry or Component as identifiers for domain concepts.
 - `src/domain/**` may import only from `src/domain/**`. It must not use `Date`, `Math.random`, `crypto` or DOM globals (research R2).
 - Components render view-model or selector output and call use cases. They compute no derived values inline.
@@ -44,6 +44,10 @@ description: "Task list for App Shell, Products and Dishes"
 - [ ] T003 [P] Create `vitest.config.ts`:
   - Default environment `node`. Files under `tests/ui/**` run in `jsdom`, using Vitest `projects` (or `environmentMatchGlobs` if the installed Vitest version still supports it).
   - `setupFiles: ['tests/setup.ts']`, and create `tests/setup.ts` importing `fake-indexeddb/auto` and `@testing-library/jest-dom/vitest`.
+  - In `tests/setup.ts`, also install test-only stand-ins for browser APIs that jsdom lacks, applied only when `typeof window !== 'undefined'` and the API is missing:
+    - `IntersectionObserver`: a class whose `observe`, `unobserve` and `disconnect` do nothing and which never calls back, so `usePhotoUrl` stays on the placeholder in tests.
+    - `window.matchMedia`: returns `{ matches: false, media, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, onchange: null, dispatchEvent: () => false }`, so tests render the mobile layout.
+    - `URL.createObjectURL` returning `'blob:test'`, and `URL.revokeObjectURL` doing nothing.
   - `coverage: { provider: 'v8', include: ['src/domain/**'], thresholds: { lines: 100, branches: 100, functions: 100, statements: 100 } }`.
   - `restoreMocks: true`.
   - `sequence.shuffle: true`, so dependence on test order is caught.
@@ -101,7 +105,7 @@ description: "Task list for App Shell, Products and Dishes"
   - `ImageCompressor { compress(file, maxEdge) }`, returning `{ blob, mimeType }`
   - `type RequestPersistentStorage = () => Promise<boolean>`
   - error classes `PhotoDecodeError` and `PhotoQuotaError` (both `extends Error`, with `name` set)
-- [ ] T015 [P] Create the test fakes in `tests/fakes/`:
+- [ ] T015 Create the test fakes in `tests/fakes/` (after T013 and T014, which provide `createDb` and the photo error classes):
   - `fixed-id-generator.ts`: `FixedIdGenerator` returns `00000000-0000-4000-8000-` followed by a 12-digit zero-padded counter starting at 1.
   - `in-memory-photo-store.ts`: `InMemoryPhotoStore` uses a `Map<string, Blob>` keyed by `ref.id`. It has a `failNextWriteWith?: Error` option, and exposes `ids()` for assertions.
   - `fake-image-compressor.ts`: `FakeImageCompressor` returns `{ blob: new Blob(['x'], { type: 'image/webp' }), mimeType: 'image/webp' }`, or throws a configured `PhotoDecodeError`.
@@ -156,6 +160,12 @@ description: "Task list for App Shell, Products and Dishes"
   - Create `public/icons/icon.svg` (a simple plate glyph on `#2f6f4f`) and `pwa-assets.config.ts`. Generate `public/icons/pwa-192x192.png`, `pwa-512x512.png`, `maskable-icon-512x512.png` and `apple-touch-icon-180x180.png` with `npx pwa-assets-generator`.
   - In `index.html`, add `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">`, `<meta name="apple-mobile-web-app-capable" content="yes">`, `<meta name="apple-mobile-web-app-title" content="Planer">` and `<link rel="apple-touch-icon" href="/icons/apple-touch-icon-180x180.png">`.
 - [ ] T027 [US5] Create `public/_headers` for Cloudflare Pages, with `Cache-Control: no-cache` for `/sw.js`, `/index.html` and `/manifest.webmanifest`. Then run `npm run build` and confirm `dist/` contains `sw.js` and `manifest.webmanifest`, and that the generated service worker has no `runtimeCaching` routes to external origins (FR-007).
+
+  Make the build reachable over HTTPS for phone testing. Phones need a secure context for the service worker, installing and photo storage, and `npm run preview` over the local network is plain HTTP.
+  - Add the script `"deploy:preview": "npm run build && wrangler pages deploy dist --project-name planner --branch preview"` and install `wrangler` as a dev dependency.
+  - The first deploy needs the user's Cloudflare account. Ask the user to run `npx wrangler login` themselves; do not handle credentials.
+  - If the user has no Cloudflare access yet, a quick tunnel is the fallback: `npm run preview -- --host` plus `cloudflared tunnel --url http://localhost:4173`. Note it in quickstart.md.
+  - Record the resulting preview URL in the Prerequisites section of `specs/001-shell-products-dishes/quickstart.md`.
 
 **Checkpoint**: The shell runs, installs and loads offline. T019 passes.
 
@@ -223,7 +233,7 @@ description: "Task list for App Shell, Products and Dishes"
   3. `dishes.put`.
   4. Return `{ kind: 'saved', id }`.
 
-  Type `photoChange` with the full union from the contract. The `set` and `remove` branches are added in T061. Make T032 pass.
+  Type `photoChange` with the full union from the contract. The `set` and `remove` branches are added in T056. Make T032 pass.
 - [ ] T039 [US1] Extend `Deps` in `src/app/deps.ts` with `products: ProductRepository` and `dishes: DishRepository`, wired in `createDeps()`. Update the defaults in `tests/ui/render.tsx` accordingly.
 - [ ] T040 [P] [US1] Create `src/ui/view-models/dish-form.ts` with `errorMessage(code)`, `unitLabel(unit)` and `firstInvalidField(errors)`, making T033 pass. All strings come from [contracts/ui.md](contracts/ui.md).
 - [ ] T041 [P] [US1] Create `src/ui/components/IngredientRow.tsx`:
@@ -389,10 +399,12 @@ description: "Task list for App Shell, Products and Dishes"
 - [ ] T069 [US3] Create `src/ui/pages/ProductsPage.tsx`:
   - Navbar "Produkty" with a back link. The list is `selectProductRows(products, countProductUsage(dishes, []))`, each row showing the name, `unitLabel(unit)` and `usageLabel(usage)`, wrapped in `.page-wide`.
   - Tapping a row opens a Framework7 `Actions` sheet with:
-    - "Zmień nazwę": a dialog prompt prefilled with the name. On `conflict`, show `renameConflictMessage`, plus a "Scal z „{name}”" button when `mergeAllowed`.
+    - "Zmień nazwę": `f7.dialog.prompt` prefilled with the name, with Framework7's default buttons. On `conflict`:
+      - when `mergeAllowed`, open `f7.dialog.confirm` with `renameConflictMessage(name)` followed by "Scalić „{from}” z „{name}”?". Confirming runs `merge(from, existing)`.
+      - otherwise, open `f7.dialog.alert` with `renameConflictMessage(name)`.
     - "Zmień jednostkę": disabled with `unitHint` when used; otherwise a g/ml/szt. choice.
-    - "Scal z innym produktem…": disabled with `mergeHint` when there are no same-unit candidates. Otherwise a picker of same-unit Products, then the confirmation "Scalić „{from}” z „{into}”? Wszystkie dania będą używać „{into}”." with "Scal" and "Anuluj".
-    - "Usuń": disabled with `deleteHint` when used. Otherwise the confirmation "Usunąć produkt „{name}”?".
+    - "Scal z innym produktem…": disabled with `mergeHint` when there are no same-unit candidates. Otherwise a picker of same-unit Products, then `f7.dialog.confirm` with "Scalić „{from}” z „{into}”? Wszystkie dania będą używać „{into}”." and Framework7's default buttons.
+    - "Usuń": disabled with `deleteHint` when used. Otherwise `f7.dialog.confirm` with "Usunąć produkt „{name}”?" and Framework7's default buttons.
   - Disabled actions show their hint text below the label.
 - [ ] T070 [US3] Add the route `/products/` → `ProductsPage` to `dishesRoutes` in `src/ui/routes.ts`, and a "Produkty" navbar link (left side) to `/products/` in `src/ui/pages/DishLibraryPage.tsx` (FR-004).
 - [ ] T071 [P] [US3] Write `tests/ui/products-page.test.tsx`: with a seeded Product used by one Dish, opening its actions shows "Usuń" and "Zmień jednostkę" disabled, with "Produkt jest używany w 1 daniu – nie można go usunąć." visible.
@@ -427,7 +439,7 @@ description: "Task list for App Shell, Products and Dishes"
 
   Make T074 pass.
 - [ ] T078 [US4] In `src/app/deps.ts`, add `countMealsUsingDish: (dishId: string) => Promise<number>`, wired to `async () => 0`, with a comment: "No Meals exist until the Week planning feature; see specs/001-shell-products-dishes/research.md R13". Add the same default in `tests/ui/render.tsx`.
-- [ ] T079 [US4] In `src/ui/pages/DishFormPage.tsx` (edit mode only), add a red "Usuń danie" button at the bottom. It opens `f7.dialog.confirm("Usunąć danie „{nazwa}”?")` with the buttons "Usuń" and "Anuluj". On confirm it calls `deleteDish`, then `router.back()`. On cancel nothing changes (US4-3).
+- [ ] T079 [US4] In `src/ui/pages/DishFormPage.tsx` (edit mode only), add a red "Usuń danie" button at the bottom. It opens `f7.dialog.confirm("Usunąć danie „{nazwa}”?")` with Framework7's default buttons. On confirm it calls `deleteDish`, then `router.back()`. On cancel nothing changes (US4-3).
 
 **Checkpoint**: All five stories work. Quickstart row 9 passes.
 
@@ -443,7 +455,7 @@ description: "Task list for App Shell, Products and Dishes"
 
   Verify that `npm run build` output contains no `seed` code (SC-002, SC-003 spot checks).
 - [ ] T081 [P] Review the ≥ 1024 px layout of `DishLibraryPage`, `DishFormPage` and `ProductsPage` against [contracts/ui.md](contracts/ui.md): the tabbar is at the top, the library is a card grid, forms and lists are centred in `.page-wide`, and no function is lost (FR-009, US5-5). Fix any gaps in `src/ui/styles/app.css`.
-- [ ] T082 [P] Run `grep -rniE "\b(item|recipe|przepis|template|entry)\b" src/` and rename any domain identifier that matches (Principle II). Confirm every user-facing string in `src/ui/**` is Polish (Principle I).
+- [ ] T082 [P] Run `grep -rniE "\b(item|recipe|przepis|template|entry)\b" src/` and rename any domain identifier that matches (Principle II). Confirm every user-facing string written in `src/ui/**` is Polish (Principle I). Framework7's default labels are exempt (plan.md deviation).
 - [ ] T083 Run `npm run lint`, `npm run typecheck`, `npm test`, `npm run coverage` (100% on `src/domain/**`) and `npm run build`. Fix anything that fails.
 - [ ] T084 Run every manual and performance check in [quickstart.md](quickstart.md) on an iPhone (current iOS Safari) and an Android phone (Chrome), plus a desktop browser. Record the results, and any deviations, at the bottom of `specs/001-shell-products-dishes/quickstart.md`.
 
@@ -469,7 +481,7 @@ description: "Task list for App Shell, Products and Dishes"
 ### Parallel opportunities
 
 - **Setup**: T003, T004 and T005 in parallel after T002.
-- **Foundational**: T006, T007 and T008 (tests) in parallel. Then T010, T011 and T012 in parallel after T009. T014, T015 and T016 in parallel.
+- **Foundational**: T006, T007 and T008 (tests) in parallel. Then T010, T011 and T012 in parallel after T009. T014 and T016 in parallel, then T015 after T013 and T014.
 - **US5**: T019, T020, T021 and T022 in parallel.
 - **US1**: tests T028–T033 all in parallel. T034, T035 and T037 in parallel. T040 and T041 in parallel. T046 and T047 in parallel.
 - **US2**: tests T048–T051 in parallel. T052, T053, T054, T055 and T057 in parallel.

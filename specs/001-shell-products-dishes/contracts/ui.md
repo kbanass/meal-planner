@@ -1,6 +1,6 @@
 # Contract: Screens, routes and user-facing text
 
-All user-facing text is Polish and written inline (Principle I). Components render view-model output and call use cases. They compute nothing themselves (Principle IV).
+All user-facing text we write is Polish and inline (Principle I). Framework7's own default labels, such as "OK", "Cancel" and "Back" in standard dialogs and back links, are left as Framework7 ships them (plan.md, Complexity Tracking). Confirmations and prompts use Framework7's standard `f7.dialog.confirm` / `prompt` / `alert` with those default buttons. Components render view-model output and call use cases. They compute nothing themselves (Principle IV).
 
 ## Shell
 
@@ -52,7 +52,7 @@ Fields, top to bottom:
 - Photo errors (the Dish is still saved, shown as a toast):
   - decode → "Nie udało się wczytać zdjęcia. Spróbuj innego pliku."
   - quota → "Brak miejsca na urządzeniu. Danie zapisano bez nowego zdjęcia."
-- Delete confirmation: "Usunąć danie „{nazwa}”?" with the buttons "Usuń" and "Anuluj".
+- Delete confirmation: "Usunąć danie „{nazwa}”?" (standard confirm dialog).
 
 ## ProductPicker
 
@@ -71,8 +71,8 @@ Fields, top to bottom:
 
 The "{N} daniach" text is produced in a view-model with correct Polish plural forms: "1 daniu", "2 daniach", "5 daniach". A future Detached Meal count extends the same function.
 
-- Rename conflict: "Produkt „{nazwa}” już istnieje." If merging is allowed, the button "Scal z „{nazwa}”" is added.
-- Merge: a picker lists the other Products with the same unit. The confirmation reads "Scalić „{from}” z „{into}”? Wszystkie dania będą używać „{into}”." with the buttons "Scal" and "Anuluj".
+- Rename conflict: "Produkt „{nazwa}” już istnieje." If merging is allowed, a standard confirm dialog adds "Scalić „{from}” z „{nazwa}”?", and confirming merges. Otherwise it is a standard alert.
+- Merge: a picker lists the other Products with the same unit. The confirmation reads "Scalić „{from}” z „{into}”? Wszystkie dania będą używać „{into}”." (standard confirm dialog).
 - Delete confirmation: "Usunąć produkt „{nazwa}”?"
 
 ## PWA manifest (FR-005)
