@@ -25,6 +25,12 @@ export const goneMessage = 'Ten posiłek już nie istnieje.';
 
 export const detachToast = 'Posiłek zmieniony – nie będzie już śledził zmian w daniu.';
 
+export const detachedNote = 'Posiłek zmieniony – zmiany w daniu go nie dotyczą.';
+
+export function restoreConfirmMessage(dishName: string): string {
+  return `Przywrócić „${dishName}” z dania? Zmiany w tym posiłku zostaną utracone.`;
+}
+
 /**
  * The draft the sheet shows: the user's edits once there are any, otherwise the stored Meal.
  * `null` while the Meal or its source is still loading (or gone).

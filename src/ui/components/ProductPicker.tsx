@@ -17,7 +17,17 @@ import { UNITS } from '../../domain/units';
 import { useDeps } from '../hooks/useDeps';
 import { createProductLabel, newProductName, unitLabel } from '../view-models/dish-form';
 
-export function ProductPicker({ onPick }: { onPick(product: Product): void }) {
+interface ProductPickerProps {
+  onPick(product: Product): void;
+  /**
+   * Set when the picker sits inside another sheet (the Meal sheet). Framework7 sheets share one
+   * backdrop, so the "Nowy produkt" sheet must not use it: closing it would hide the backdrop of
+   * the sheet underneath.
+   */
+  insideSheet?: boolean;
+}
+
+export function ProductPicker({ onPick, insideSheet = false }: ProductPickerProps) {
   const deps = useDeps();
   const products = useLiveQuery(() => deps.products.list(), [deps]) ?? [];
   const [query, setQuery] = useState('');
@@ -71,7 +81,7 @@ export function ProductPicker({ onPick }: { onPick(product: Product): void }) {
         className="product-sheet"
         opened={sheetOpened}
         onSheetClosed={() => setSheetOpened(false)}
-        backdrop
+        backdrop={!insideSheet}
         swipeToClose
         style={{ height: 'auto' }}
       >

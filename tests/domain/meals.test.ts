@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
+  addMealIngredient,
   decideMealSave,
   draftFromMeal,
   isDetached,
   mealSource,
   newMeal,
+  removeMealIngredient,
   rescaleMealDraft,
+  restoreMeal,
   scaleMeal,
   servingsWord,
   validateMealDraft,
@@ -379,5 +382,34 @@ describe('decideMealSave', () => {
       servings: 2,
       detached: { ingredients: [{ productId: 'p-platki', amount: 200 }, { productId: 'p-mleko', amount: 300 }] },
     });
+  });
+});
+
+describe('addMealIngredient and removeMealIngredient', () => {
+  const draft = draftFromMeal(meal({ id: 'm-1' }), owsianka);
+
+  it('appends a new Product with an empty amount', () => {
+    expect(addMealIngredient(draft, 'p-banan')).toEqual({
+      draft: { ...draft, ingredients: [...draft.ingredients, { productId: 'p-banan', amount: '' }] },
+      index: 2,
+      existed: false,
+    });
+  });
+
+  it('points at the Ingredient that already uses the Product', () => {
+    expect(addMealIngredient(draft, 'p-mleko')).toEqual({ draft, index: 1, existed: true });
+  });
+
+  it('drops the row at the index without changing the input', () => {
+    const before = structuredClone(draft);
+    expect(removeMealIngredient(draft, 0).ingredients).toEqual([{ productId: 'p-mleko', amount: '150' }]);
+    expect(draft).toEqual(before);
+  });
+});
+
+describe('restoreMeal', () => {
+  it('drops the copy and keeps the Servings (FR-029)', () => {
+    const detached = meal({ id: 'm-1', servings: 2, detached: { ...owsianka, name: 'Inna' } });
+    expect(restoreMeal(detached)).toEqual({ ...detached, detached: null });
   });
 });

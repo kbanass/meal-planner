@@ -62,6 +62,14 @@ describe('mealRow', () => {
     expect(mealRow(view({ servings: 2, kcal: 700 })).subtitle).toBe('2 porcje · 700 kcal');
   });
 
+  it('draws a renamed Detached Meal placeholder from its new name', () => {
+    expect(mealRow(view({ name: 'Owsianka na wodzie', detached: true }))).toMatchObject({
+      title: 'Owsianka na wodzie',
+      avatarName: 'Owsianka na wodzie',
+      badge: 'zmieniony',
+    });
+  });
+
   it('marks a Detached Meal and names a missing Dish', () => {
     expect(mealRow(view({ detached: true })).badge).toBe('zmieniony');
     expect(mealRow(view({ name: '', missingDish: true }))).toMatchObject({

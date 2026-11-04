@@ -357,16 +357,16 @@ description: "Task list for Week Planning"
 
 ### Tests for User Story 3
 
-- [ ] T052 [P] [US3] Extend `tests/domain/meals.test.ts` (editing helpers and restore). The detach rules themselves are tested in T043.
+- [X] T052 [P] [US3] Extend `tests/domain/meals.test.ts` (editing helpers and restore). The detach rules themselves are tested in T043.
   - `addMealIngredient` appends a new Product with an empty amount and returns `{ existed: false, index }`. With a Product already in the draft it returns `{ existed: true, index }` and the draft unchanged.
   - `removeMealIngredient` drops the row at the index and leaves the input draft unmutated.
   - `restoreMeal` keeps `servings` and sets `detached: null`.
-- [ ] T053 [P] [US3] Extend `tests/app/save-meal.test.ts`:
+- [X] T053 [P] [US3] Extend `tests/app/save-meal.test.ts`:
   - The US3-1 flow stores `detached.ingredients[0].amount === 160` and returns `detachedNow: true`.
   - `restoreMealFromDish` → `restored`. After `dishes.put` with 800 kcal, `scaleMeal(mealSource(...))` gives 600 kcal at 1,5 Servings.
   - A Linked Meal whose Dish is then archived through `deleteDish` still resolves to the Dish's values.
   - Restoring a missing Meal → `gone`.
-- [ ] T054 [P] [US3] Extend `tests/ui/meal-sheet.test.tsx`:
+- [X] T054 [P] [US3] Extend `tests/ui/meal-sheet.test.tsx`:
   - Change "płatki owsiane" to 80 and save. The row shows the "zmieniony" badge and the toast `detachToast` appears.
   - Reopen the sheet: it shows "Przywróć z dania". Confirm it, and the badge disappears.
   - A Linked Meal's sheet has no "Przywróć z dania".
@@ -374,14 +374,14 @@ description: "Task list for Week Planning"
 
 ### Implementation for User Story 3
 
-- [ ] T055 [US3] Add `addMealIngredient`, `removeMealIngredient` and `restoreMeal` to `src/domain/meals.ts`, per [contracts/domain-api.md](contracts/domain-api.md). `addMealIngredient` mirrors the Dish draft's `addIngredient`. This makes T052 pass at 100% coverage.
-- [ ] T056 [US3] Add `restoreMealFromDish(deps: { week }, mealId)` to `src/app/week.ts`: load → `gone`, otherwise `putMeal(restoreMeal(meal))`. Make T053 pass.
-- [ ] T057 [P] [US3] Add to `src/ui/view-models/meal-sheet.ts`:
+- [X] T055 [US3] Add `addMealIngredient`, `removeMealIngredient` and `restoreMeal` to `src/domain/meals.ts`, per [contracts/domain-api.md](contracts/domain-api.md). `addMealIngredient` mirrors the Dish draft's `addIngredient`. This makes T052 pass at 100% coverage.
+- [X] T056 [US3] Add `restoreMealFromDish(deps: { week }, mealId)` to `src/app/week.ts`: load → `gone`, otherwise `putMeal(restoreMeal(meal))`. Make T053 pass.
+- [X] T057 [P] [US3] Add to `src/ui/view-models/meal-sheet.ts`:
   - `restoreConfirmMessage(dishName)`: "Przywrócić „{nazwa dania}” z dania? Zmiany w tym posiłku zostaną utracone."
   - `detachedNote`: "Posiłek zmieniony – zmiany w daniu go nie dotyczą."
 
   Include tests in `tests/ui/meal-sheet-vm.test.ts`.
-- [ ] T058 [US3] Make `src/ui/components/MealSheet.tsx` fully editable:
+- [X] T058 [US3] Make `src/ui/components/MealSheet.tsx` fully editable:
   - **Fields**:
     - a "Nazwa" outlined `ListInput`
     - `IngredientRow`s with editable amounts and remove buttons, plus a `ProductPicker` that calls `addMealIngredient`, showing the toast `mealErrorMessage('duplicateProduct')` and focusing the existing row when the Product is already there
@@ -391,7 +391,7 @@ description: "Task list for Week Planning"
   - **Nested sheet**: `ProductPicker` opens its own "Nowy produkt" `Sheet` on top of the Meal sheet. Closing it must not close the Meal sheet or drop the draft. Check this at 375 pt with an iOS user agent (Framework7 iOS styling, project memory). If the two sheets fight over the backdrop or swipe gestures, give the inner sheet `closeByBackdropClick` and `swipeToClose` settings that keep the outer one open, and say so in a comment.
 
   Make T054 pass.
-- [ ] T059 [US3] Check `src/ui/pages/DayPage.tsx`: `mealRow` shows the `Badge` "zmieniony" for Detached Meals and the placeholder of the Meal's displayed name when the Dish has no photo (spec Edge Cases "Photo of a Meal"). Add a `tests/ui/week-vm.test.ts` case for a renamed Detached Meal's avatar name.
+- [X] T059 [US3] Check `src/ui/pages/DayPage.tsx`: `mealRow` shows the `Badge` "zmieniony" for Detached Meals and the placeholder of the Meal's displayed name when the Dish has no photo (spec Edge Cases "Photo of a Meal"). Add a `tests/ui/week-vm.test.ts` case for a renamed Detached Meal's avatar name.
 
 **Checkpoint**: US1–US3 work. Quickstart rows 1–8 and 17–18 pass.
 

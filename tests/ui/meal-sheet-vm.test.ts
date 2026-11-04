@@ -3,11 +3,13 @@ import { draftFromMeal } from '../../src/domain/meals';
 import type { Product } from '../../src/domain/types';
 import {
   currentMealDraft,
+  detachedNote,
   detachToast,
   goneMessage,
   mealErrorMessage,
   mealFieldDomId,
   mealSheet,
+  restoreConfirmMessage,
   sheetValues,
 } from '../../src/ui/view-models/meal-sheet';
 import { meal, owsianka } from '../fakes/dishes';
@@ -27,6 +29,13 @@ describe('Meal sheet texts', () => {
     expect(mealErrorMessage('duplicateProduct')).toBe('Ten produkt jest już w posiłku.');
     expect(mealErrorMessage('notPositive')).toBe('Wartość musi być większa od zera.');
     expect(mealErrorMessage('required')).toBe('To pole jest wymagane.');
+  });
+
+  it('words the restore confirmation and the Detached Meal note', () => {
+    expect(restoreConfirmMessage('Owsianka')).toBe(
+      'Przywrócić „Owsianka” z dania? Zmiany w tym posiłku zostaną utracone.',
+    );
+    expect(detachedNote).toBe('Posiłek zmieniony – zmiany w daniu go nie dotyczą.');
   });
 
   it('words the gone alert and the detach toast', () => {

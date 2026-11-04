@@ -1,4 +1,4 @@
-import { waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Router } from 'framework7/types';
 import { describe, expect, it } from 'vitest';
@@ -45,22 +45,37 @@ async function openSheet(container: HTMLElement): Promise<HTMLElement> {
   return sheet;
 }
 
+function input(sheet: HTMLElement, path: string): HTMLInputElement {
+  return sheet.querySelector<HTMLInputElement>(`#meal-${path}`)!;
+}
+
+/** Taps the OK button of Framework7's standard confirm dialog. */
+async function confirmDialog() {
+  const ok = await waitFor(() => {
+    const button = [...document.querySelectorAll<HTMLElement>('.dialog.modal-in .dialog-button')].at(-1);
+    if (!button) throw new Error('No dialog open');
+    return button;
+  });
+  await userEvent.click(ok);
+}
+
 describe('MealSheet', () => {
   it('scales the Meal with its Servings and keeps it linked (US2-1–US2-3)', async () => {
     const { container, deps } = await renderDayWithMeal();
     const sheet = await openSheet(container);
-    const servings = sheet.querySelector<HTMLInputElement>('#meal-servings')!;
+    // Products load live, so wait for the Ingredient names before typing.
+    expect(await within(sheet).findByText('płatki owsiane')).toBeInTheDocument();
+    expect(input(sheet, 'ingredients-0-amount')).toHaveValue('50');
+    expect(input(sheet, 'macros-kcal')).toHaveValue('350');
 
-    // Products load live, so wait for the unit labels before typing.
-    expect(await within(sheet).findByText('50 g')).toBeInTheDocument();
-    expect(within(sheet).getByText('350')).toBeInTheDocument();
-    await userEvent.clear(servings);
-    await userEvent.type(servings, '1,5');
+    await userEvent.clear(input(sheet, 'servings'));
+    await userEvent.type(input(sheet, 'servings'), '1,5');
 
-    expect(await within(sheet).findByText('75 g')).toBeInTheDocument();
-    expect(within(sheet).getByText('225 ml')).toBeInTheDocument();
-    expect(within(sheet).getByText('525')).toBeInTheDocument();
-    expect(within(sheet).getByText('18,8')).toBeInTheDocument();
+    expect(input(sheet, 'ingredients-0-amount')).toHaveValue('75');
+    expect(input(sheet, 'ingredients-1-amount')).toHaveValue('225');
+    expect(input(sheet, 'macros-kcal')).toHaveValue('525');
+    // Inputs keep 2 decimals: a rounded "18,8" would count as a change and detach the Meal.
+    expect(input(sheet, 'macros-protein')).toHaveValue('18,75');
     await userEvent.click(within(sheet).getByText('Zapisz'));
 
     expect(await within(slot1(container)).findByText('1,5 porcji · 525 kcal')).toBeInTheDocument();
@@ -72,15 +87,64 @@ describe('MealSheet', () => {
   it('blocks saving 0 Servings and keeps the sheet open (US2-4)', async () => {
     const { container, deps } = await renderDayWithMeal();
     const sheet = await openSheet(container);
-    const servings = sheet.querySelector<HTMLInputElement>('#meal-servings')!;
 
-    await userEvent.clear(servings);
-    await userEvent.type(servings, '0');
+    await userEvent.clear(input(sheet, 'servings'));
+    await userEvent.type(input(sheet, 'servings'), '0');
     await userEvent.click(within(sheet).getByText('Zapisz'));
 
     expect(await within(sheet).findByText('Wartość musi być większa od zera.')).toBeInTheDocument();
     await waitFor(() => expect(sheet).toHaveClass('modal-in'));
     const [stored] = await deps.week.listMeals({ start: '2026-11-05', end: '2026-11-05' });
     expect(stored?.servings).toBe(1);
+  });
+
+  it('detaches an edited Meal, then restores it from its Dish (US3-1, US3-5, US3-6)', async () => {
+    const { container, deps } = await renderDayWithMeal();
+    let sheet = await openSheet(container);
+    expect(within(sheet).queryByText('Przywróć z dania')).not.toBeInTheDocument();
+    await within(sheet).findByText('płatki owsiane');
+
+    await userEvent.clear(input(sheet, 'ingredients-0-amount'));
+    await userEvent.type(input(sheet, 'ingredients-0-amount'), '80');
+    await userEvent.click(within(sheet).getByText('Zapisz'));
+
+    expect(await within(slot1(container)).findByText('zmieniony')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Posiłek zmieniony – nie będzie już śledził zmian w daniu.'),
+    ).toBeInTheDocument();
+    const [detached] = await deps.week.listMeals({ start: '2026-11-05', end: '2026-11-05' });
+    expect(detached?.detached?.ingredients[0]?.amount).toBe(160);
+    await waitFor(() => expect(sheet).not.toHaveClass('modal-in'));
+
+    sheet = await openSheet(container);
+    expect(within(sheet).getByText('Posiłek zmieniony – zmiany w daniu go nie dotyczą.')).toBeInTheDocument();
+    await userEvent.click(within(sheet).getByText('Przywróć z dania'));
+    await confirmDialog();
+
+    await waitFor(() =>
+      expect(within(slot1(container)).queryByText('zmieniony')).not.toBeInTheDocument(),
+    );
+    const [restored] = await deps.week.listMeals({ start: '2026-11-05', end: '2026-11-05' });
+    expect(restored?.detached).toBeNull();
+  });
+
+  it('creates a new Product from inside the Meal sheet and keeps the sheet open', async () => {
+    const { container, deps } = await renderDayWithMeal();
+    const sheet = await openSheet(container);
+    await within(sheet).findByText('płatki owsiane');
+
+    await userEvent.type(within(sheet).getByPlaceholderText('Dodaj składnik…'), 'jogurt grecki');
+    await userEvent.click(await within(sheet).findByText('Dodaj „jogurt grecki”'));
+    const productSheet = await waitFor(() => {
+      const open = document.querySelector<HTMLElement>('.product-sheet.modal-in');
+      if (!open) throw new Error('Nowy produkt sheet not open');
+      return open;
+    });
+    await userEvent.click(within(productSheet).getByRole('button', { name: 'Dodaj' }));
+
+    expect(await within(sheet).findByText('jogurt grecki')).toBeInTheDocument();
+    expect(input(sheet, 'ingredients-2-amount')).toHaveValue('');
+    expect(sheet).toHaveClass('modal-in');
+    expect((await deps.products.list()).map((p) => p.name)).toContain('jogurt grecki');
   });
 });

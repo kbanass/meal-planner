@@ -255,3 +255,26 @@ export function decideMealSave(
     detachedNow: meal.detached === null,
   };
 }
+
+/** Appends the Product with an empty amount, or points at the Ingredient that already uses it. */
+export function addMealIngredient(
+  draft: MealDraft,
+  productId: string,
+): { draft: MealDraft; index: number; existed: boolean } {
+  const existing = draft.ingredients.findIndex((ingredient) => ingredient.productId === productId);
+  if (existing !== -1) return { draft, index: existing, existed: true };
+  return {
+    draft: { ...draft, ingredients: [...draft.ingredients, { productId, amount: '' }] },
+    index: draft.ingredients.length,
+    existed: false,
+  };
+}
+
+export function removeMealIngredient(draft: MealDraft, index: number): MealDraft {
+  return { ...draft, ingredients: draft.ingredients.filter((_, i) => i !== index) };
+}
+
+/** "przywróć z Dania": drops the copy, keeps the Servings, links the Meal again (FR-029). */
+export function restoreMeal(meal: Meal): Meal {
+  return { ...meal, detached: null };
+}

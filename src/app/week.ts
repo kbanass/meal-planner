@@ -2,6 +2,7 @@ import type { WeekRepository } from '../data/week-repository';
 import {
   decideMealSave,
   mealSource,
+  restoreMeal,
   validateMealDraft,
   type FieldError,
   type MealDraft,
@@ -50,4 +51,15 @@ export async function saveMeal(
   if (decision.kind === 'unchanged') return decision;
   await deps.week.putMeal(decision.meal);
   return { kind: 'saved', detachedNow: decision.detachedNow };
+}
+
+/** Links a Detached Meal to its Dish again, even an Archived one (FR-029). */
+export async function restoreMealFromDish(
+  deps: { week: WeekRepository },
+  mealId: string,
+): Promise<{ kind: 'restored' } | { kind: 'gone' }> {
+  const meal = await deps.week.getMeal(mealId);
+  if (!meal) return { kind: 'gone' };
+  await deps.week.putMeal(restoreMeal(meal));
+  return { kind: 'restored' };
 }

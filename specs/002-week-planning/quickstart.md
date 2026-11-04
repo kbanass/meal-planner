@@ -31,7 +31,7 @@ Use a fresh install with the Dishes from feature 001's US1:
 | 1 | Open the app on a Wednesday | Tydzień shows Mon–Sun of this Week, today marked, all days "brak posiłków" | US1-1, FR-001–FR-004 |
 | 2 | Open Thursday, tap Slot 2 "Dodaj posiłek", tap "Owsianka" | Slot 2 shows "Owsianka", "1 porcja · 350 kcal". Back: Thursday shows "350 kcal" | US1-2–US1-4, US1-7 |
 | 3 | In Slot 2 add another Meal, "Banan" | Both Meals listed, in that order | US1-5 |
-| 4 | Open "Owsianka", set Porcje 1,5 | The sheet shows 75 g, 225 ml, kcal 525, protein 18,8. Save: no "zmieniony" badge | US2-1–US2-3 |
+| 4 | Open "Owsianka", set Porcje 1,5 | The sheet's inputs show 75 g, 225 ml, kcal 525, protein 18,75 (inputs keep 2 decimals, so an untouched save never counts as a change). Save: the row reads "1,5 porcji · 525 kcal", no "zmieniony" badge | US2-1–US2-3 |
 | 5 | Enter Porcje 0, then "abc" | Save blocked, field marked | US2-4 |
 | 6 | Add "Owsianka" to Friday Slot 1 as well. In the Thursday one set płatki 75 → 120 g (at 1,5 Servings) and save | The badge "zmieniony" appears. kcal stays 525. A toast explains detaching | US3-1, US3-4 |
 | 7 | Edit the Dish "Owsianka" in Dania to 800 kcal | The Friday Meal shows 400 kcal. Thursday is unchanged at 525 | US3-3, SC-003 |
