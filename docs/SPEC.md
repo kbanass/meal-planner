@@ -36,6 +36,7 @@ Help one person plan a full **Week** of meals ahead so that:
 ### Dish
 - `name`
 - `photo` (optional): stored in OPFS, compressed before saving (~800 px longest edge, WebP, or JPEG where the browser cannot encode WebP, e.g. iOS Safari). Without a photo, show a deterministic placeholder: a color derived from a hash of the name, plus initials.
+  - HEIC/HEIF (the iPhone camera default) works today only where the browser can decode it (Safari). Elsewhere, e.g. Chrome or Firefox on a desktop, the preview stays empty and saving reports that the photo could not be read. Support for those browsers comes later (see Out of scope).
 - `servingsYield`: how many servings the recipe makes
 - `ingredients`: list of { product, amount } in the product's unit
 - `macros`: kcal, protein, fat, carbs **for the whole recipe**
@@ -134,7 +135,7 @@ Tabs: **Tydzień**, **Dania**, **Lista zakupów**, **Ustawienia**.
 
 ## Out of scope (later)
 
-Sync between devices, nutrition import (Open Food Facts), prices and cost, pantry or inventory, per-day goals (training days), goal history, copying a single day or Meal, Dish tags and filters, package sizes on the shopping list, marking Meals as eaten.
+Sync between devices, nutrition import (Open Food Facts), prices and cost, pantry or inventory, per-day goals (training days), goal history, copying a single day or Meal, Dish tags and filters, package sizes on the shopping list, marking Meals as eaten, HEIC/HEIF Dish photos in browsers that cannot decode them (e.g. desktop Chrome, Firefox): decode them offline in the app, convert to WebP/JPEG like any other photo, and show a working preview before saving.
 
 ## Decisions
 
