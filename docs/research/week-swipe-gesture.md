@@ -437,8 +437,9 @@ useEffect(() => {
 
 **Open questions (design).**
 
-- Do the totals row and "Skopiuj do następnego tygodnia" slide with the Week, inside each slide,
-  or stay fixed under the track?
+- **Decided by the user, 2026-11-05:** the totals row and "Skopiuj do następnego tygodnia" stay
+  fixed under the track. Only the month label and the day strip swipe, so each slide holds just
+  those two.
 - Should neighbours show their selected-weekday totals?
 - Is the gap between peeking cards 12 px, and are neighbours dimmed?
 
