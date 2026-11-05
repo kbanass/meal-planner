@@ -163,9 +163,9 @@ describe('macroTotals', () => {
   it('gives kcal, protein, fat and carbs with icons, labels and display rounding', () => {
     expect(macroTotals({ kcal: 349.6, protein: 18.75, fat: 11.25, carbs: 82.5 })).toEqual([
       { key: 'kcal', label: 'Kalorie', value: '350', unit: 'kcal', icon: 'flame_fill' },
-      { key: 'protein', label: 'Białko', value: '18,8', unit: 'g', icon: 'cube_fill' },
+      { key: 'protein', label: 'Białko', value: '18,8', unit: 'g', icon: 'drumstick' },
       { key: 'fat', label: 'Tłuszcz', value: '11,3', unit: 'g', icon: 'drop_fill' },
-      { key: 'carbs', label: 'Węglowodany', value: '82,5', unit: 'g', icon: 'hexagon_fill' },
+      { key: 'carbs', label: 'Węglowodany', value: '82,5', unit: 'g', icon: 'wheat' },
     ]);
   });
 });
