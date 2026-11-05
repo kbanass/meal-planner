@@ -14,7 +14,7 @@ interface DishPickerSheetProps {
   onPick(dish: Dish): void;
 }
 
-/** The horizontally scrolling Dish picker at the bottom of the Day page (FR-013–FR-016). */
+/** The horizontally scrolling Dish picker at the bottom of the Week page (FR-013–FR-016). */
 export function DishPickerSheet({ opened, onClose, onPick }: DishPickerSheetProps) {
   const deps = useDeps();
   const dishes = useLiveQuery(() => deps.dishes.list(), [deps]);

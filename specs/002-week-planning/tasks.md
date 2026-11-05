@@ -806,5 +806,5 @@ Task: "T074 tests/ui/week-page.test.tsx (copy flow)"
 
 ## Phase 13: Convergence
 
-- [ ] T113 CRITICAL: Move the "Liczba slotów" choice list (1–10 from `SLOTS_PER_DAY`) and the row's displayed value out of `src/ui/pages/SettingsPage.tsx` into a new `src/ui/view-models/settings.ts` (e.g. `slotChoices` and `slotsPerDayLabel(settings)`), tested in `tests/ui/settings-vm.test.ts`, so the page only renders view-model output per Constitution IV (contradicts)
-- [ ] T114 Update the doc comment in `src/ui/components/DishPickerSheet.tsx` that still places the picker "at the bottom of the Day page": since the Phase 10 redesign it opens on the Week page, per T095 (contradicts)
+- [X] T113 CRITICAL: Move the "Liczba slotów" choice list (1–10 from `SLOTS_PER_DAY`) and the row's displayed value out of `src/ui/pages/SettingsPage.tsx` into a new `src/ui/view-models/settings.ts` (e.g. `slotChoices` and `slotsPerDayLabel(settings)`), tested in `tests/ui/settings-vm.test.ts`, so the page only renders view-model output per Constitution IV (contradicts)
+- [X] T114 Update the doc comment in `src/ui/components/DishPickerSheet.tsx` that still places the picker "at the bottom of the Day page": since the Phase 10 redesign it opens on the Week page, per T095 (contradicts)

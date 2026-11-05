@@ -12,13 +12,8 @@ import {
   Toolbar,
 } from 'framework7-react';
 import { useState } from 'react';
-import { SLOTS_PER_DAY } from '../../domain/settings';
 import { useDeps } from '../hooks/useDeps';
-
-const SLOT_CHOICES = Array.from(
-  { length: SLOTS_PER_DAY.max - SLOTS_PER_DAY.min + 1 },
-  (_, i) => SLOTS_PER_DAY.min + i,
-);
+import { slotChoices, slotsPerDayLabel } from '../view-models/settings';
 
 export function SettingsPage() {
   const deps = useDeps();
@@ -39,7 +34,7 @@ export function SettingsPage() {
           <ListItem
             link
             title="Liczba slotów"
-            after={settings ? String(settings.slotsPerDay) : ''}
+            after={slotsPerDayLabel(settings)}
             onClick={() => setPickerOpened(true)}
           />
         </List>
@@ -66,7 +61,7 @@ export function SettingsPage() {
         </Toolbar>
         <PageContent>
           <List strong inset dividersIos className="slots-choices">
-            {SLOT_CHOICES.map((n) => (
+            {slotChoices.map((n) => (
               <ListItem
                 key={n}
                 radio
