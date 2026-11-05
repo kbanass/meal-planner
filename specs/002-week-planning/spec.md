@@ -43,6 +43,20 @@ Asked for by the user after seeing the one-screen Week page:
 
 Changed requirements: FR-004, FR-005, FR-011, FR-042 and FR-043. New: FR-044, FR-045. docs/SPEC.md was updated to match.
 
+### 2026-11-05: Desktop layout, Dania cards and consistent forms
+
+Asked for by the user, with two annotated desktop screenshots:
+
+- **Desktop navigation on the left**: at about 1024 px and wider, the tabs become a vertical bar on the left side of the screen.
+- **One content container**: every screen uses the same content column, at most 960 px wide, starting next to the navigation rather than centred in the window. Sheets (the Meal sheet, the Dish picker, the slots sheet) are no wider than that column and line up with it.
+- **iOS look on desktop**: desktop browsers use the iOS style of the components, like iPhones. Android keeps its own style.
+- **Dish picker on desktop**: the strip of Dish cards also scrolls sideways with a mouse wheel.
+- **Dania as cards** (phones and desktop): each Dish is its own card with its photo, name, Servings yield, number of Ingredients, kcal and macros for one Serving, and the start of its notes.
+- **Consistent forms** (phones and desktop): editing a Dish in Dania and editing a Meal in Tydzień look the same: white card sections with outlined inputs on the warm background, the same Ingredient rows and the same Macro fields. No tinted input backgrounds.
+- **Later (Summaries feature)**: on desktop, the Week summary will be a column on the right of the Week page, next to the selected day.
+
+Changed requirements: FR-041 and FR-045. New: FR-046, FR-047. docs/SPEC.md was updated to match.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Plan a Week from Dishes (Priority: P1)
@@ -245,9 +259,16 @@ When the coming Week should look much like this one, the user taps "Skopiuj do n
 
 - **FR-039**: All functions of this feature MUST work offline and keep their data on the device, across app restarts.
 - **FR-040**: All user-facing text MUST be in Polish. Day names, month abbreviations and decimal commas MUST follow Polish conventions.
-- **FR-041**: On screens about 1024 px wide or wider, the Tydzień tab MUST use a wider layout with the same functions as on mobile.
+- **FR-041**: On screens about 1024 px wide or wider:
+  - The tabs MUST form a vertical navigation bar on the left.
+  - Every screen MUST show its content in the same column, at most 960 px wide, next to that bar.
+  - Sheets MUST be no wider than that column and MUST line up with it.
+  - Components MUST use the iOS style, as on iPhones. Android devices keep Framework7's Android style.
+  - All functions stay the same as on phones.
 - **FR-044**: Each Slot MUST be shown as a card with its number and the Planned kcal, protein, fat and carbs of its Meals. Its Meals are listed inside it. The "dodaj kolejny" action MUST be visibly separate from the Slot cards.
-- **FR-045**: In the Dish picker, each Dish MUST be a small card with its photo or placeholder, its name, and the kcal, protein, fat and carbs of one Serving, each shown as a small icon and a number.
+- **FR-045**: In the Dish picker, each Dish MUST be a small card with its photo or placeholder, its name, and the kcal, protein, fat and carbs of one Serving, each shown as a small icon and a number. A vertical mouse-wheel scroll over the strip MUST scroll it sideways.
+- **FR-046**: In Dania, each Dish MUST be shown as its own card with its photo or placeholder, its name, its Servings yield and number of Ingredients ("2 porcje · 5 składników"), the kcal, protein, fat and carbs of one Serving with the same icons as elsewhere, and the first lines of its notes when it has any. Tapping the card opens the Dish form. The cards are one column on phones and a grid on desktop.
+- **FR-047**: The Dish form (Dania) and the Meal sheet (Tydzień) MUST share one form look: white card sections with outlined inputs on the warm page background, the same Ingredient rows with the same "Dodaj składnik" button, and the same four Macro fields. Inputs MUST have no tinted background.
 - **FR-042**: Each Meal MUST be shown inside its Slot card as a row: the Dish photo or placeholder filling its left side, the Meal name, "{Servings} {porcja/porcje/porcji} · {kcal} kcal", and the "zmieniony" marker as a small chip when it is a Detached Meal. Tapping the card opens the Meal sheet. An empty Slot MUST be shown as an outlined "Dodaj posiłek" card, and a Slot with Meals ends with a smaller "Dodaj posiłek" action.
 - **FR-043**: The app MUST use one designed look on every tab: a warm off-white page background, white cards with large rounded corners and a soft shadow, and the app's green as the accent. The accent covers the selected day, today's mark, primary actions and all of Framework7's links, icons, tabbar and dialogs. Input borders MUST contrast at least 3:1 with their background. The standard parts (tabbar, sheets, dialogs, inputs) stay Framework7's components.
 

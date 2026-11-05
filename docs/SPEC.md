@@ -112,15 +112,17 @@ Tabs: **Tydzień**, **Dania**, **Lista zakupów**, **Ustawienia**.
   - Look (all tabs): warm off-white background, white rounded cards with a soft shadow, the app's green as the accent everywhere, input borders with good contrast. Standard parts (tabbar, sheets, dialogs, inputs) stay Framework7's.
   - Tapping an empty Slot card opens a horizontally scrolling dish picker at the bottom of the screen: small cards with photo, name, and kcal and macros for one serving. Tapping a Dish adds a Meal (1 serving). Filters come later.
   - Tapping a Meal opens a bottom sheet for editing (servings, fields, restore, remove).
-- **Dania:** Dish library (list, create, edit, archive) and a separate **Produkty** section.
+- **Dania:** Dish library (create, edit, archive) as cards: photo, name, servings yield, number of ingredients, kcal and macros per serving, start of the notes. A separate **Produkty** section.
+- Editing a Dish (Dania) and editing a Meal (Tydzień) share one form look: white card sections, outlined inputs, the same ingredient rows and macro fields.
 - **Produkty:** list with usage count. Rename, **merge** duplicates (all Dishes and Meals switch to the kept Product), delete only unused Products, change the unit only on unused Products.
 - **Lista zakupów:** as described above.
 - **Ustawienia:** number of Slots, Daily Goal, backup export/import.
 
 ### Desktop (≥ ~1024 px)
+- Navigation is a vertical bar on the left. Every screen shows its content in one column of the same maximum width (960 px) next to it, and sheets line up with that column. Components use the iOS style, as on iPhones.
 - **Tydzień** becomes one screen:
   - a 7-column grid (Mon–Sun) × Slots, with day summary bars under each column,
-  - the Week summary as an 8th column,
+  - the Week summary as a column on the right of the Week page, next to the selected day (Summaries feature),
   - a side panel with the Dish library and search.
 - Drag and drop (dnd-kit):
   - Dish from the library onto a Slot adds a Meal (1 serving).
