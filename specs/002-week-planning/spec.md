@@ -57,6 +57,10 @@ Asked for by the user, with two annotated desktop screenshots:
 
 Changed requirements: FR-041 and FR-045. New: FR-046, FR-047. docs/SPEC.md was updated to match.
 
+### 2026-11-05 (later): US4 acceptance scenario 1
+
+Found by `/speckit-converge`: US4/AC1 still described the label as the Week's date range, from before the redesign. It now matches FR-005 and the built app: the Week card shows the month label, and on phones the Week changes by swiping. No behaviour changes.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Plan a Week from Dishes (Priority: P1)
@@ -126,7 +130,7 @@ The user taps → to plan next Week and ← to look back at earlier Weeks. Past 
 
 **Acceptance Scenarios**:
 
-1. **Given** the Week of 2026-11-02 to 2026-11-08, **When** the user taps →, **Then** the Week of 2026-11-09 to 2026-11-15 is shown, labelled with its date range.
+1. **Given** the Week of 2026-11-02 to 2026-11-08, **When** the user moves to the next Week (swiping the Week card left on phones, or → on desktop), **Then** the Week of 2026-11-09 to 2026-11-15 is shown and the Week card reads "Listopad 2026".
 2. **Given** the Week of 2026-11-02 to 2026-11-08, **When** the user taps ←, **Then** the Week of 2026-10-26 to 2026-11-01 is shown with whatever Meals it holds.
 3. **Given** Meals were planned in a past Week, **When** the user returns to that Week months later, **Then** the Meals are still there.
 4. **Given** the user is viewing a Week other than the current one, **When** the app is closed and opened again, **Then** it opens on the current Week.
