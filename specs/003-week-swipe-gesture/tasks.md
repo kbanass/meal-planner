@@ -192,7 +192,7 @@ description: "Task list for Week Swipe Gesture"
 
 ### Tests for User Story 2 (write first, they must fail)
 
-- [ ] T016 [US2] In `tests/ui/week-page.test.tsx`, add tests T5–T10, T17 and T18 from [contracts/ui.md](contracts/ui.md):
+- [X] T016 [US2] In `tests/ui/week-page.test.tsx`, add tests T5–T10, T17 and T18 from [contracts/ui.md](contracts/ui.md):
   - **T5**: a move of 40 px right and 120 px down leaves the Week unchanged, and a later tap on a pill still selects it.
   - **T6**: `pointerdown` at `clientX` 10, with `window.innerWidth` 390, then a 140 px drag left, leaves the Week unchanged.
   - **T7**: the same 140 px drag with `pointerType: 'mouse'` leaves the Week unchanged.
@@ -204,16 +204,16 @@ description: "Task list for Week Swipe Gesture"
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] In `src/ui/hooks/useWeekTrackGesture.ts`, add the start filters (research R3, [data-model.md](data-model.md) rule 5). They run **before** the catch, so an ignored pointer never stops or commits a running tween:
+- [X] T017 [US2] In `src/ui/hooks/useWeekTrackGesture.ts`, add the start filters (research R3, [data-model.md](data-model.md) rule 5). They run **before** the catch, so an ignored pointer never stops or commits a running tween:
   - Ignore `pointerType === 'mouse'` (FR-013).
   - Ignore a `pointerdown` where `inEdgeZone(clientX, window.innerWidth)` for the whole gesture (FR-011).
   - Ignore a `pointerdown` whose target is inside `.week-card-nav`. The buttons act only through `click`.
   - Track only the first `pointerId`, and ignore other pointers until it ends.
-- [ ] T018 [US2] In the same file, add the axis rules (FR-010):
+- [X] T018 [US2] In the same file, add the axis rules (FR-010):
   - When `classifyDrag` returns `'vertical'`, stop tracking that pointer for the rest of its life.
   - If that `pointerdown` caught a settle, `settle(anchor)` straight away, so the face doesn't stay between Weeks.
-- [ ] T019 [US2] In the same file, add click suppression (FR-012): when a gesture locks `'horizontal'`, set `swallowClick`. A capture-phase `click` listener on the track then calls `preventDefault()` and `stopPropagation()` once and clears the flag. A tap never sets it.
-- [ ] T020 [US2] In the same file, add the interruption rules (FR-009):
+- [X] T019 [US2] In the same file, add click suppression (FR-012): when a gesture locks `'horizontal'`, set `swallowClick`. A capture-phase `click` listener on the track then calls `preventDefault()` and `stopPropagation()` once and clears the flag. A tap never sets it.
+- [X] T020 [US2] In the same file, add the interruption rules (FR-009):
   - `pointercancel` for the tracked pointer calls `settle(anchor)`.
   - So does `lostpointercapture` for a pointer that is **still tracked**, meaning it isn't preceded by its `pointerup`. Browsers fire `lostpointercapture` after `pointerup`, and T012 clears the tracked pointer on `pointerup`, so a normal release ignores it (T18).
   - A `visibilitychange` to `hidden` during a drag or a tween writes the anchor frame instantly and commits any pending target, so the face ends centred on one Week.

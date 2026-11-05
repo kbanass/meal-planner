@@ -4,6 +4,7 @@ import {
   WEEK_TRACK,
   classifyDrag,
   dragPosition,
+  inEdgeZone,
   railTransform,
   releaseTarget,
   releaseVelocity,
@@ -39,6 +40,8 @@ interface Gesture {
   /** Face heights, read when a gesture or settle starts and after a commit. */
   heights: Partial<Record<FaceOffset, number>>;
   tween: Tween | null;
+  /** Set when a gesture locks horizontal: the click that follows isn't a day tap (FR-012). */
+  swallowClick: boolean;
 }
 
 interface TrackElements {
@@ -62,6 +65,7 @@ function createTrack(elements: TrackElements) {
     pitch: 0,
     heights: {},
     tween: null,
+    swallowClick: false,
   };
 
   /** One layout read per gesture, settle or commit, never per frame. */
@@ -103,9 +107,10 @@ function createTrack(elements: TrackElements) {
   }
 
   /** A touch or a button during a settle finishes it at once (spec FR-017, rule 3). */
-  function catchSettle(): void {
+  function catchSettle(): boolean {
     const tween = stopTween();
     if (tween) commit(tween.to);
+    return tween !== null;
   }
 
   function settle(to: number): void {
@@ -139,16 +144,27 @@ function createTrack(elements: TrackElements) {
     if (g.position !== g.anchor) settle(g.anchor);
   }
 
+  /**
+   * Starts the gesture ignores, before any catch, so they never touch a running settle
+   * (data-model rule 5): a mouse (FR-013), the screen edge (FR-011), the ← / → buttons, a second
+   * finger, and a track with no width.
+   */
   function accepts(event: PointerEvent, track: HTMLElement): boolean {
     if (g.pointerId !== null) return false;
+    if (event.pointerType === 'mouse') return false;
+    if (inEdgeZone(event.clientX, window.innerWidth)) return false;
+    if (event.target instanceof Element && event.target.closest('.week-card-nav')) return false;
     return track.clientWidth > 0;
   }
 
   function onPointerDown(event: PointerEvent): void {
+    // A drag that moved often gets no click at all, so the flag must not outlive its gesture.
+    g.swallowClick = false;
     const track = elements.track();
     // Filter, then catch, then record: an ignored pointer never touches a running settle.
     if (!track || !accepts(event, track)) return;
-    catchSettle();
+    // A touch that stops the card isn't also a tap on whichever day is now under it.
+    g.swallowClick = catchSettle();
     g.pointerId = event.pointerId;
     g.anchor = 0;
     g.axis = 'pending';
@@ -166,7 +182,14 @@ function createTrack(elements: TrackElements) {
     if (g.axis === 'pending') {
       g.axis = classifyDrag(dx, dy);
       if (g.axis === 'pending') return;
-      if (g.axis === 'horizontal') elements.track()?.setPointerCapture(event.pointerId);
+      if (g.axis === 'vertical') {
+        // A scroll: let it go for the rest of its life, and don't leave the face between Weeks.
+        g.pointerId = null;
+        settleToAnchor();
+        return;
+      }
+      g.swallowClick = true;
+      elements.track()?.setPointerCapture(event.pointerId);
     }
     if (g.axis !== 'horizontal') return;
     g.position = dragPosition(g.start.position, dx, g.pitch, g.anchor);
@@ -194,10 +217,45 @@ function createTrack(elements: TrackElements) {
     }
   }
 
-  function onPointerCancel(event: PointerEvent): void {
+  /**
+   * A cancel, or a capture lost while the pointer is still tracked, springs back (FR-009).
+   * The lostpointercapture that follows a pointerup finds no tracked pointer and does nothing.
+   */
+  function onInterrupt(event: PointerEvent): void {
     if (event.pointerId !== g.pointerId) return;
     g.pointerId = null;
     settleToAnchor();
+  }
+
+  /**
+   * Only the track's own capture counts. Browsers capture a touch to the element under it (a day
+   * pill), and moving the capture to the track makes that pill lose it, which bubbles up here.
+   */
+  function onLostCapture(event: PointerEvent): void {
+    if (event.target === elements.track()) onInterrupt(event);
+  }
+
+  /** The click after a horizontal drag isn't a tap on the day it started on (FR-012). */
+  function onClickCapture(event: MouseEvent): void {
+    if (!g.swallowClick) return;
+    g.swallowClick = false;
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  /** Hidden mid-gesture: end on one Week at once, with no animation left running. */
+  function onVisibilityChange(): void {
+    if (document.visibilityState !== 'hidden') return;
+    const tween = stopTween();
+    const wasDragging = g.pointerId !== null;
+    g.pointerId = null;
+    if (tween) {
+      g.position = tween.to;
+      commit(tween.to);
+    } else if (wasDragging) {
+      g.position = g.anchor;
+      writeFrame();
+    }
   }
 
   /** The ← / → buttons: the same path as a flick, so quick clicks chain (research R8). */
@@ -211,12 +269,18 @@ function createTrack(elements: TrackElements) {
     track.addEventListener('pointerdown', onPointerDown);
     track.addEventListener('pointermove', onPointerMove);
     track.addEventListener('pointerup', onPointerUp);
-    track.addEventListener('pointercancel', onPointerCancel);
+    track.addEventListener('pointercancel', onInterrupt);
+    track.addEventListener('lostpointercapture', onLostCapture);
+    track.addEventListener('click', onClickCapture, true);
+    document.addEventListener('visibilitychange', onVisibilityChange);
     return () => {
       track.removeEventListener('pointerdown', onPointerDown);
       track.removeEventListener('pointermove', onPointerMove);
       track.removeEventListener('pointerup', onPointerUp);
-      track.removeEventListener('pointercancel', onPointerCancel);
+      track.removeEventListener('pointercancel', onInterrupt);
+      track.removeEventListener('lostpointercapture', onLostCapture);
+      track.removeEventListener('click', onClickCapture, true);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       stopTween();
       g.pointerId = null;
     };

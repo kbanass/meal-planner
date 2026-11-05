@@ -111,6 +111,7 @@ async function openPicker(container: HTMLElement, number: number): Promise<HTMLE
 
 afterEach(() => {
   Reflect.deleteProperty(document, 'visibilityState');
+  Reflect.deleteProperty(window, 'innerWidth');
   vi.useRealTimers();
   vi.restoreAllMocks();
 });
@@ -374,3 +375,211 @@ describe('WeekPage track: drag to another Week (feature 003, US1)', () => {
     expect(rail().style.transform).toBe(railTransform(0));
   });
 });
+
+describe('WeekPage track: no fight with scrolling, taps or the system (feature 003, US2)', () => {
+  /** A phone-wide viewport, so the edge zone sits where it would on an iPhone. */
+  function phoneViewport(): void {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 });
+  }
+
+  it('T5: a mostly vertical move scrolls, and a later tap still selects', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+
+    drag(el, { from: [200, 40], to: [240, 160], steps: 10, durationMs: 300 });
+    expect(heading()).toBe('Środa, 4 lis');
+    expect(rail().style.transform).toBe(railTransform(0));
+
+    tap(pill('Czwartek, 5 lis'), { t: 1000 });
+    expect(heading()).toBe('Czwartek, 5 lis');
+  });
+
+  it('T6: a drag that starts in the screen edge zone is left to the system', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+    phoneViewport();
+
+    drag(el, { from: [10, 40], to: [-130, 40], steps: 10, durationMs: 600 });
+    drag(el, { from: [10, 40], to: [150, 40], steps: 10, durationMs: 600, startT: 1000 });
+    drag(el, { from: [385, 40], to: [245, 40], steps: 10, durationMs: 600, startT: 2000 });
+
+    expect(heading()).toBe('Środa, 4 lis');
+  });
+
+  it('T7: a mouse drag does nothing: desktop uses the buttons', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+
+    drag(el, { from: [200, 40], to: [60, 40], steps: 10, durationMs: 600, pointerType: 'mouse' });
+
+    expect(heading()).toBe('Środa, 4 lis');
+  });
+
+  it('T8: a drag that starts on a day changes the Week without selecting that day', async () => {
+    const { deps } = depsWithClock();
+    await renderTrack(deps);
+    const thursday = pill('Czwartek, 5 lis');
+
+    slowDrag(thursday, -140);
+    act(() => {
+      thursday.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    });
+
+    expect(heading()).toBe('Środa, 11 lis');
+    expect(pill('Środa, 11 lis')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('a tap after a drag that got no click still selects', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+
+    slowDrag(el, -140);
+    tap(pill('Piątek, 13 lis'), { t: 1000 });
+
+    expect(heading()).toBe('Piątek, 13 lis');
+  });
+
+  it('a tap that catches a settle does not select a day', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+    withMotion();
+
+    flick(el, -30);
+    advanceFrames(60);
+    tap(pill('Piątek, 6 lis'), { t: 1000 });
+    runAllFrames();
+
+    expect(heading()).toBe('Środa, 11 lis');
+  });
+
+  it('T9: a tap on a day selects it', async () => {
+    const { deps } = depsWithClock();
+    await renderTrack(deps);
+
+    tap(pill('Czwartek, 5 lis'));
+
+    expect(heading()).toBe('Czwartek, 5 lis');
+  });
+
+  it('T10: a cancelled drag springs back', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+
+    pointer(el, 'pointerdown', { x: 200, y: 40, t: 0 });
+    for (let i = 1; i <= 10; i++) pointer(el, 'pointermove', { x: 200 - 14 * i, y: 40, t: 60 * i });
+    pointer(el, 'pointercancel', { x: 60, y: 40, t: 600 });
+
+    expect(heading()).toBe('Środa, 4 lis');
+    expect(rail().style.transform).toBe(railTransform(0));
+  });
+
+  it('T17: filtered pointers never catch a running settle', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+    phoneViewport();
+    withMotion();
+
+    flick(el, -30);
+    advanceFrames(60);
+    pointer(el, 'pointerdown', { x: 10, y: 40, t: 1000 });
+    pointer(el, 'pointerup', { x: 10, y: 40, t: 1040 });
+    pointer(el, 'pointerdown', { x: 200, y: 40, t: 1100, pointerType: 'mouse' });
+    pointer(el, 'pointerup', { x: 200, y: 40, t: 1140, pointerType: 'mouse' });
+    const next = screen.getByLabelText('Następny tydzień');
+    pointer(next, 'pointerdown', { x: 300, y: 20, t: 1200 });
+    pointer(next, 'pointerup', { x: 300, y: 20, t: 1240 });
+    expect(heading()).toBe('Środa, 4 lis');
+    runAllFrames();
+
+    expect(heading()).toBe('Środa, 11 lis');
+    expect(rail().style.transform).toBe(railTransform(0));
+  });
+
+  it('T18: the lostpointercapture after a release changes nothing', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+
+    slowDrag(el, -140);
+    pointer(el, 'lostpointercapture', { x: 60, y: 40, t: 700 });
+
+    expect(heading()).toBe('Środa, 11 lis');
+    expect(rail().style.transform).toBe(railTransform(0));
+  });
+
+  it('a lost capture mid-drag springs back', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+
+    pointer(el, 'pointerdown', { x: 200, y: 40, t: 0 });
+    for (let i = 1; i <= 10; i++) pointer(el, 'pointermove', { x: 200 - 14 * i, y: 40, t: 60 * i });
+    pointer(el, 'lostpointercapture', { x: 60, y: 40, t: 600 });
+    pointer(el, 'pointerup', { x: 60, y: 40, t: 650 });
+
+    expect(heading()).toBe('Środa, 4 lis');
+    expect(rail().style.transform).toBe(railTransform(0));
+  });
+
+  it("a day pill losing the browser's implicit capture doesn't stop the drag", async () => {
+    const { deps } = depsWithClock();
+    await renderTrack(deps);
+    const thursday = pill('Czwartek, 5 lis');
+
+    pointer(thursday, 'pointerdown', { x: 200, y: 40, t: 0 });
+    pointer(thursday, 'pointermove', { x: 186, y: 40, t: 60 });
+    pointer(thursday, 'lostpointercapture', { x: 186, y: 40, t: 61 });
+    for (let i = 2; i <= 10; i++) {
+      pointer(thursday, 'pointermove', { x: 200 - 14 * i, y: 40, t: 60 * i });
+    }
+    pointer(thursday, 'pointerup', { x: 60, y: 40, t: 600 });
+
+    expect(heading()).toBe('Środa, 11 lis');
+  });
+
+  it('hiding the page mid-settle ends on the target Week, centred', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+    withMotion();
+
+    flick(el, -30);
+    advanceFrames(60);
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+
+    expect(heading()).toBe('Środa, 11 lis');
+    expect(rail().style.transform).toBe(railTransform(0));
+  });
+
+  it('hiding the page mid-drag springs back at once', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+    withMotion();
+
+    pointer(el, 'pointerdown', { x: 200, y: 40, t: 0 });
+    for (let i = 1; i <= 10; i++) pointer(el, 'pointermove', { x: 200 - 14 * i, y: 40, t: 60 * i });
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    pointer(el, 'pointerup', { x: 60, y: 40, t: 650 });
+
+    expect(heading()).toBe('Środa, 4 lis');
+    expect(rail().style.transform).toBe(railTransform(0));
+  });
+
+  it('a vertical gesture that caught a settle springs back', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+    withMotion();
+
+    flick(el, -30);
+    advanceFrames(60);
+    drag(el, { from: [200, 40], to: [205, 160], steps: 5, durationMs: 200, startT: 1000 });
+    runAllFrames();
+
+    expect(heading()).toBe('Środa, 11 lis');
+    expect(rail().style.transform).toBe(railTransform(0));
+  });
+});
+
