@@ -103,7 +103,7 @@ On a desktop, the user clicks ← or → and the Week face slides to the neighbo
 
 **Follow and peek**
 
-- **FR-001**: On phones, a horizontal drag on the Week card MUST move the Week face with the finger, one-to-one, from the moment the gesture is recognised as horizontal, with no visible lag.
+- **FR-001**: On phones, a horizontal drag on the Week card MUST move the Week face with the finger, one-to-one, from the moment the gesture is recognised as horizontal, with no visible lag. This holds for up to one Week of travel. Beyond that, the face resists and moves less than the finger (FR-009).
 - **FR-002**: While dragging, the neighbour Weeks MUST sit beside the viewed Week, with a small gap between them: the next Week on the right, the previous one on the left. Each MUST show its own month label and day strip, with every day's Planned kcal, today's mark and the selected-weekday highlight.
 - **FR-003**: Only the Week face MUST move. The selected day's totals, "Skopiuj do następnego tygodnia", and the heading and Slots below the card MUST stay in place during the drag and while settling. They change to the new Week once it has settled.
 - **FR-004**: Neighbour Weeks MUST look slightly dimmed compared with the viewed Week, so it's clear which Week is current. A neighbour reaches full strength when it settles in the centre.

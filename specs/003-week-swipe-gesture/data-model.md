@@ -48,10 +48,11 @@ This state is never in React state. React only learns about a gesture through `o
 ### States and transitions
 
 ```text
-                 pointerdown (touch/pen, not in edge zone, no tracked finger)
+                 pointerdown (touch/pen, not in edge zone, not on ← / →, no tracked finger)
      ┌──────┐ ─────────────────────────────────────────────▶ ┌─────────┐
      │ idle │                                                 │ pressed │
-     └──────┘ ◀──── pointerup / cancel (no move past slop) ── └─────────┘
+     └──────┘ ◀── pointerup / cancel (no move past slop): ─── └─────────┘
+                  settle to anchor if position ≠ anchor (rule 4)
         ▲                                                       │ moved ≥ SLOP_PX
         │                                     classifyDrag      │
         │                         vertical ◀────────────────────┤
@@ -74,12 +75,24 @@ Rules the transitions keep. Each has a test in [contracts/view-models.md](contra
 1. **One commit path.** A Week change only ever happens through `commit(n)`: `flushSync(() => onMove(7n))`, then `position -= n`, then the frame is written. All three run in one task, before paint (FR-008).
 2. **At most one Week per gesture.** `releaseTarget` returns `anchor + {−1, 0, +1}` (FR-009).
 3. **A catch finishes the settle.** A `pointerdown`, or a button press, during `settling` commits the tween's target first (spec FR-017). So `anchor` is 0 whenever a gesture starts.
-4. **Always ends on one Week.** Every exit from `pressed` or `dragging` that isn't a release (cancel, lost capture, page hidden) settles to `anchor` (FR-009). A vertical gesture that caught a settle also settles to `anchor`.
-5. **Mouse and edge starts never leave `idle`** (FR-011, FR-013).
+4. **Always ends on one Week.** Every exit from `pressed` or `dragging` other than a release after a horizontal drag settles to `anchor` when `position ≠ anchor` (FR-009). That covers:
+   - a tap, which is a `pointerup` from `pressed`
+   - a vertical gesture
+   - `pointercancel`
+   - `lostpointercapture` while the tracked pointer is still active (it isn't preceded by its `pointerup`)
+   - the page being hidden
+
+   This matters after a catch, when a gesture can start at a position like −0.3.
+5. **Filtered starts never leave `idle`, and never catch** (FR-011, FR-013). The filters run before the catch in rule 3. These pointers are ignored, and a running tween carries on untouched:
+   - a mouse pointer
+   - a start in the edge zone
+   - a start on the ← / → buttons (they act through `click`)
+   - a second pointer while one is tracked
 6. **Reduced motion.** A settle with duration 0 commits synchronously (FR-014).
 
 ## Validation of inputs from the platform
 
 - `pitch ≤ 0` (hidden tab, jsdom without a width): the gesture is ignored. `dragPosition` returns `start.position`.
 - Non-finite or out-of-order timestamps: `releaseVelocity` returns 0, so the release is decided by distance only.
-- A second pointer: it's ignored while one is tracked. If the system cancels the tracked one, rule 4 applies.
+- A second pointer: it's ignored while one is tracked (rule 5). If the system cancels the tracked one, rule 4 applies.
+- Event order: browsers fire `lostpointercapture` *after* `pointerup`. So the adapter clears the tracked pointer on `pointerup`, and treats a later `lostpointercapture` for a pointer it no longer tracks as a no-op.

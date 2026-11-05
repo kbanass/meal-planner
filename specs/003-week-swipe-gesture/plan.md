@@ -28,7 +28,7 @@ On phones, the Week card's month label and day strip follow the finger. The prev
 
 **Testing**: Vitest.
 - Pure tests for `week-track.ts`, `weekFace`, `trackMealsRange` and `mealsInRange` (100% gate on the domain).
-- jsdom component tests drive the real adapter with `PointerEvent`s, fixed `timeStamp`s and a defined `clientWidth`. Settles are instant through a reduced-motion `matchMedia` stand-in. One test uses fake `requestAnimationFrame` for the catch (R10, [contracts/ui.md](contracts/ui.md) T1–T15).
+- jsdom component tests drive the real adapter with `PointerEvent`s, fixed `timeStamp`s and a defined `clientWidth`. Settles are instant through a reduced-motion `matchMedia` stand-in. Three tests use fake `requestAnimationFrame` for the catch and its safety rules (R10, [contracts/ui.md](contracts/ui.md) T1–T18).
 - Feel checks on an iPhone ([quickstart.md](quickstart.md)).
 
 **Target Platform**: Static offline PWA on Cloudflare Pages. The gesture is for touch and pen. Desktop uses the ← / → buttons.
@@ -66,7 +66,7 @@ All Technical Context items are resolved in [research.md](research.md). There ar
 | IV. Explicit numerics | All thresholds and curves are named constants and tested functions. No numbers inline in the adapter | ✅ | ✅ |
 | IV. I/O behind interfaces | No new I/O. The existing `WeekRepository.listMeals` is reused | ✅ | ✅ |
 | IV. Thin components | `WeekTrack` renders `weekTrackFaces` output. `WeekPage` keeps dispatching `moveWeek` | ✅ | ✅ |
-| IV. Test hygiene and coverage | Fixed event timestamps, no real timers (fake `requestAnimationFrame` only in T15), shuffled order. `mealsInRange` keeps `src/domain` at 100% | ✅ | ✅ |
+| IV. Test hygiene and coverage | Fixed event timestamps, no real timers (fake `requestAnimationFrame` only in T15–T17), shuffled order. `mealsInRange` keeps `src/domain` at 100% | ✅ | ✅ |
 | IV. Isolated adapters | The constitution names drag gestures as an adapter. `useWeekTrackGesture.ts` is the one new adapter, at about 150 lines, with no decisions of its own | ✅ | ✅ |
 | V. Simplicity and MVP scope | Only SPEC.md's planned swipe behaviour (Tydzień, "Planned (later)"). No mouse drag, no momentum across several Weeks. The added complexity (a custom gesture adapter instead of a library) is justified under Complexity Tracking | ⚠️ | ⚠️ |
 | Technology constraints | Stack unchanged. Pointer Events and `requestAnimationFrame` are platform APIs. No ADR (R11) | ✅ | ✅ |
@@ -90,7 +90,7 @@ specs/003-week-swipe-gesture/
 ├── quickstart.md        # Phase 1: automated checks and iPhone scenarios M1–M14
 ├── contracts/
 │   ├── view-models.md   # pure functions, constants and required tests
-│   └── ui.md            # Week card structure, WeekTrack, CSS, component tests T1–T15
+│   └── ui.md            # Week card structure, WeekTrack, CSS, component tests T1–T18
 ├── checklists/requirements.md
 └── tasks.md             # Phase 2 (/speckit-tasks, not created here)
 ```
@@ -122,7 +122,7 @@ tests/
 ├── ui/
 │   ├── week-track-vm.test.ts       + # every row of contracts/view-models.md
 │   ├── week-vm.test.ts             ~ # weekFace, weekTrackFaces, trackMealsRange, canCopy; − swipeWeekDelta
-│   └── week-page.test.tsx          ~ # T1–T15 replace the TouchEvent swipe test; queries scoped to the viewed face
+│   └── week-page.test.tsx          ~ # T1–T18 replace the TouchEvent swipe test; queries scoped to the viewed face
 └── setup.ts                        ~ # pointer-capture stubs; matchMedia matches prefers-reduced-motion
 ```
 

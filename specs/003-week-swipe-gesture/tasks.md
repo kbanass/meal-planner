@@ -8,7 +8,7 @@ description: "Task list for Week Swipe Gesture"
 
 **Prerequisites**: [plan.md](plan.md), [spec.md](spec.md), [research.md](research.md), [data-model.md](data-model.md), [contracts/](contracts/), [quickstart.md](quickstart.md)
 
-**Tests**: Required. Constitution Principle IV requires domain tests in every feature's `tasks.md`, written together with or before the implementation, and a 100% coverage gate on `src/domain/**`. The pure gesture functions get the same test-first treatment ([contracts/view-models.md](contracts/view-models.md)). Component tests drive the real adapter with `PointerEvent`s (T1–T15 in [contracts/ui.md](contracts/ui.md)). The feel is checked on an iPhone ([quickstart.md](quickstart.md)).
+**Tests**: Required. Constitution Principle IV requires domain tests in every feature's `tasks.md`, written together with or before the implementation, and a 100% coverage gate on `src/domain/**`. The pure gesture functions get the same test-first treatment ([contracts/view-models.md](contracts/view-models.md)). Component tests drive the real adapter with `PointerEvent`s (T1–T18 in [contracts/ui.md](contracts/ui.md)). The feel is checked on an iPhone ([quickstart.md](quickstart.md)).
 
 **Organization**: One phase per user story, in priority order: US1 and US2 (P1), then US3 (P2). The pure functions and test stand-ins are in Phase 2, because every story uses them.
 
@@ -37,7 +37,7 @@ description: "Task list for Week Swipe Gesture"
 - **Commit path**: the only way the Week changes from the track is `flushSync(() => onMove(7 * n))`, then `position -= n`, then the frame is written through the refs, all in one task (data-model.md, rule 1).
 - **Tests**:
   - Vitest, no network, no dependence on test order.
-  - No real timers. Fake `requestAnimationFrame` is used only in T15.
+  - No real timers. Fake `requestAnimationFrame` is used only in T15–T17.
   - Event timestamps are fixed on the event object, so velocity is deterministic (research R10).
 - **iPhone check**: before calling a story done, check the Week page at 375 pt with an iOS user agent (project memory), and run that story's quickstart rows on a real iPhone.
 - **Commits**: after each task group, with tests passing. Use Conventional Commits, e.g. `feat(week): …`, `test(ui): …`, `docs(spec): …`.
@@ -122,16 +122,22 @@ description: "Task list for Week Swipe Gesture"
 
 ### Tests for User Story 1 (write first, they must fail)
 
-- [ ] T010 [US1] In `tests/ui/week-page.test.tsx`, using `tests/ui/pointer.ts` and `setTrackWidth(track, 360)` on `.week-track`, add tests T1–T4, T12 and T15 from [contracts/ui.md](contracts/ui.md):
-  - **T1**: a slow 140 px drag left over 600 ms gives the heading "Środa, 11 lis", and Wed 11 is pressed.
+- [ ] T010 [US1] In `tests/ui/week-page.test.tsx`, using `tests/ui/pointer.ts` and `setTrackWidth(track, 360)` on `.week-track`, add tests T1–T4, T12, T15 and T16 from [contracts/ui.md](contracts/ui.md):
+  - **T1**: a slow 140 px drag left over 600 ms. After the moves and before `pointerup`, the heading still reads "Środa, 4 lis" (FR-003). After `pointerup`, it reads "Środa, 11 lis", and Wed 11 is pressed.
   - **T2**: two slow 140 px drags right give "Środa, 28 paź".
   - **T3**: a slow 60 px drag left leaves the Week unchanged.
   - **T4**: a 30 px flick left in 50 ms moves to the next Week.
   - **T12**: with a Meal on 2026-11-11, `350` shows in the next face's strip before any move.
   - **T15**: override `window.matchMedia` in that test to never match, and use `vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'] })`. Flick left, advance 60 ms, and check the heading reads "Środa, 11 lis" right after the second `pointerdown`. Then flick left again and run all frames: the heading reads "Środa, 18 lis".
+  - **T16**: in the T15 setup, flick left, advance 60 ms, then `tap` the card and run all frames. The heading reads "Środa, 11 lis", and the rail's `style.transform` equals `railTransform(0)`.
 
-  Also update the existing tests for five faces:
-  - Replace `screen.findByText('Listopad 2026')` with a query scoped to the viewed face (`.week-face:not([inert])`), or with `getByRole('heading', { level: 2 })`.
+  Also update the existing tests for five faces. The same month label and today's pill now appear in more than one face:
+  - Add a `viewedFace()` helper returning `.week-face:not([inert])`.
+  - Scope **every** text query and `.day-pill*` selector in the file to it, old tests included. For example:
+    - `screen.findByText('Listopad 2026')`
+    - `screen.findByText('Październik – listopad 2026')`
+    - `container.querySelector('.day-pill-today')` (it must be null after "Następny tydzień" in the viewed face only, because the previous face still holds today)
+  - Alternatively, use `getByRole('heading', { level: 2 })` for the month.
   - Keep `pill()` as a role query, which skips `aria-hidden` neighbours.
   - Delete the old TouchEvent test "changes the Week with a swipe on the Week card (FR-005)".
 
@@ -149,11 +155,12 @@ description: "Task list for Week Swipe Gesture"
   - **Listeners**: attach `pointerdown`, `pointermove`, `pointerup` and `pointercancel` in a `useEffect` on the track, and remove them on cleanup.
   - **`pointerdown`**: read `pitch = clientWidth + WEEK_TRACK.GAP_PX`, ignore the gesture if `pitch ≤ 0`, and record `start` and the first sample. If a tween is running, **catch** it: cancel the frame, then `commit(tween.to)`, which runs `flushSync(() => onMove(7 * n))`, then `position -= n`, then writes the frame. So `anchor` is 0 (spec FR-017).
   - **`pointermove`**: while `classifyDrag` is `'pending'`, do nothing. On `'horizontal'`, call `setPointerCapture`. Then set `position = dragPosition(start.position, dx, pitch, anchor)`, push a sample trimmed to `VELOCITY_WINDOW_MS`, and write `trackFrame(position)`: the rail gets `railTransform(railShift)`, and each face ref gets its `opacity`.
-  - **`pointerup`** after a horizontal drag: `target = releaseTarget({ anchor, position, velocity: releaseVelocity(samples, t), movedPx: dx })`, then `settle(target)`.
+  - **`pointerup`**: clear the tracked pointer first, so a later `lostpointercapture` is a no-op ([data-model.md](data-model.md), "Event order"). After a horizontal drag: `target = releaseTarget({ anchor, position, velocity: releaseVelocity(samples, t), movedPx: dx })`, then `settle(target)`. From `pressed` (a tap, no move past `SLOP_PX`): `settle(anchor)` when `position ≠ anchor`, which happens after a catch. This is data-model rule 4, tested by T16.
   - **`settle(to)`**: if `matchMedia('(prefers-reduced-motion: reduce)').matches`, the duration is 0: write the frame and commit synchronously (FR-014). Otherwise run a `requestAnimationFrame` loop with `tweenPosition(from, to, elapsed, settleDuration(to − from))`, and on the last frame `commit(to)` when `to ≠ 0`.
   - **`step(direction)`**: catch any running tween as on `pointerdown`, then `settle(direction)`.
   - **Initial frame**: on mount and after every commit, write `trackFrame(position)`.
   - Every number comes from `week-track.ts`.
+  - Leave the start filters (rule 5) to T017. Even so, structure `pointerdown` as "filter, then catch, then record", so T017 only adds conditions to the filter step.
   - Depends on T006 and T011.
 - [ ] T013 [US1] Rewire `src/ui/pages/WeekPage.tsx` ([contracts/ui.md](contracts/ui.md) "WeekPage changes"):
   - Remove the `slide` state, the `touchStart` ref, `onTouchStart` / `onTouchEnd`, the `key={weekStart}` `.week-slide` wrapper and the old header with its buttons.
@@ -168,7 +175,7 @@ description: "Task list for Week Swipe Gesture"
   - Move the old `.week-card-header` spacing (`padding: 0 4px 16px`) onto the face's month row, so the face matches today's look.
   - Keep `.week-card { touch-action: pan-y; }`, and add no transitions on the rail or faces.
   - The phone rule that visually hides `.week-card-nav` stays.
-- [ ] T015 [US1] Run `npm test`: T1–T4, T12, T15 and all earlier tests must pass, including feature 002's button test, which `step` now drives. Check at 375 pt with an iOS user agent (`npm run dev`). Then on an iPhone, run quickstart M1, M2 and M6. Commit.
+- [ ] T015 [US1] Run `npm test`: T1–T4, T12, T15, T16 and all earlier tests must pass, including feature 002's button test, which `step` now drives. Check at 375 pt with an iOS user agent (`npm run dev`). Then on an iPhone, run quickstart M1, M2 and M6. Commit.
 
 **Checkpoint**: US1 works: follow, peek, settle or spring back, and chained flicks. This is the MVP.
 
@@ -185,29 +192,33 @@ description: "Task list for Week Swipe Gesture"
 
 ### Tests for User Story 2 (write first, they must fail)
 
-- [ ] T016 [US2] In `tests/ui/week-page.test.tsx`, add tests T5–T10 from [contracts/ui.md](contracts/ui.md):
+- [ ] T016 [US2] In `tests/ui/week-page.test.tsx`, add tests T5–T10, T17 and T18 from [contracts/ui.md](contracts/ui.md):
   - **T5**: a move of 40 px right and 120 px down leaves the Week unchanged, and a later tap on a pill still selects it.
   - **T6**: `pointerdown` at `clientX` 10, with `window.innerWidth` 390, then a 140 px drag left, leaves the Week unchanged.
   - **T7**: the same 140 px drag with `pointerType: 'mouse'` leaves the Week unchanged.
   - **T8**: a 140 px drag starting on "Czwartek, 5 lis", followed by a dispatched `click` on that pill, changes the Week to 9–15 Nov with Wednesday 11 selected, not Thursday.
   - **T9**: `tap` on "Czwartek, 5 lis" selects it.
   - **T10**: `pointercancel` after a 140 px move leaves the Week unchanged.
+  - **T17**: in the T15 setup (motion on, fake `requestAnimationFrame`), flick left and advance 60 ms. Then dispatch, in turn, a `pointerdown` at `clientX` 10, a `pointerdown` with `pointerType: 'mouse'`, and a `pointerdown` on the "Następny tydzień" button, each followed by `pointerup`. Run all frames: the heading reads "Środa, 11 lis", and the rail's transform equals `railTransform(0)`. None of them caught the settle.
+  - **T18**: a slow 140 px drag left, then `pointerup`, then `lostpointercapture` for the same `pointerId`. The heading reads "Środa, 11 lis".
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] In `src/ui/hooks/useWeekTrackGesture.ts`, add the start filters (research R3):
+- [ ] T017 [US2] In `src/ui/hooks/useWeekTrackGesture.ts`, add the start filters (research R3, [data-model.md](data-model.md) rule 5). They run **before** the catch, so an ignored pointer never stops or commits a running tween:
   - Ignore `pointerType === 'mouse'` (FR-013).
   - Ignore a `pointerdown` where `inEdgeZone(clientX, window.innerWidth)` for the whole gesture (FR-011).
+  - Ignore a `pointerdown` whose target is inside `.week-card-nav`. The buttons act only through `click`.
   - Track only the first `pointerId`, and ignore other pointers until it ends.
 - [ ] T018 [US2] In the same file, add the axis rules (FR-010):
   - When `classifyDrag` returns `'vertical'`, stop tracking that pointer for the rest of its life.
   - If that `pointerdown` caught a settle, `settle(anchor)` straight away, so the face doesn't stay between Weeks.
 - [ ] T019 [US2] In the same file, add click suppression (FR-012): when a gesture locks `'horizontal'`, set `swallowClick`. A capture-phase `click` listener on the track then calls `preventDefault()` and `stopPropagation()` once and clears the flag. A tap never sets it.
 - [ ] T020 [US2] In the same file, add the interruption rules (FR-009):
-  - `pointercancel`, and `lostpointercapture` that wasn't followed by our own `pointerup`, call `settle(anchor)`.
+  - `pointercancel` for the tracked pointer calls `settle(anchor)`.
+  - So does `lostpointercapture` for a pointer that is **still tracked**, meaning it isn't preceded by its `pointerup`. Browsers fire `lostpointercapture` after `pointerup`, and T012 clears the tracked pointer on `pointerup`, so a normal release ignores it (T18).
   - A `visibilitychange` to `hidden` during a drag or a tween writes the anchor frame instantly and commits any pending target, so the face ends centred on one Week.
   - Remove the listener on cleanup.
-- [ ] T021 [US2] Run `npm test` (T5–T10 pass). On an iPhone, run quickstart M3, M4, M5, M7 and M8. If M4 shows the page scrolling during a horizontal drag, add a non-passive `touchmove` listener that calls `preventDefault()` only while locked horizontal (research R3, alternatives), and repeat M4. Commit.
+- [ ] T021 [US2] Run `npm test` (T5–T10, T17 and T18 pass). On an iPhone, run quickstart M3, M4, M5, M7 and M8. If M4 shows the page scrolling during a horizontal drag, add a non-passive `touchmove` listener that calls `preventDefault()` only while locked horizontal (research R3, alternatives), and repeat M4. Commit.
 
 **Checkpoint**: US1 and US2 work together: the gesture is safe on the most-used screen.
 

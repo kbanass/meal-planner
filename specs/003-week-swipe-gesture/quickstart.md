@@ -18,7 +18,7 @@ npm run coverage    # 100% on src/domain/** or the run fails
 
 Expected results:
 - All tests pass, including feature 001 and 002 tests. Two changes are on purpose:
-  - The TouchEvent swipe test in `tests/ui/week-page.test.tsx` is replaced by T1–T15 ([contracts/ui.md](contracts/ui.md)).
+  - The TouchEvent swipe test in `tests/ui/week-page.test.tsx` is replaced by T1–T18 ([contracts/ui.md](contracts/ui.md)).
   - The `swipeWeekDelta` tests are removed with the function.
 - `tests/ui/week-track-vm.test.ts` covers every row of [contracts/view-models.md](contracts/view-models.md).
 - `src/domain/week.ts` is at 100% with `mealsInRange`.

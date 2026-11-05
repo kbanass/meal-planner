@@ -29,6 +29,7 @@ This changes [feature 002's Week page contract](../../002-week-planning/contract
 - **The month row**: the face's `h2` leaves room on the right for `.week-card-nav` on screens ≥ 1024 px. Below that width, the nav stays visually hidden but readable by screen readers (feature 002 FR-005, unchanged).
 - **Neighbour faces**: `inert` and `aria-hidden="true"`. `inert` takes them out of focus and the accessibility tree (FR-015). `aria-hidden` makes the same rule visible to Testing Library's role queries.
 - **Day taps**: `onSelect` is passed to every face. Only the viewed face can be tapped, because the others are inert.
+- **The ← / → buttons**: a `pointerdown` whose target is inside `.week-card-nav` is ignored by the gesture ([data-model.md](../data-model.md), rule 5). The buttons act only through `click`, so on a wide touch screen a drag can't start on them.
 
 ## `WeekTrack` component (`src/ui/components/WeekTrack.tsx`)
 
@@ -75,11 +76,11 @@ interface WeekTrackProps {
 
 ## Behaviour checks (component tests, `tests/ui/week-page.test.tsx`)
 
-These replace the TouchEvent swipe test. They drive `PointerEvent`s with `pointerType: 'touch'` and fixed `timeStamp`s, and the track's `clientWidth` is defined as 360 ([research.md](../research.md) R10). Settles are instant through the reduced-motion `matchMedia` stand-in.
+These replace the TouchEvent swipe test. Five faces put the same month label, and today's pill, in more than one face. So every text query and every `.day-pill*` selector in this file, old tests included, is scoped to the viewed face (`.week-face:not([inert])`). They drive `PointerEvent`s with `pointerType: 'touch'` and fixed `timeStamp`s, and the track's `clientWidth` is defined as 360 ([research.md](../research.md) R10). Settles are instant through the reduced-motion `matchMedia` stand-in.
 
 | # | Gesture | Expected | Covers |
 |---|---|---|---|
-| T1 | A slow drag 140 px left (more than a third) | Heading "Środa, 11 lis". The viewed face reads "Listopad 2026" and Wed 11 is pressed | US1/AC3, FR-005, FR-007 |
+| T1 | A slow drag 140 px left (more than a third) | After the moves and before `pointerup`: heading still "Środa, 4 lis". After `pointerup`: heading "Środa, 11 lis", the viewed face reads "Listopad 2026" and Wed 11 is pressed | US1/AC3, FR-003, FR-005, FR-007 |
 | T2 | A slow drag 140 px right, twice | Heading "Środa, 28 paź" | US1/AC2, FR-007 |
 | T3 | A slow drag 60 px left | Week unchanged | US1/AC4 |
 | T4 | A quick 30 px flick left (two samples 50 ms apart) | Next Week | US1/AC5 |
@@ -94,6 +95,9 @@ These replace the TouchEvent swipe test. They drive `PointerEvent`s with `pointe
 | T13 | ← / → buttons | As in feature 002's test. They still change the Week and keep the weekday | FR-013, US3/AC1 |
 | T14 | "Skopiuj…" on an empty Week with Meals only next Week | Disabled | R9 |
 | T15 | Motion on (`matchMedia` overridden to not match), Vitest fake timers for `requestAnimationFrame`. Flick left, advance 60 ms, flick left again, run all frames | Heading "Środa, 18 lis" (two Weeks). The heading read "Środa, 11 lis" from the moment of the second `pointerdown` | FR-017, FR-009 |
+| T16 | The T15 setup. Flick left, advance 60 ms, then **tap** the card (down and up, no move), and run all frames | Heading "Środa, 11 lis". The rail's transform is `railTransform(0)`, so the face ended centred | FR-009, data-model rule 4 |
+| T17 | The T15 setup. Flick left, advance 60 ms. Then a `pointerdown` in the edge zone (`clientX` 10), a `pointerdown` with `pointerType: 'mouse'`, and a `pointerdown` on "Następny tydzień". Run all frames | Each is ignored, and the first settle finishes untouched: heading "Środa, 11 lis", rail at `railTransform(0)` | FR-011, FR-013, data-model rule 5 |
+| T18 | A slow 140 px drag left, then `pointerup`, then `lostpointercapture` for the same pointer | Heading "Środa, 11 lis". The late `lostpointercapture` doesn't spring it back | FR-009, data-model "Event order" |
 
 Not testable in jsdom, and checked on a device instead ([quickstart.md](../quickstart.md)):
 - finger-follow smoothness
