@@ -90,18 +90,6 @@ export function pickerTile(dish: Dish): PickerTile {
   return { id: dish.id, name: dish.name, photo: dish.photo, totals: macroTotals(perServing(dish)) };
 }
 
-/** Pixels a swipe must travel to change the Week. */
-const SWIPE_DISTANCE = 50;
-
-/**
- * Days to move after a swipe on the Week card: left shows the next Week, right the previous.
- * Mostly vertical movement is a scroll, not a swipe.
- */
-export function swipeWeekDelta(dx: number, dy: number): number {
-  if (Math.abs(dx) < SWIPE_DISTANCE || Math.abs(dx) <= 1.5 * Math.abs(dy)) return 0;
-  return dx < 0 ? 7 : -7;
-}
-
 /**
  * How far a mouse-wheel event scrolls the Dish picker strip sideways (FR-045). A mostly
  * vertical wheel turn moves the strip; horizontal trackpad swipes already scroll it natively.

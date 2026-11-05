@@ -1,10 +1,12 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Deps } from '../../src/app/deps';
 import { WeekPage } from '../../src/ui/pages/WeekPage';
+import { railTransform } from '../../src/ui/view-models/week-track';
 import { dish, owsianka } from '../fakes/dishes';
 import { FixedClock } from '../fakes/fixed-clock';
+import { drag, pointer, setTrackWidth, tap } from './pointer';
 import { createTestDeps, renderWithApp } from './render';
 
 function depsWithClock(): { deps: Deps; clock: FixedClock } {
@@ -19,6 +21,74 @@ function pill(name: string): HTMLElement {
 
 function heading(): string {
   return document.querySelector('.day-heading h3')?.textContent ?? '';
+}
+
+/** The Week face being viewed: the neighbours are inert, and repeat month labels and today. */
+function viewedFace(): HTMLElement {
+  const face = document.querySelector<HTMLElement>('.week-face:not([inert])');
+  if (!face) throw new Error('No viewed Week face');
+  return face;
+}
+
+/** Waits until the viewed face shows this month label, e.g. "Listopad 2026". */
+function findMonth(label: string): Promise<HTMLElement> {
+  return waitFor(() => within(viewedFace()).getByText(label));
+}
+
+function track(): HTMLElement {
+  return document.querySelector<HTMLElement>('.week-track')!;
+}
+
+function rail(): HTMLElement {
+  return document.querySelector<HTMLElement>('.week-track-rail')!;
+}
+
+/** Renders the Week page and gives the track the 360 px width jsdom can't lay out. */
+async function renderTrack(deps: Deps): Promise<HTMLElement> {
+  renderWithApp(<WeekPage />, deps);
+  await findMonth('Listopad 2026');
+  setTrackWidth(track(), 360);
+  return track();
+}
+
+/** A slow drag (under the flick speed): only the distance decides. */
+function slowDrag(el: Element, dx: number, startT = 0, fromX = 200): void {
+  drag(el, { from: [fromX, 40], to: [fromX + dx, 40], steps: 10, durationMs: 600, startT });
+}
+
+/** A quick 30 px flick in 50 ms. */
+function flick(el: Element, dx: number, startT = 0, fromX = 200): void {
+  drag(el, { from: [fromX, 40], to: [fromX + dx, 40], steps: 2, durationMs: 50, startT });
+}
+
+/** Motion on, with fake animation frames, for the settle-catching tests (T15–T17). */
+function withMotion(): void {
+  vi.spyOn(window, 'matchMedia').mockImplementation(
+    (media: string) =>
+      ({
+        matches: false,
+        media,
+        onchange: null,
+        addEventListener() {},
+        removeEventListener() {},
+        addListener() {},
+        removeListener() {},
+        dispatchEvent: () => false,
+      }) as MediaQueryList,
+  );
+  vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'] });
+}
+
+function advanceFrames(ms: number): void {
+  act(() => {
+    vi.advanceTimersByTime(ms);
+  });
+}
+
+function runAllFrames(): void {
+  act(() => {
+    vi.runAllTimers();
+  });
 }
 
 function copyButton(): HTMLElement {
@@ -41,6 +111,8 @@ async function openPicker(container: HTMLElement, number: number): Promise<HTMLE
 
 afterEach(() => {
   Reflect.deleteProperty(document, 'visibilityState');
+  vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe('WeekPage', () => {
@@ -48,7 +120,7 @@ describe('WeekPage', () => {
     const { deps } = depsWithClock();
     renderWithApp(<WeekPage />, deps);
 
-    expect(await screen.findByText('Listopad 2026')).toBeInTheDocument();
+    expect(await findMonth('Listopad 2026')).toBeInTheDocument();
     expect(pill('Środa, 4 lis')).toHaveAttribute('aria-pressed', 'true');
     expect(pill('Poniedziałek, 2 lis')).toHaveAttribute('aria-pressed', 'false');
     expect(heading()).toBe('Środa, 4 lis');
@@ -58,7 +130,7 @@ describe('WeekPage', () => {
   it("shows a tapped day's Slots on the same screen (US1-2, FR-007)", async () => {
     const { deps } = depsWithClock();
     const { container } = renderWithApp(<WeekPage />, deps);
-    await screen.findByText('Listopad 2026');
+    await findMonth('Listopad 2026');
 
     await userEvent.click(pill('Czwartek, 5 lis'));
 
@@ -78,7 +150,7 @@ describe('WeekPage', () => {
     await deps.dishes.put(owsianka);
     await deps.week.addMeal({ date: '2026-11-12', slot: 1, dishId: owsianka.id });
     const { container } = renderWithApp(<WeekPage />, deps);
-    await screen.findByText('Listopad 2026');
+    await findMonth('Listopad 2026');
     await userEvent.click(pill('Czwartek, 5 lis'));
 
     await userEvent.click(screen.getByLabelText('Następny tydzień'));
@@ -86,61 +158,27 @@ describe('WeekPage', () => {
     expect(await within(slot(container, 1)).findByText('Owsianka')).toBeInTheDocument();
     expect(within(pill('Czwartek, 12 lis')).getByText('350')).toBeInTheDocument();
     expect(screen.getByText('1 posiłek')).toBeInTheDocument();
-    expect(container.querySelector('.day-pill-today')).toBeNull();
+    expect(viewedFace().querySelector('.day-pill-today')).toBeNull();
 
     await userEvent.click(screen.getByLabelText('Poprzedni tydzień'));
     await userEvent.click(screen.getByLabelText('Poprzedni tydzień'));
-    expect(await screen.findByText('Październik – listopad 2026')).toBeInTheDocument();
+    expect(await findMonth('Październik – listopad 2026')).toBeInTheDocument();
     expect(heading()).toBe('Czwartek, 29 paź');
   });
 
   it('has no page title (FR-005)', async () => {
     const { deps } = depsWithClock();
     const { container } = renderWithApp(<WeekPage />, deps);
-    await screen.findByText('Listopad 2026');
+    await findMonth('Listopad 2026');
 
     expect(container.querySelector('.navbar')).toBeNull();
     expect(screen.queryByText('Tydzień')).not.toBeInTheDocument();
   });
 
-  it('changes the Week with a swipe on the Week card (FR-005)', async () => {
-    const { deps } = depsWithClock();
-    const { container } = renderWithApp(<WeekPage />, deps);
-    await screen.findByText('Listopad 2026');
-    const card = container.querySelector<HTMLElement>('.week-card')!;
-    const swipe = (fromX: number, toX: number, dy = 0) => {
-      act(() => {
-        card.dispatchEvent(
-          new TouchEvent('touchstart', {
-            bubbles: true,
-            touches: [{ clientX: fromX, clientY: 300 } as Touch],
-          }),
-        );
-        card.dispatchEvent(
-          new TouchEvent('touchend', {
-            bubbles: true,
-            changedTouches: [{ clientX: toX, clientY: 300 + dy } as Touch],
-          }),
-        );
-      });
-    };
-
-    swipe(300, 120);
-    await waitFor(() => expect(heading()).toBe('Środa, 11 lis'));
-
-    swipe(100, 320);
-    swipe(100, 320);
-    await waitFor(() => expect(heading()).toBe('Środa, 28 paź'));
-
-    swipe(300, 270); // too short: 30 px
-    swipe(300, 150, 200); // mostly vertical: a scroll
-    expect(heading()).toBe('Środa, 28 paź');
-  });
-
   it('moves the today mark when the app comes back after midnight, keeping the selection', async () => {
     const { deps, clock } = depsWithClock();
     renderWithApp(<WeekPage />, deps);
-    await screen.findByText('Listopad 2026');
+    await findMonth('Listopad 2026');
 
     clock.set('2026-11-05');
     Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
@@ -157,7 +195,7 @@ describe('WeekPage', () => {
     await deps.dishes.put(owsianka);
     await deps.dishes.put(dish({ id: 'd-old', name: 'Stare danie', archived: true }));
     const { container } = renderWithApp(<WeekPage />, deps);
-    await screen.findByText('Listopad 2026');
+    await findMonth('Listopad 2026');
 
     const sheet = await openPicker(container, 2);
     expect(within(sheet).getByText('Wybierz danie')).toBeInTheDocument();
@@ -185,7 +223,7 @@ describe('WeekPage', () => {
   it('adds a Slot to the selected day with "dodaj kolejny" (US5-1)', async () => {
     const { deps } = depsWithClock();
     const { container } = renderWithApp(<WeekPage />, deps);
-    await screen.findByText('Listopad 2026');
+    await findMonth('Listopad 2026');
 
     await userEvent.click(screen.getByText('dodaj kolejny'));
 
@@ -198,7 +236,7 @@ describe('WeekPage', () => {
   it('offers no copy for an empty Week (FR-036)', async () => {
     const { deps } = depsWithClock();
     renderWithApp(<WeekPage />, deps);
-    await screen.findByText('Listopad 2026');
+    await findMonth('Listopad 2026');
 
     expect(copyButton()).toBeDisabled();
   });
@@ -237,5 +275,102 @@ describe('WeekPage', () => {
     await userEvent.click(dialog.querySelectorAll<HTMLElement>('.dialog-button')[0]!);
 
     expect(await deps.week.listMeals({ start: '2026-11-09', end: '2026-11-15' })).toEqual([kept]);
+  });
+});
+
+describe('WeekPage track: drag to another Week (feature 003, US1)', () => {
+  it('T1: a slow drag past a third changes the Week on release, keeping the weekday', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+
+    pointer(el, 'pointerdown', { x: 200, y: 40, t: 0 });
+    for (let i = 1; i <= 10; i++) pointer(el, 'pointermove', { x: 200 - 14 * i, y: 40, t: 60 * i });
+    expect(heading()).toBe('Środa, 4 lis');
+    pointer(el, 'pointerup', { x: 60, y: 40, t: 600 });
+
+    expect(heading()).toBe('Środa, 11 lis');
+    expect(within(viewedFace()).getByText('Listopad 2026')).toBeInTheDocument();
+    expect(pill('Środa, 11 lis')).toHaveAttribute('aria-pressed', 'true');
+    expect(rail().style.transform).toBe(railTransform(0));
+  });
+
+  it('T2: two slow drags right go back two Weeks', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+
+    slowDrag(el, 140, 0, 100);
+    expect(heading()).toBe('Środa, 28 paź');
+    slowDrag(el, 140, 1000, 100);
+
+    expect(heading()).toBe('Środa, 21 paź');
+    expect(within(viewedFace()).getByText('Październik 2026')).toBeInTheDocument();
+  });
+
+  it('T3: a short slow drag springs back', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+
+    slowDrag(el, -60);
+
+    expect(heading()).toBe('Środa, 4 lis');
+    expect(rail().style.transform).toBe(railTransform(0));
+  });
+
+  it('T4: a quick 30 px flick moves to the next Week', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+
+    flick(el, -30);
+
+    expect(heading()).toBe('Środa, 11 lis');
+  });
+
+  it("T12: the next face shows its own kcal before any move", async () => {
+    const { deps } = depsWithClock();
+    await deps.dishes.put(owsianka);
+    await deps.week.addMeal({ date: '2026-11-11', slot: 1, dishId: owsianka.id });
+    renderWithApp(<WeekPage />, deps);
+    await findMonth('Listopad 2026');
+
+    const next = await waitFor(() => {
+      const face = document.querySelectorAll<HTMLElement>('.week-face')[3]!;
+      expect(within(face).getByText('350')).toBeInTheDocument();
+      return face;
+    });
+    expect(next).toHaveAttribute('inert');
+    expect(within(viewedFace()).queryByText('350')).not.toBeInTheDocument();
+  });
+
+  it('T15: a touch during a settle catches it, so two flicks move two Weeks', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+    withMotion();
+
+    flick(el, -30);
+    expect(heading()).toBe('Środa, 4 lis');
+    advanceFrames(60);
+    pointer(el, 'pointerdown', { x: 200, y: 40, t: 1000 });
+    expect(heading()).toBe('Środa, 11 lis');
+    pointer(el, 'pointermove', { x: 185, y: 40, t: 1025 });
+    pointer(el, 'pointermove', { x: 170, y: 40, t: 1050 });
+    pointer(el, 'pointerup', { x: 170, y: 40, t: 1050 });
+    runAllFrames();
+
+    expect(heading()).toBe('Środa, 18 lis');
+    expect(rail().style.transform).toBe(railTransform(0));
+  });
+
+  it('T16: a tap during a settle catches it and ends centred on one Week', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+    withMotion();
+
+    flick(el, -30);
+    advanceFrames(60);
+    tap(el, { t: 1000 });
+    runAllFrames();
+
+    expect(heading()).toBe('Środa, 11 lis');
+    expect(rail().style.transform).toBe(railTransform(0));
   });
 });

@@ -82,15 +82,17 @@ export function releaseTarget({
   velocity: number;
   movedPx: number;
 }): number {
-  const d = position - anchor;
-  if (d >= WEEK_TRACK.COMMIT_RATIO) return anchor + 1;
-  if (d <= -WEEK_TRACK.COMMIT_RATIO) return anchor - 1;
   const isFlick =
     Math.abs(velocity) >= WEEK_TRACK.FLICK_VELOCITY &&
     Math.abs(movedPx) >= WEEK_TRACK.FLICK_MIN_PX &&
     Math.sign(velocity) === Math.sign(movedPx);
+  // A flick decides before distance: after a catch the card can rest past a third the other
+  // way (say −0.4), and a flick left from there must still show the next Week (FR-017).
   // A finger moving left (negative px) shows the next Week.
   if (isFlick) return velocity < 0 ? anchor + 1 : anchor - 1;
+  const d = position - anchor;
+  if (d >= WEEK_TRACK.COMMIT_RATIO) return anchor + 1;
+  if (d <= -WEEK_TRACK.COMMIT_RATIO) return anchor - 1;
   return anchor;
 }
 
@@ -135,6 +137,25 @@ export function trackFrame(position: number): TrackFrame {
       2: opacity(2),
     },
   };
+}
+
+/**
+ * The track's height, in px, between two Weeks whose month labels take a different number of
+ * lines: it moves with the position, so the totals below slide instead of jumping. `null` at
+ * rest, or when a height is unknown, leaves the height to the layout.
+ */
+export function trackHeight(
+  position: number,
+  heights: Partial<Record<FaceOffset, number>>,
+): number | null {
+  if (position === 0) return null;
+  const clamped = Math.min(2, Math.max(-2, position));
+  const low = Math.floor(clamped);
+  const high = Math.min(2, low + 1);
+  const lowHeight = heights[low as FaceOffset];
+  const highHeight = heights[high as FaceOffset];
+  if (lowHeight === undefined || highHeight === undefined) return null;
+  return lowHeight + (highHeight - lowHeight) * (clamped - low);
 }
 
 /** A plain decimal, never in exponent notation, with -0 shown as 0. */

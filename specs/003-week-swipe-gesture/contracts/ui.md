@@ -81,7 +81,7 @@ These replace the TouchEvent swipe test. Five faces put the same month label, an
 | # | Gesture | Expected | Covers |
 |---|---|---|---|
 | T1 | A slow drag 140 px left (more than a third) | After the moves and before `pointerup`: heading still "Środa, 4 lis". After `pointerup`: heading "Środa, 11 lis", the viewed face reads "Listopad 2026" and Wed 11 is pressed | US1/AC3, FR-003, FR-005, FR-007 |
-| T2 | A slow drag 140 px right, twice | Heading "Środa, 28 paź" | US1/AC2, FR-007 |
+| T2 | A slow drag 140 px right, twice | Heading "Środa, 28 paź" after the first, "Środa, 21 paź" after the second | US1/AC2, FR-007 |
 | T3 | A slow drag 60 px left | Week unchanged | US1/AC4 |
 | T4 | A quick 30 px flick left (two samples 50 ms apart) | Next Week | US1/AC5 |
 | T5 | A movement 40 px right and 120 px down | Week unchanged, and no click is swallowed afterwards | US2/AC1, FR-010 |

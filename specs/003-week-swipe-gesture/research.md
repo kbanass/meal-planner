@@ -61,8 +61,8 @@ Working around both would mean overriding Swiper's release decision and translat
 ## R4. Release rule and its numbers
 
 **Decision**: These live in `releaseTarget(anchor, position, velocity, movedPx)` in `src/ui/view-models/week-track.ts`, which is pure:
-- `d = position − anchor`. If `d ≥ COMMIT_RATIO` (1/3), go to `anchor + 1`. If `d ≤ −COMMIT_RATIO`, go to `anchor − 1`.
-- Otherwise, a **flick** counts when `|velocity| ≥ FLICK_VELOCITY` (0.3 px/ms), with `|movedPx| ≥ FLICK_MIN_PX` (20 px) in the same direction. The target is then `anchor ± 1`.
+- A **flick** counts when `|velocity| ≥ FLICK_VELOCITY` (0.3 px/ms), with `|movedPx| ≥ FLICK_MIN_PX` (20 px) in the same direction. The target is then `anchor ± 1` in the flick's direction. It's checked first: after a catch the card can rest past a third the other way (for example at −0.4), and a flick left from there must still show the next Week (FR-017). *Changed during implementation: the first draft checked distance first, which sent the second of two quick flicks back a Week.*
+- Otherwise, `d = position − anchor`. If `d ≥ COMMIT_RATIO` (1/3), go to `anchor + 1`. If `d ≤ −COMMIT_RATIO`, go to `anchor − 1`.
 - Otherwise, go back to `anchor` (spring back).
 - The result is always within `anchor ± 1` (FR-009).
 

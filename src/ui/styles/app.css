@@ -293,15 +293,9 @@ html {
   background: var(--planner-card-bg);
   box-shadow: var(--planner-card-shadow);
 }
-.week-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0 4px 16px;
-}
 .week-card-month {
   margin: 0;
+  padding: 0 4px 16px;
   font-size: 24px;
   font-weight: 700;
   line-height: 1.2;
@@ -321,32 +315,43 @@ html {
     clip-path: inset(50%);
   }
 }
+/*
+ * The Week track (feature 003): five Week faces on one rail, moved only by the gesture adapter,
+ * so there are no transitions here. Each face is shifted by its offset.
+ * - Only the viewed face takes up height. A neighbour with a two-line month label
+ *   ("Październik – listopad 2026") would otherwise leave a gap under every Week's strip.
+ * - The faces align at the bottom, so the day pills slide in one row. While a gesture runs, the
+ *   adapter sets the track's height between the two Weeks' heights, and the labels rise into
+ *   the card's top padding.
+ * - The clip reaches 12 px (the gap) past the sides, so a neighbour stays hidden at rest while
+ *   the selected pill's shadow isn't cut. The card stops the rail widening the page.
+ */
 .week-card {
+  overflow: hidden;
+  overflow: clip;
   touch-action: pan-y;
 }
-.week-slide-next {
-  animation: week-slide-from-right 220ms ease-out;
+.week-track {
+  position: relative;
+  clip-path: inset(-20px -12px -24px);
 }
-.week-slide-previous {
-  animation: week-slide-from-left 220ms ease-out;
+.week-track-rail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  will-change: transform;
 }
-@keyframes week-slide-from-right {
-  from {
-    opacity: 0.3;
-    transform: translateX(24px);
-  }
+.week-face {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
 }
-@keyframes week-slide-from-left {
-  from {
-    opacity: 0.3;
-    transform: translateX(-24px);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .week-slide-next,
-  .week-slide-previous {
-    animation: none;
-  }
+.week-face-viewed {
+  position: relative;
+  flex: none;
 }
 .round-button {
   display: flex;

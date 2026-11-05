@@ -11,6 +11,7 @@ import {
   releaseVelocity,
   settleDuration,
   trackFrame,
+  trackHeight,
   tweenPosition,
 } from '../../src/ui/view-models/week-track';
 
@@ -146,6 +147,11 @@ describe('releaseTarget', () => {
   it('commits a flick left after a catch at −0.2', () => {
     expect(releaseTarget({ anchor: 0, position: -0.2, velocity: -0.4, movedPx: -25 })).toBe(1);
   });
+
+  it('lets a flick win over distance after a catch past a third', () => {
+    expect(releaseTarget({ anchor: 0, position: -0.4, velocity: -0.4, movedPx: -25 })).toBe(1);
+    expect(releaseTarget({ anchor: 0, position: 0.4, velocity: 0.4, movedPx: 25 })).toBe(-1);
+  });
 });
 
 describe('settleDuration', () => {
@@ -227,5 +233,29 @@ describe('railTransform and faceTransform', () => {
     expect(railTransform(1e-9)).toBe('translateX(calc(0 * (100% + 12px)))');
     expect(railTransform(-1.23456789)).toBe('translateX(calc(-1.23457 * (100% + 12px)))');
     expect(railTransform(1e-5)).toBe('translateX(calc(0.00001 * (100% + 12px)))');
+  });
+});
+
+describe('trackHeight', () => {
+  const heights = { [-2]: 123, [-1]: 152, 0: 123, 1: 123, 2: 152 };
+
+  it('leaves the height to the layout at rest', () => {
+    expect(trackHeight(0, heights)).toBeNull();
+  });
+
+  it('moves between the two Weeks in view', () => {
+    expect(trackHeight(-0.5, heights)).toBeCloseTo(137.5, 10);
+    expect(trackHeight(0.5, heights)).toBe(123);
+    expect(trackHeight(1.25, heights)).toBeCloseTo(123 + 29 * 0.25, 10);
+    expect(trackHeight(-1, heights)).toBe(152);
+  });
+
+  it('stays within the five faces', () => {
+    expect(trackHeight(2.4, heights)).toBe(152);
+    expect(trackHeight(-2.4, heights)).toBe(123);
+  });
+
+  it('gives no height when one is unknown', () => {
+    expect(trackHeight(0.5, { 0: 123 })).toBeNull();
   });
 });

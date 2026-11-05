@@ -122,9 +122,9 @@ description: "Task list for Week Swipe Gesture"
 
 ### Tests for User Story 1 (write first, they must fail)
 
-- [ ] T010 [US1] In `tests/ui/week-page.test.tsx`, using `tests/ui/pointer.ts` and `setTrackWidth(track, 360)` on `.week-track`, add tests T1–T4, T12, T15 and T16 from [contracts/ui.md](contracts/ui.md):
+- [X] T010 [US1] In `tests/ui/week-page.test.tsx`, using `tests/ui/pointer.ts` and `setTrackWidth(track, 360)` on `.week-track`, add tests T1–T4, T12, T15 and T16 from [contracts/ui.md](contracts/ui.md):
   - **T1**: a slow 140 px drag left over 600 ms. After the moves and before `pointerup`, the heading still reads "Środa, 4 lis" (FR-003). After `pointerup`, it reads "Środa, 11 lis", and Wed 11 is pressed.
-  - **T2**: two slow 140 px drags right give "Środa, 28 paź".
+  - **T2**: two slow 140 px drags right give "Środa, 28 paź", then "Środa, 21 paź".
   - **T3**: a slow 60 px drag left leaves the Week unchanged.
   - **T4**: a 30 px flick left in 50 ms moves to the next Week.
   - **T12**: with a Meal on 2026-11-11, `350` shows in the next face's strip before any move.
@@ -143,7 +143,7 @@ description: "Task list for Week Swipe Gesture"
 
 ### Implementation for User Story 1
 
-- [ ] T011 [P] [US1] Create `src/ui/components/WeekTrack.tsx` with props `{ faces: WeekFace[]; onMove(days: number): void; onSelect(date: IsoDate): void }`. It renders exactly the structure in [contracts/ui.md](contracts/ui.md) "Week card structure":
+- [X] T011 [P] [US1] Create `src/ui/components/WeekTrack.tsx` with props `{ faces: WeekFace[]; onMove(days: number): void; onSelect(date: IsoDate): void }`. It renders exactly the structure in [contracts/ui.md](contracts/ui.md) "Week card structure":
   - `.week-track` holds `.week-track-rail` and the five `.week-face` elements, with `key={face.weekStart}`.
   - Each face's `style.transform` is `faceTransform(face.offset)`.
   - Each face has `inert` and `aria-hidden="true"` when `!face.isViewed`.
@@ -151,7 +151,7 @@ description: "Task list for Week Swipe Gesture"
   - `.week-card-nav` holds the two `round-button`s with `aria-label` "Poprzedni tydzień" / "Następny tydzień" and the `arrow_left` / `arrow_right` icons, calling `step(-1)` / `step(1)`.
   - Refs for the track, the rail and each face (a `Map` keyed by offset) are passed to `useWeekTrackGesture`.
   - No logic beyond rendering.
-- [ ] T012 [US1] Create the adapter `src/ui/hooks/useWeekTrackGesture.ts`: `useWeekTrackGesture(trackRef, railRef, faceRefs, { onMove }) → { step(direction: 1 | -1) }`. It implements the [data-model.md](data-model.md) gesture state with refs only, no React state:
+- [X] T012 [US1] Create the adapter `src/ui/hooks/useWeekTrackGesture.ts`: `useWeekTrackGesture(trackRef, railRef, faceRefs, { onMove }) → { step(direction: 1 | -1) }`. It implements the [data-model.md](data-model.md) gesture state with refs only, no React state:
   - **Listeners**: attach `pointerdown`, `pointermove`, `pointerup` and `pointercancel` in a `useEffect` on the track, and remove them on cleanup.
   - **`pointerdown`**: read `pitch = clientWidth + WEEK_TRACK.GAP_PX`, ignore the gesture if `pitch ≤ 0`, and record `start` and the first sample. If a tween is running, **catch** it: cancel the frame, then `commit(tween.to)`, which runs `flushSync(() => onMove(7 * n))`, then `position -= n`, then writes the frame. So `anchor` is 0 (spec FR-017).
   - **`pointermove`**: while `classifyDrag` is `'pending'`, do nothing. On `'horizontal'`, call `setPointerCapture`. Then set `position = dragPosition(start.position, dx, pitch, anchor)`, push a sample trimmed to `VELOCITY_WINDOW_MS`, and write `trackFrame(position)`: the rail gets `railTransform(railShift)`, and each face ref gets its `opacity`.
@@ -162,14 +162,14 @@ description: "Task list for Week Swipe Gesture"
   - Every number comes from `week-track.ts`.
   - Leave the start filters (rule 5) to T017. Even so, structure `pointerdown` as "filter, then catch, then record", so T017 only adds conditions to the filter step.
   - Depends on T006 and T011.
-- [ ] T013 [US1] Rewire `src/ui/pages/WeekPage.tsx` ([contracts/ui.md](contracts/ui.md) "WeekPage changes"):
+- [X] T013 [US1] Rewire `src/ui/pages/WeekPage.tsx` ([contracts/ui.md](contracts/ui.md) "WeekPage changes"):
   - Remove the `slide` state, the `touchStart` ref, `onTouchStart` / `onTouchEnd`, the `key={weekStart}` `.week-slide` wrapper and the old header with its buttons.
   - `moveWeek(days)` keeps its `addDays` / `sameWeekday` body, without `setSlide`.
   - Change the Meals query to `deps.week.listMeals(trackMealsRange(weekStart))`. `daySlots` stays `weekRange(weekStart)`.
   - Render `<WeekTrack faces={weekTrackFaces(weekStart, today, selected, { meals, dishes })} onMove={moveWeek} onSelect={setSelected} />` inside `.week-card`, before `.week-card-totals`.
   - Then delete `swipeWeekDelta` and its `SWIPE_DISTANCE` constant from `src/ui/view-models/week.ts`, and its `describe` block from `tests/ui/week-vm.test.ts`.
   - Depends on T007 and T012.
-- [ ] T014 [P] [US1] Update `src/ui/styles/app.css` ([contracts/ui.md](contracts/ui.md) "CSS"):
+- [X] T014 [P] [US1] Update `src/ui/styles/app.css` ([contracts/ui.md](contracts/ui.md) "CSS"):
   - Delete `.week-slide-next`, `.week-slide-previous`, both `@keyframes week-slide-from-*` and their `prefers-reduced-motion` block.
   - Add `.week-track { position: relative; overflow: hidden; }`, `.week-track-rail { display: grid; will-change: transform; }` and `.week-face { grid-area: 1 / 1; }`.
   - Move the old `.week-card-header` spacing (`padding: 0 4px 16px`) onto the face's month row, so the face matches today's look.

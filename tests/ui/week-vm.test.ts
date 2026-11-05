@@ -10,7 +10,6 @@ import {
   pickerEmptyMessage,
   pickerTile,
   removeMealConfirmMessage,
-  swipeWeekDelta,
   trackMealsRange,
   weekFace,
   weekPage,
@@ -262,18 +261,6 @@ describe('pickerTile', () => {
       photo: null,
       totals: macroTotals({ kcal: 350, protein: 12.5, fat: 7.5, carbs: 55 }),
     });
-  });
-});
-
-describe('swipeWeekDelta', () => {
-  it.each([
-    [-80, 10, 7],
-    [80, -10, -7],
-    [-40, 0, 0],
-    [-80, 70, 0],
-    [0, 0, 0],
-  ])('dx %d, dy %d → %d days', (dx, dy, delta) => {
-    expect(swipeWeekDelta(dx, dy)).toBe(delta);
   });
 });
 

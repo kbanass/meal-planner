@@ -1,21 +1,22 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { f7, Icon, Page } from 'framework7-react';
-import { useEffect, useRef, useState, type TouchEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { addMealFromDish, addSlotToDay, copyWeekToNext, weekHasPlanAt } from '../../app/week';
 import { addDays, sameWeekday, weekRange, weekStartOf } from '../../domain/dates';
 import type { Dish, IsoDate } from '../../domain/types';
-import { DayStrip } from '../components/DayStrip';
 import { DishPickerSheet } from '../components/DishPickerSheet';
 import { MacroTotals } from '../components/MacroTotals';
 import { MealSheet } from '../components/MealSheet';
 import { SlotCard } from '../components/SlotCard';
+import { WeekTrack } from '../components/WeekTrack';
 import { useDeps } from '../hooks/useDeps';
 import {
   copyConfirmMessage,
   copyDoneToast,
   copyFailedMessage,
-  swipeWeekDelta,
+  trackMealsRange,
   weekPage,
+  weekTrackFaces,
   type MealRow,
 } from '../view-models/week';
 
@@ -31,7 +32,11 @@ export function WeekPage() {
   const [view, setView] = useState(() => ({ weekStart: weekStartOf(today), selected: today }));
   const { weekStart, selected } = view;
   const setSelected = (date: IsoDate) => setView((current) => ({ ...current, selected: date }));
-  const meals = useLiveQuery(() => deps.week.listMeals(weekRange(weekStart)), [deps, weekStart]);
+  // The five Week faces' 35 days: the neighbours show their own kcal (feature 003, research R9).
+  const meals = useLiveQuery(
+    () => deps.week.listMeals(trackMealsRange(weekStart)),
+    [deps, weekStart],
+  );
   const daySlots = useLiveQuery(
     () => deps.week.listDaySlots(weekRange(weekStart)),
     [deps, weekStart],
@@ -39,6 +44,7 @@ export function WeekPage() {
   const dishes = useLiveQuery(() => deps.dishes.list(), [deps]);
   const settings = useLiveQuery(() => deps.settings.get(), [deps]);
   const model = weekPage(weekStart, today, selected, { meals, daySlots, dishes, settings });
+  const faces = weekTrackFaces(weekStart, today, selected, { meals, dishes });
 
   // One picker and one Meal sheet per page; the target Slot or Meal lives in state.
   const [pickerSlot, setPickerSlot] = useState<number | null>(null);
@@ -54,31 +60,12 @@ export function WeekPage() {
     return () => document.removeEventListener('visibilitychange', refreshToday);
   }, [deps]);
 
-  // Which way the Week card slides in after a change, for a short animation.
-  const [slide, setSlide] = useState<'next' | 'previous' | null>(null);
-  const touchStart = useRef<{ x: number; y: number } | null>(null);
-
   /** Swipe, or ← / → on desktop: another Week, with the same weekday selected (FR-005, FR-007). */
   function moveWeek(days: number) {
-    setSlide(days > 0 ? 'next' : 'previous');
     setView((current) => {
       const next = addDays(current.weekStart, days);
       return { weekStart: next, selected: sameWeekday(current.selected, next) };
     });
-  }
-
-  function onTouchStart(event: TouchEvent) {
-    const touch = event.touches[0];
-    touchStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
-  }
-
-  function onTouchEnd(event: TouchEvent) {
-    const start = touchStart.current;
-    const touch = event.changedTouches[0];
-    touchStart.current = null;
-    if (!start || !touch) return;
-    const days = swipeWeekDelta(touch.clientX - start.x, touch.clientY - start.y);
-    if (days !== 0) moveWeek(days);
   }
 
   async function copy() {
@@ -113,32 +100,8 @@ export function WeekPage() {
   return (
     <Page className="week-page">
       <div className="page-wide week-content">
-        <section className="week-card" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-          <div key={weekStart} className={slide ? `week-slide week-slide-${slide}` : 'week-slide'}>
-            <div className="week-card-header">
-              <h2 className="week-card-month">{model.monthLabel}</h2>
-              {/* Visible on desktop; on phones the card is swiped, and these stay for screen readers. */}
-              <div className="week-card-nav">
-                <button
-                  type="button"
-                  className="round-button"
-                  aria-label="Poprzedni tydzień"
-                  onClick={() => moveWeek(-7)}
-                >
-                  <Icon f7="arrow_left" aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  className="round-button"
-                  aria-label="Następny tydzień"
-                  onClick={() => moveWeek(7)}
-                >
-                  <Icon f7="arrow_right" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-            <DayStrip cells={model.strip} onSelect={setSelected} />
-          </div>
+        <section className="week-card">
+          <WeekTrack faces={faces} onMove={moveWeek} onSelect={setSelected} />
           <div className="week-card-totals">
             <MacroTotals totals={model.dayTotals} />
           </div>
