@@ -115,7 +115,7 @@ On a desktop, the user clicks ← or → and the Week face slides to the neighbo
 - **FR-007**: After a settle, the viewed Week MUST be 7 days later (dragged left) or 7 days earlier (dragged right), and the selected day MUST be the same weekday in the new Week. These are the same results as the ← / → buttons.
 - **FR-008**: After a settle, the face MUST be ready for the next swipe straight away, with new neighbours on both sides and no visible jump or flash. Weeks are unbounded in both directions.
 - **FR-009**: Every finished swipe MUST move by at most one Week, counted from the Week that was settling or centred when the finger touched down. When the gesture ends for any reason other than a release (interrupted by the system, app backgrounded, a second finger), the face MUST end centred on exactly one Week.
-- **FR-017**: A touch on the Week card while it is still settling or springing back MUST stop the animation where the face is, and the face MUST follow the finger from that position. Two quick flicks in the same direction MUST therefore move two Weeks.
+- **FR-017**: A touch on the Week card while it is still settling or springing back MUST stop the animation where the face is, and the face MUST follow the finger from that position. Two quick flicks in the same direction MUST therefore move two Weeks. A settle interrupted this way counts as finished at that moment: the Week it was heading to becomes the viewed Week (FR-003, FR-007), and the new drag is measured from it (FR-009).
 
 **Coexistence**
 
