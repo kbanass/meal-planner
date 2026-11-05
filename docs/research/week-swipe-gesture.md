@@ -3,6 +3,12 @@
 Status: research only, nothing built. Date: 2026-11-05. Versions were checked against the npm
 registry that day. The planned behaviour is described in `docs/SPEC.md` (Tydzień, "Planned (later)").
 
+**Outcome**: the plan for feature 003 chose the §3.4 hand-rolled Pointer Events track over Swiper.
+Swiper's release rule, and its synthetic `transitionend` on a touch mid-animation, can't let a
+touch catch a running settle so that quick flicks chain (spec FR-017). See
+[`specs/003-week-swipe-gesture/research.md`](../../specs/003-week-swipe-gesture/research.md), R1.
+The rest of this document is kept as the record of the research.
+
 ## 1. Summary and recommendation
 
 Use **Swiper, which Framework7 already ships**, through its Swiper Element web component

@@ -66,10 +66,12 @@ interface WeekTrackProps {
 ## CSS (`src/ui/styles/app.css`)
 
 - Remove `.week-slide-next`, `.week-slide-previous`, both `@keyframes week-slide-*` and their reduced-motion block (FR-006).
-- Add:
-  - `.week-track { position: relative; overflow: hidden; }`
-  - `.week-track-rail { display: grid; will-change: transform; }`
-  - `.week-face { grid-area: 1 / 1; }`
+- Add (as built; changed during implementation from a shared grid cell and `overflow: hidden` on the track):
+  - `.week-card { overflow: clip; }` (with an `overflow: hidden` fallback), so the rail never widens the page.
+  - `.week-track { position: relative; clip-path: inset(-20px -12px -24px); }`. The clip reaches the 12 px gap past the sides, so a neighbour stays hidden at rest, and the selected pill's shadow isn't cut.
+  - `.week-track-rail { position: relative; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; will-change: transform; }`
+  - `.week-face { position: absolute; bottom: 0; left: 0; width: 100%; }`, and `.week-face-viewed { position: relative; }`. Only the viewed face takes up height. With a shared grid cell, a neighbour's two-line month label ("Październik – listopad 2026" wraps at 375 pt) left a gap under nearly every Week's strip. The faces align at the bottom, so the day pills slide in one row.
+  - While a gesture or settle runs, the adapter sets the track's `height` from `trackHeight` (contracts/view-models.md), so the totals slide instead of jumping when the month label's line count changes.
 - `.week-card-nav`: on ≥ 1024 px, position it absolutely at the top right of `.week-track`. The phone rule (visually hidden) is unchanged.
 - Keep `.week-card { touch-action: pan-y; }`.
 - Add no transition on the rail or the faces. The adapter owns all motion.

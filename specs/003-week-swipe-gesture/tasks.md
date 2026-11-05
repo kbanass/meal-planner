@@ -176,6 +176,7 @@ description: "Task list for Week Swipe Gesture"
   - Keep `.week-card { touch-action: pan-y; }`, and add no transitions on the rail or faces.
   - The phone rule that visually hides `.week-card-nav` stays.
 - [ ] T015 [US1] Run `npm test`: T1–T4, T12, T15, T16 and all earlier tests must pass, including feature 002's button test, which `step` now drives. Check at 375 pt with an iOS user agent (`npm run dev`). Then on an iPhone, run quickstart M1, M2 and M6. Commit.
+  - _Status (2026-11-05):_ Automated part done: `npm test` passes, and the 375 pt iOS-UA check ran in headless Chrome with touch emulation. **Open:** quickstart M1, M2 and M6 on a real iPhone.
 
 **Checkpoint**: US1 works: follow, peek, settle or spring back, and chained flicks. This is the MVP.
 
@@ -219,6 +220,7 @@ description: "Task list for Week Swipe Gesture"
   - A `visibilitychange` to `hidden` during a drag or a tween writes the anchor frame instantly and commits any pending target, so the face ends centred on one Week.
   - Remove the listener on cleanup.
 - [ ] T021 [US2] Run `npm test` (T5–T10, T17 and T18 pass). On an iPhone, run quickstart M3, M4, M5, M7 and M8. If M4 shows the page scrolling during a horizontal drag, add a non-passive `touchmove` listener that calls `preventDefault()` only while locked horizontal (research R3, alternatives), and repeat M4. Commit.
+  - _Status (2026-11-05):_ Automated part done: `npm test` passes. A vertical scroll, an edge start and a tap after a drag were checked in headless Chrome. **Open:** quickstart M3, M4, M5, M7 and M8 on a real iPhone.
 
 **Checkpoint**: US1 and US2 work together: the gesture is safe on the most-used screen.
 
@@ -251,6 +253,7 @@ description: "Task list for Week Swipe Gesture"
   - `step` during a running tween catches and chains, like a flick (research R8).
   - Fix any gap, and keep T11, T13 and T14 green.
 - [ ] T025 [US3] Run `npm test`, then quickstart M10, M11 and M12 (Reduce Motion, VoiceOver, desktop buttons). Commit.
+  - _Status (2026-11-05):_ Automated part done: `npm test` passes, and the desktop buttons were checked at 1280 and 1024 px in headless Chrome. **Open:** M10 (Reduce Motion) and M11 (VoiceOver) on a real iPhone, and M12 on a real desktop.
 
 **Checkpoint**: All three stories work.
 
@@ -260,7 +263,7 @@ description: "Task list for Week Swipe Gesture"
 
 **Purpose**: Contract docs, the full device run and the final checks.
 
-- [ ] T026 [P] Update `docs/SPEC.md`, Tydzień "Week" bullet (plan.md, "Note on SPEC.md"). Replace the "Planned (later)" sub-bullet with the current behaviour:
+- [X] T026 [P] Update `docs/SPEC.md`, Tydzień "Week" bullet (plan.md, "Note on SPEC.md"). Replace the "Planned (later)" sub-bullet with the current behaviour:
   - On phones, the month label and day strip follow the finger, and the previous and next Weeks show beside them, dimmed.
   - A long enough drag or a quick flick slides the neighbour into place in roughly 150–250 ms, and a short drag springs back.
   - Touching the card while it's still sliding catches it, so quick flicks chain.
@@ -269,9 +272,10 @@ description: "Task list for Week Swipe Gesture"
   - With Reduce Motion, the change is instant.
 
   Remove the "Today the Week changes on release…" sentence and the research pointer.
-- [ ] T027 [P] Add a short "Outcome" note under the status line of `docs/research/week-swipe-gesture.md`. It says the plan for feature 003 chose the §3.4 hand-rolled track over Swiper, because of FR-017, with a link to `specs/003-week-swipe-gesture/research.md` R1. Leave the rest of the document as the record it is.
+- [X] T027 [P] Add a short "Outcome" note under the status line of `docs/research/week-swipe-gesture.md`. It says the plan for feature 003 chose the §3.4 hand-rolled track over Swiper, because of FR-017, with a link to `specs/003-week-swipe-gesture/research.md` R1. Leave the rest of the document as the record it is.
 - [ ] T028 Run the full quickstart on an iPhone (M1–M14), as the installed PWA and, where marked, in a Safari tab. Tune `WEEK_TRACK` in `src/ui/view-models/week-track.ts` if M3 or M6 feel wrong, and keep `tests/ui/week-track-vm.test.ts` green after any change. Record the final values and the device results for the PR description.
-- [ ] T029 Final gate:
+  - _Status (2026-11-05):_ **Open:** needs a real iPhone. `WEEK_TRACK` still has the starting values.
+- [X] T029 Final gate:
   - `npm run lint`, `npm run typecheck`, `npm run coverage` (100% on `src/domain/**`) and `npm run build` all pass.
   - `git diff main -- package.json package-lock.json` is empty (no new dependencies).
   - `grep -rn "swiper\|swipeWeekDelta\|week-slide" src tests` finds nothing.
