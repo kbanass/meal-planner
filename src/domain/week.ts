@@ -1,0 +1,171 @@
+import { addDays, weekDates } from './dates';
+import { mealSource, scaleMeal, isDetached } from './meals';
+import { compareIds } from './names';
+import type { IdGenerator } from './ports';
+import { slotCountForDay } from './slots';
+import type {
+  DaySlots,
+  Dish,
+  DishPhotoRef,
+  IsoDate,
+  Macros,
+  Meal,
+  MealSource,
+  Settings,
+} from './types';
+
+export interface DayView {
+  date: IsoDate;
+  isToday: boolean;
+  mealCount: number;
+  plannedKcal: number; // unrounded
+  macros: Macros; // Planned, unrounded
+}
+
+export interface MealView {
+  meal: Meal;
+  name: string; // the source's name; '' when the Dish is missing
+  missingDish: boolean;
+  photo: DishPhotoRef | null; // from the Dish, also for Detached Meals
+  servings: number;
+  kcal: number; // unrounded
+  detached: boolean;
+}
+
+export interface SlotView {
+  number: number;
+  meals: MealView[]; // ordered by position, then id
+  macros: Macros; // Planned for this Slot, unrounded
+}
+
+const NO_MACROS: Macros = { kcal: 0, protein: 0, fat: 0, carbs: 0 };
+
+function mealMacros(meal: Meal, dishesById: ReadonlyMap<string, Dish>): Macros {
+  const source = mealSource(meal, dishesById);
+  return source ? scaleMeal(source, meal.servings).macros : NO_MACROS;
+}
+
+function mealKcal(meal: Meal, dishesById: ReadonlyMap<string, Dish>): number {
+  return mealMacros(meal, dishesById).kcal;
+}
+
+/** Planned Macros of some Meals: sums of unrounded values (FR-023). A missing Dish adds 0. */
+export function plannedMacros(meals: readonly Meal[], dishesById: ReadonlyMap<string, Dish>): Macros {
+  return meals.reduce((sum, meal) => {
+    const m = mealMacros(meal, dishesById);
+    return {
+      kcal: sum.kcal + m.kcal,
+      protein: sum.protein + m.protein,
+      fat: sum.fat + m.fat,
+      carbs: sum.carbs + m.carbs,
+    };
+  }, NO_MACROS);
+}
+
+/** Planned kcal of some Meals: the sum of unrounded values (FR-023). */
+export function plannedKcal(meals: readonly Meal[], dishesById: ReadonlyMap<string, Dish>): number {
+  return plannedMacros(meals, dishesById).kcal;
+}
+
+/** The seven day rows of a Week, Monday to Sunday. Meals outside the Week are ignored. */
+export function selectWeekDays(
+  weekStart: IsoDate,
+  today: IsoDate,
+  meals: readonly Meal[],
+  dishesById: ReadonlyMap<string, Dish>,
+): DayView[] {
+  return weekDates(weekStart).map((date) => {
+    const mealsOfDay = meals.filter((meal) => meal.date === date);
+    const macros = plannedMacros(mealsOfDay, dishesById);
+    return {
+      date,
+      isToday: date === today,
+      mealCount: mealsOfDay.length,
+      plannedKcal: macros.kcal,
+      macros,
+    };
+  });
+}
+
+function mealView(meal: Meal, dishesById: ReadonlyMap<string, Dish>): MealView {
+  const source = mealSource(meal, dishesById);
+  return {
+    meal,
+    name: source?.name ?? '',
+    missingDish: source === null,
+    photo: dishesById.get(meal.dishId)?.photo ?? null,
+    servings: meal.servings,
+    kcal: mealKcal(meal, dishesById),
+    detached: isDetached(meal),
+  };
+}
+
+/** The Slots of one day with their Meals (FR-008, FR-009). */
+export function selectDay(
+  date: IsoDate,
+  meals: readonly Meal[],
+  daySlots: DaySlots | undefined,
+  dishesById: ReadonlyMap<string, Dish>,
+  settings: Settings,
+): SlotView[] {
+  const mealsOfDay = meals
+    .filter((meal) => meal.date === date)
+    .sort((a, b) => a.position - b.position || compareIds(a.id, b.id));
+  const count = slotCountForDay(settings.slotsPerDay, mealsOfDay, daySlots);
+  return Array.from({ length: count }, (_, i) => {
+    const inSlot = mealsOfDay.filter((meal) => meal.slot === i + 1);
+    return {
+      number: i + 1,
+      meals: inSlot.map((meal) => mealView(meal, dishesById)),
+      macros: plannedMacros(inSlot, dishesById),
+    };
+  });
+}
+
+/** A Week has a plan when it holds any Meal or any Added Slots (research R4). */
+export function weekHasPlan(meals: readonly Meal[], daySlots: readonly DaySlots[]): boolean {
+  return meals.length > 0 || daySlots.length > 0;
+}
+
+function copySource(source: MealSource): MealSource {
+  return {
+    ...source,
+    ingredients: source.ingredients.map((ingredient) => ({ ...ingredient })),
+    macros: { ...source.macros },
+  };
+}
+
+/**
+ * The next Week's records for "Skopiuj do następnego tygodnia" (FR-031, FR-032, research R8):
+ * the source Week's Meals and Added Slots 7 days later. Meals get new ids and deep copies, so
+ * copies and originals are independent; Linked Meals keep their Dish.
+ */
+export function planWeekCopy(
+  weekStart: IsoDate,
+  meals: readonly Meal[],
+  daySlots: readonly DaySlots[],
+  ids: IdGenerator,
+): { meals: Meal[]; daySlots: DaySlots[] } {
+  const inWeek = new Set(weekDates(weekStart));
+  const sourceMeals = meals
+    .filter((meal) => inWeek.has(meal.date))
+    // A fixed order, so new ids are handed out the same way every time.
+    .sort(
+      (a, b) =>
+        compareIds(a.date, b.date) ||
+        a.slot - b.slot ||
+        a.position - b.position ||
+        compareIds(a.id, b.id),
+    );
+  return {
+    meals: sourceMeals.map((meal) => ({
+      ...meal,
+      id: ids.next(),
+      date: addDays(meal.date, 7),
+      detached: meal.detached && copySource(meal.detached),
+    })),
+    daySlots: daySlots
+      .filter((record) => inWeek.has(record.date))
+      .map((record) => ({ date: addDays(record.date, 7), slotCount: record.slotCount })),
+  };
+}

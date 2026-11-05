@@ -2,25 +2,27 @@ import { nameKey, normalizeName } from '../domain/names';
 import type { IdGenerator } from '../domain/ports';
 import {
   canMerge,
-  countProductUsage,
   findNameConflict,
   mergeIngredients,
   productActions,
+  productUsageBreakdown,
   validateProductName,
+  type UsageBreakdown,
 } from '../domain/products';
 import type { Product, Unit } from '../domain/types';
 import { isUnit } from '../domain/units';
 import type { PlannerDb, StoredProduct } from './db';
+import { detachedIngredientLists } from './week-repository';
+
+/** `usage` is the total; `breakdown` names Dishes and Detached Meals for the hint text. */
+export type InUse = { kind: 'inUse'; usage: number; breakdown: UsageBreakdown };
 
 export type CreateProductResult =
   | { kind: 'created'; product: Product }
   | { kind: 'exists'; product: Product }
   | { kind: 'invalid' };
 
-export type ChangeUnitResult =
-  | { kind: 'changed' }
-  | { kind: 'inUse'; usage: number }
-  | { kind: 'invalid' };
+export type ChangeUnitResult = { kind: 'changed' } | InUse | { kind: 'invalid' };
 
 export type RenameProductResult =
   | { kind: 'renamed' }
@@ -28,7 +30,7 @@ export type RenameProductResult =
   | { kind: 'conflict'; existing: Product; mergeAllowed: boolean };
 
 export type MergeProductsResult =
-  | { kind: 'merged'; dishesUpdated: number }
+  | { kind: 'merged'; dishesUpdated: number; mealsUpdated: number }
   | { kind: 'unitMismatch' }
   | { kind: 'sameProduct' };
 
@@ -37,7 +39,7 @@ export interface ProductRepository {
   createFromName(name: string, unit: Unit): Promise<CreateProductResult>;
   rename(id: string, newName: string): Promise<RenameProductResult>;
   changeUnit(id: string, unit: Unit): Promise<ChangeUnitResult>;
-  delete(id: string): Promise<{ kind: 'deleted' } | { kind: 'inUse'; usage: number }>;
+  delete(id: string): Promise<{ kind: 'deleted' } | InUse>;
   merge(fromId: string, intoId: string): Promise<MergeProductsResult>;
 }
 
@@ -58,11 +60,14 @@ export function createProductRepository(db: PlannerDb, ids: IdGenerator): Produc
     return toProduct(stored);
   }
 
-  /** Usage read inside the caller's transaction, so the check and the write cannot race. */
-  async function usageOf(id: string): Promise<number> {
-    // TODO(week-planning): pass Detached Meal Ingredient lists instead of [] once Meals
-    // exist (specs/001-shell-products-dishes/research.md R13).
-    return countProductUsage(await db.dishes.toArray(), []).get(id) ?? 0;
+  /**
+   * Usage read inside the caller's transaction, so the check and the write cannot race.
+   * Detached Meals count with their own Ingredients; Linked Meals use their Dish's.
+   */
+  async function usageOf(id: string): Promise<{ usage: number; breakdown: UsageBreakdown }> {
+    const usage = productUsageBreakdown(await db.dishes.toArray(), await detachedIngredientLists(db));
+    const breakdown = usage.get(id) ?? { dishes: 0, meals: 0 };
+    return { usage: breakdown.dishes + breakdown.meals, breakdown };
   }
 
   function conflictWith(self: Product, existing: Product): RenameProductResult {
@@ -114,18 +119,18 @@ export function createProductRepository(db: PlannerDb, ids: IdGenerator): Produc
 
     async changeUnit(id, unit) {
       if (!isUnit(unit)) return { kind: 'invalid' };
-      return db.transaction('rw', db.products, db.dishes, async () => {
-        const usage = await usageOf(id);
-        if (!productActions(usage).canChangeUnit) return { kind: 'inUse', usage } as const;
+      return db.transaction('rw', db.products, db.dishes, db.meals, async () => {
+        const { usage, breakdown } = await usageOf(id);
+        if (!productActions(usage).canChangeUnit) return { kind: 'inUse', usage, breakdown } as const;
         await db.products.update(id, { unit });
         return { kind: 'changed' } as const;
       });
     },
 
     delete(id) {
-      return db.transaction('rw', db.products, db.dishes, async () => {
-        const usage = await usageOf(id);
-        if (!productActions(usage).canDelete) return { kind: 'inUse', usage } as const;
+      return db.transaction('rw', db.products, db.dishes, db.meals, async () => {
+        const { usage, breakdown } = await usageOf(id);
+        if (!productActions(usage).canDelete) return { kind: 'inUse', usage, breakdown } as const;
         await db.products.delete(id);
         return { kind: 'deleted' } as const;
       });
@@ -133,7 +138,8 @@ export function createProductRepository(db: PlannerDb, ids: IdGenerator): Produc
 
     async merge(fromId, intoId) {
       if (fromId === intoId) return { kind: 'sameProduct' };
-      return db.transaction('rw', db.products, db.dishes, async (): Promise<MergeProductsResult> => {
+      const tables = [db.products, db.dishes, db.meals];
+      return db.transaction('rw', tables, async (): Promise<MergeProductsResult> => {
         const [from, into] = [await getProduct(fromId), await getProduct(intoId)];
         // Rechecked here: the units may have changed since the UI offered the merge.
         if (!canMerge(from, into)) return { kind: 'unitMismatch' };
@@ -143,8 +149,19 @@ export function createProductRepository(db: PlannerDb, ids: IdGenerator): Produc
         for (const dish of affected) {
           await db.dishes.put({ ...dish, ingredients: mergeIngredients(dish.ingredients, fromId, intoId) });
         }
+        // Linked Meals read their Dish; only Detached Meals hold Ingredients of their own.
+        const affectedMeals = await db.meals
+          .filter((meal) => meal.detached?.ingredients.some((i) => i.productId === fromId) ?? false)
+          .toArray();
+        for (const meal of affectedMeals) {
+          const detached = meal.detached as NonNullable<typeof meal.detached>;
+          await db.meals.put({
+            ...meal,
+            detached: { ...detached, ingredients: mergeIngredients(detached.ingredients, fromId, intoId) },
+          });
+        }
         await db.products.delete(fromId);
-        return { kind: 'merged', dishesUpdated: affected.length };
+        return { kind: 'merged', dishesUpdated: affected.length, mealsUpdated: affectedMeals.length };
       });
     },
   };

@@ -30,6 +30,10 @@ _Avoid_: Plan period, cycle
 A numbered position within a day (1, 2, 3…) that holds zero or more Meals. UI: just the number.
 _Avoid_: Meal (for the slot itself), posiłek, pora, time of day
 
+**Added Slot**:
+A Slot given to one day only with "dodaj kolejny", on top of the Slots every day has. It stays while empty.
+_Avoid_: Extra Slot (an Extra is a Shopping List entry)
+
 **Meal**:
 One instance of a Dish placed in a Slot, with its own number of servings. UI: "Posiłek".
 _Avoid_: Entry, plan item, dish (for the placed instance)

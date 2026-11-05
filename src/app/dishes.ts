@@ -6,7 +6,6 @@ import {
   type PhotoStore,
 } from '../data/ports';
 import {
-  decideDishRemoval,
   validateDishDraft,
   type DishDraft,
   type DishFieldErrors,
@@ -91,23 +90,15 @@ export async function saveDish(
 
 /**
  * Deletes a Dish that no Meal uses, together with its photo. A Dish that Meals use is archived
- * instead, keeping its record and photo (FR-034, FR-035).
+ * instead, keeping its record and photo (FR-034, FR-035 of feature 001).
  */
 export async function deleteDish(
-  deps: {
-    dishes: DishRepository;
-    photos: PhotoStore;
-    countMealsUsingDish: (dishId: string) => Promise<number>;
-  },
+  deps: { dishes: DishRepository; photos: PhotoStore },
   dishId: string,
 ): Promise<{ kind: 'deleted' } | { kind: 'archived' }> {
-  if (decideDishRemoval(await deps.countMealsUsingDish(dishId)) === 'archive') {
-    await deps.dishes.archive(dishId);
-    return { kind: 'archived' };
-  }
-  const dish = await deps.dishes.get(dishId);
-  await deps.dishes.deletePermanently(dishId);
+  const result = await deps.dishes.removeOrArchive(dishId);
+  if (result.kind === 'archived') return result;
   // After the record is gone; a failure only leaves an orphan for the startup sweep.
-  if (dish?.photo) await deps.photos.delete(dish.photo).catch(() => {});
+  if (result.photo) await deps.photos.delete(result.photo).catch(() => {});
   return { kind: 'deleted' };
 }

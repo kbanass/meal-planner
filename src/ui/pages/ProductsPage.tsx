@@ -15,7 +15,7 @@ import {
   Popup,
 } from 'framework7-react';
 import { useState } from 'react';
-import { countProductUsage, mergeCandidates, selectProductRows } from '../../domain/products';
+import { mergeCandidates } from '../../domain/products';
 import type { Product, Unit } from '../../domain/types';
 import { UNITS } from '../../domain/units';
 import { useDeps } from '../hooks/useDeps';
@@ -25,16 +25,13 @@ import {
   deleteHint,
   mergeConfirmMessage,
   productMenu,
+  productRows,
+  type ProductRow,
   renameConflictMessage,
   renameMergeQuestion,
   unitHint,
   usageLabel,
 } from '../view-models/products';
-
-interface Row {
-  product: Product;
-  usage: number;
-}
 
 function Hint({ text }: { text: string | null }) {
   return text ? <span className="actions-hint">{text}</span> : null;
@@ -44,10 +41,10 @@ export function ProductsPage() {
   const deps = useDeps();
   const products = useLiveQuery(() => deps.products.list(), [deps]);
   const dishes = useLiveQuery(() => deps.dishes.list(), [deps]);
-  // TODO(week-planning): pass Detached Meal Ingredient lists instead of [] (research R13).
-  const rows = selectProductRows(products ?? [], countProductUsage(dishes ?? [], []));
+  const detachedLists = useLiveQuery(() => deps.week.listAllDetachedIngredientLists(), [deps]);
+  const rows = productRows(products ?? [], dishes ?? [], detachedLists ?? []);
 
-  const [selected, setSelected] = useState<Row | null>(null);
+  const [selected, setSelected] = useState<ProductRow | null>(null);
   const [unitFor, setUnitFor] = useState<Product | null>(null);
   const [mergeFrom, setMergeFrom] = useState<Product | null>(null);
 
@@ -85,7 +82,7 @@ export function ProductsPage() {
 
   async function changeUnit(product: Product, unit: Unit) {
     const result = await deps.products.changeUnit(product.id, unit);
-    if (result.kind === 'inUse') f7.dialog.alert(unitHint(result.usage));
+    if (result.kind === 'inUse') f7.dialog.alert(unitHint(result.breakdown));
   }
 
   function confirmMerge(from: Product, into: Product) {
@@ -98,7 +95,7 @@ export function ProductsPage() {
   function confirmDelete(product: Product) {
     f7.dialog.confirm(deleteConfirmMessage(product.name), async () => {
       const result = await deps.products.delete(product.id);
-      if (result.kind === 'inUse') f7.dialog.alert(deleteHint(result.usage));
+      if (result.kind === 'inUse') f7.dialog.alert(deleteHint(result.breakdown));
     });
   }
 

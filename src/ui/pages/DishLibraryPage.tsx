@@ -1,15 +1,14 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Block, Link, List, ListItem, Navbar, NavLeft, NavRight, NavTitle, Page } from 'framework7-react';
+import { Block, Link, Navbar, NavLeft, NavRight, NavTitle, Page } from 'framework7-react';
 import { selectLibrary } from '../../domain/dishes';
-import { DishAvatar } from '../components/DishAvatar';
+import { DishCard } from '../components/DishCard';
 import { useDeps } from '../hooks/useDeps';
-import { DESKTOP_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
+import { dishCard } from '../view-models/dishes';
 
 export function DishLibraryPage() {
   const deps = useDeps();
   const dishes = useLiveQuery(() => deps.dishes.list(), [deps]);
   const library = selectLibrary(dishes ?? []);
-  const avatarSize = useMediaQuery(DESKTOP_QUERY) ? 120 : 48;
 
   return (
     <Page>
@@ -24,21 +23,17 @@ export function DishLibraryPage() {
           <Link href="/dishes/new/" iconF7="plus" iconOnly aria-label="Dodaj danie" />
         </NavRight>
       </Navbar>
-      <div className="page-wide page-wide-grid">
+      <div className="page-wide">
         {dishes !== undefined && library.length === 0 ? (
           <Block>
             <p>Nie masz jeszcze żadnych dań. Dodaj pierwsze przyciskiem +.</p>
           </Block>
         ) : (
-          <List className="card-grid">
+          <div className="dish-grid">
             {library.map((dish) => (
-              <ListItem key={dish.id} link={`/dishes/${dish.id}/`} title={dish.name}>
-                <div slot="media">
-                  <DishAvatar name={dish.name} photo={dish.photo} size={avatarSize} />
-                </div>
-              </ListItem>
+              <DishCard key={dish.id} card={dishCard(dish)} />
             ))}
-          </List>
+          </div>
         )}
       </div>
     </Page>

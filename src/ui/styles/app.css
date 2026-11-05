@@ -3,83 +3,121 @@ html {
   touch-action: manipulation;
 }
 
-/* Desktop layout (FR-009, research R10). Keep the breakpoint in sync with DESKTOP_QUERY. */
+/* Desktop layout (FR-041, spec Revisions 2026-11-05). Keep the breakpoint in sync with
+   DESKTOP_QUERY. The tabbar becomes a vertical bar on the left, every screen uses the same
+   content column next to it, and sheets line up with that column. */
 @media (min-width: 1024px) {
-  /* A centred app column instead of filling the whole window. */
   body {
-    background: var(--f7-page-bg-color);
+    /* The warm page colour (FR-043); the app tokens are set inside .framework7-root. */
+    background: #f5f1ec;
   }
-  .views.tabs {
-    max-width: 960px;
-    margin-left: auto;
-    margin-right: auto;
+  .framework7-root {
+    --planner-sidebar-width: 232px;
+    --planner-container-max: 960px;
+    --planner-container-gutter: 32px;
+    /* Space left of the centred column, inside the area next to the navigation: centred on
+       wide windows, never less than the gutter on narrow ones. */
+    --planner-container-offset: max(
+      var(--planner-container-gutter),
+      calc((100vw - var(--planner-sidebar-width) - var(--planner-container-max)) / 2)
+    );
   }
 
-  /* The tabbar moves to the top; the tab views start below it. */
+  /* Navigation on the left: the same Framework7 tabbar, laid out as a column. */
   .views.tabs > .toolbar.tabbar {
     top: 0;
-    bottom: auto;
-    height: var(--f7-tabbar-icons-height);
+    bottom: 0;
+    left: 0;
+    right: auto;
+    width: var(--planner-sidebar-width);
+    height: 100%;
+    padding: 24px 16px;
+    box-sizing: border-box;
+  }
+  .views.tabs > .toolbar.tabbar .toolbar-inner {
+    position: static;
+    height: auto;
+    padding: 0;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .views.tabs > .toolbar.tabbar .toolbar-pane {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    width: 100%;
+    height: auto;
+    padding: 8px;
+    border-radius: var(--planner-card-radius);
+    background: var(--planner-card-bg);
+    box-shadow: var(--planner-card-shadow);
+  }
+  .views.tabs > .toolbar.tabbar .tab-link {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    width: 100%;
+    height: 48px;
+    padding: 0 14px;
+    border-radius: 14px;
+  }
+  .views.tabs > .toolbar.tabbar .tab-link .tabbar-label {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .views.tabs > .toolbar.tabbar .tab-link-active {
+    background: var(--planner-accent-soft);
+  }
+  /* The moving glass highlight belongs to the horizontal iOS bar. */
+  .views.tabs > .toolbar.tabbar .tab-link-highlight {
+    display: none;
   }
   .views.tabs > .toolbar.tabbar ~ * {
     --f7-page-toolbar-bottom-offset: 0px;
   }
-  /* iOS pads the inner bar on the bottom for the bottom position; mirror it for the top. */
-  .ios .views.tabs > .toolbar.tabbar .toolbar-inner {
-    padding-top: 16px;
-    padding-bottom: 0;
-  }
   .views.tabs > .view {
-    margin-top: var(--f7-tabbar-icons-height);
-    height: calc(100% - var(--f7-tabbar-icons-height));
+    margin-left: var(--planner-sidebar-width);
+    width: calc(100% - var(--planner-sidebar-width));
   }
 
-  .page-wide {
-    max-width: 640px;
+  /* One content column on every screen, centred in the space next to the navigation. */
+  .page-wide,
+  .page-wide.week-content {
+    box-sizing: border-box;
+    max-width: calc(var(--planner-container-max) + 2 * var(--planner-container-gutter));
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--planner-container-gutter);
+    padding-right: var(--planner-container-gutter);
+  }
+  /* Scrollbar space on both sides, so the column stays centred whether a page scrolls or not,
+     and lines up with the sheets. */
+  .view .page-content {
+    scrollbar-gutter: stable both-edges;
+  }
+  /* Card sections line up with the column's edge, like the Week page's cards. */
+  .page-wide .list.inset {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .page-wide .block-title {
+    margin-left: 4px;
+  }
+  .view .navbar .navbar-inner {
+    right: 0;
+    max-width: calc(var(--planner-container-max) + 2 * var(--planner-container-gutter));
     margin-left: auto;
     margin-right: auto;
   }
-  .page-wide-grid {
-    max-width: none;
-  }
 
-  .card-grid > ul {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
-    padding: 16px;
-    background: none;
-  }
-  .card-grid > ul::before,
-  .card-grid > ul::after {
-    display: none;
-  }
-  .card-grid > ul > li {
-    border-radius: 16px;
-    overflow: hidden;
-    background: var(--f7-list-bg-color);
-  }
-  .card-grid .item-content {
-    flex-direction: column;
-    align-items: center;
-    padding: 16px 8px;
-  }
-  .card-grid .item-media {
-    padding: 0 0 8px;
-  }
-  .card-grid .item-inner {
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    justify-content: center;
-    text-align: center;
-  }
-  .card-grid .item-inner::after,
-  .card-grid .item-inner::before {
-    display: none;
-  }
-  .card-grid .item-link .item-inner {
-    padding-right: 0;
+  /* Sheets are no wider than the column and line up with it. */
+  .sheet-modal {
+    left: calc(var(--planner-sidebar-width) + var(--planner-container-offset));
+    width: min(
+      var(--planner-container-max),
+      calc(100% - var(--planner-sidebar-width) - 2 * var(--planner-container-gutter))
+    );
   }
 }
 
@@ -94,6 +132,9 @@ html {
   color: #ffffff;
   font-weight: 600;
   user-select: none;
+}
+.dish-avatar-square {
+  border-radius: 0;
 }
 .dish-avatar img {
   width: 100%;
@@ -165,4 +206,575 @@ html {
   margin-top: 4px;
   font-size: 12px;
   color: var(--f7-input-error-text-color, #ff3b30);
+}
+
+/* Dish picker: a horizontal strip of small cards (research R11, FR-045). Framework7 has no
+   horizontal list, so this is custom layout. */
+.dish-picker-strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 12px 16px calc(16px + var(--f7-safe-area-bottom, 0px));
+  -webkit-overflow-scrolling: touch;
+}
+.dish-picker-tile {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  width: 132px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 18px;
+  background: var(--planner-card-bg);
+  box-shadow: var(--planner-card-shadow);
+  color: var(--planner-text);
+  font: inherit;
+  text-align: left;
+  scroll-snap-align: start;
+  cursor: pointer;
+}
+.dish-picker-tile .dish-avatar {
+  width: 100% !important;
+  height: 96px !important;
+}
+.dish-picker-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px 10px;
+}
+.dish-picker-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* The Meal sheet holds a whole form, so it is taller than Framework7's default 260 px. */
+.meal-sheet {
+  --f7-sheet-height: 85%;
+}
+
+/* The app's look (FR-043, contracts/ui.md "Look"): a warm page, white rounded cards and the
+   app's green, on every tab. Framework7's own theme colour comes from <App colors>. */
+.framework7-root {
+  --planner-accent: #2f6f4f;
+  --planner-accent-soft: rgba(47, 111, 79, 0.12);
+  --planner-page-bg: #f5f1ec;
+  --planner-card-bg: #ffffff;
+  --planner-card-radius: 24px;
+  --planner-card-shadow: 0 8px 24px rgba(60, 30, 20, 0.08);
+  --planner-muted: #7a746e;
+  --planner-text: #1c1a19;
+  --f7-page-bg-color: var(--planner-page-bg);
+  --f7-navbar-bg-color: var(--planner-page-bg);
+  --f7-bars-bg-color: var(--planner-page-bg);
+  --f7-navbar-large-collapsed-bg-color: var(--planner-page-bg);
+  /* Sheets share the page's warm background, so forms look the same in a sheet and on a page. */
+  --f7-sheet-bg-color: var(--planner-page-bg);
+  /* Outlined inputs: #7a746e on white is about 4.6:1, well above the 3:1 needed for controls. */
+  --f7-input-outline-border-color: #7a746e;
+}
+
+/* No page title: the Week card starts below the status bar (FR-005). */
+.week-content {
+  padding: calc(16px + var(--f7-safe-area-top, 0px)) 16px calc(32px + var(--f7-safe-area-bottom, 0px));
+  color: var(--planner-text);
+}
+
+.week-card {
+  padding: 20px 16px 12px;
+  border-radius: var(--planner-card-radius);
+  background: var(--planner-card-bg);
+  box-shadow: var(--planner-card-shadow);
+}
+.week-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 4px 16px;
+}
+.week-card-month {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.week-card-nav {
+  display: flex;
+  flex: none;
+  gap: 10px;
+}
+/* Phones swipe the Week card, so the buttons are hidden but kept for screen readers. */
+@media (max-width: 1023px) {
+  .week-card-nav {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
+.week-card {
+  touch-action: pan-y;
+}
+.week-slide-next {
+  animation: week-slide-from-right 220ms ease-out;
+}
+.week-slide-previous {
+  animation: week-slide-from-left 220ms ease-out;
+}
+@keyframes week-slide-from-right {
+  from {
+    opacity: 0.3;
+    transform: translateX(24px);
+  }
+}
+@keyframes week-slide-from-left {
+  from {
+    opacity: 0.3;
+    transform: translateX(-24px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .week-slide-next,
+  .week-slide-previous {
+    animation: none;
+  }
+}
+.round-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--planner-card-bg);
+  box-shadow: 0 2px 10px rgba(60, 30, 20, 0.14);
+  color: var(--planner-text);
+  cursor: pointer;
+}
+.round-button .icon {
+  font-size: 20px;
+}
+
+/* Seven equal columns; the selected day is a filled green pill. */
+.day-strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.day-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 0 8px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  color: var(--planner-text);
+  font: inherit;
+  cursor: pointer;
+}
+.day-pill-name {
+  font-size: 14px;
+  color: var(--planner-muted);
+}
+.day-pill-number {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+.day-pill-kcal {
+  min-height: 13px;
+  font-size: 11px;
+  line-height: 13px;
+  color: var(--planner-muted);
+}
+.day-pill-today .day-pill-name,
+.day-pill-today .day-pill-number {
+  color: var(--planner-accent);
+}
+.day-pill-selected {
+  background: var(--planner-accent);
+  box-shadow: 0 6px 14px rgba(47, 111, 79, 0.3);
+}
+.day-pill-selected .day-pill-name,
+.day-pill-selected .day-pill-number,
+.day-pill-selected .day-pill-kcal {
+  color: #ffffff;
+}
+
+.week-card-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--planner-accent);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.week-card-copy .icon {
+  font-size: 18px;
+}
+.week-card-copy:disabled {
+  color: var(--planner-muted);
+  opacity: 0.6;
+  cursor: default;
+}
+
+.day-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 28px 4px 4px;
+}
+.day-heading h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+.day-heading-summary {
+  flex: none;
+  font-size: 15px;
+  color: var(--planner-muted);
+}
+
+/* The selected day's totals under the strip (FR-004). Bars come with the Goals feature. */
+.week-card-totals {
+  margin: 12px 4px 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(122, 116, 110, 0.18);
+}
+.macro-totals {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.macro-total {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.macro-total .icon {
+  flex: none;
+  font-size: 17px;
+}
+/* Lucide shapes sized like the Framework7 icon font beside them. */
+.macro-svg-icon {
+  width: 1em;
+  height: 1em;
+}
+.macro-total-unit {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--planner-muted);
+}
+.macro-total-kcal .icon {
+  color: #c8553d;
+}
+.macro-total-protein .icon {
+  color: var(--planner-accent);
+}
+.macro-total-fat .icon {
+  color: #d9a036;
+}
+.macro-total-carbs .icon {
+  color: #7a6fb3;
+}
+.macro-totals-compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+.macro-totals-compact .macro-total {
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.macro-totals-compact .macro-total .icon {
+  font-size: 12px;
+}
+.macro-totals-compact .macro-total-unit {
+  font-size: 11px;
+}
+
+/* A Slot: one card with its number, totals and Meals (FR-044). */
+.slot-card {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: var(--planner-card-radius);
+  background: var(--planner-card-bg);
+  box-shadow: var(--planner-card-shadow);
+}
+.slot-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 4px 8px;
+}
+.slot-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--planner-accent-soft);
+  color: var(--planner-accent);
+  font-size: 14px;
+  font-weight: 700;
+}
+.slot-card-header .macro-totals-compact {
+  justify-content: flex-end;
+}
+
+/* A Meal inside its Slot card: photo on the left, text on the right (FR-042). */
+.meal-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 36px 8px 4px;
+  border: 0;
+  border-top: 1px solid rgba(122, 116, 110, 0.14);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.meal-row .dish-avatar {
+  border-radius: 16px;
+  font-size: 22px !important;
+}
+.meal-row-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.meal-row-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.meal-row-subtitle {
+  font-size: 14px;
+  color: var(--planner-muted);
+}
+.meal-row-chip {
+  align-self: flex-start;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--planner-accent-soft);
+  color: var(--planner-accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+.meal-row-edit {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: var(--planner-muted);
+}
+
+.slot-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px 4px 4px;
+  border: 0;
+  border-top: 1px solid rgba(122, 116, 110, 0.14);
+  background: none;
+  color: var(--planner-accent);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.slot-add .icon {
+  font-size: 18px;
+}
+.slot-add-empty {
+  justify-content: center;
+  margin-top: 0;
+  padding: 14px;
+  border: 1.5px dashed rgba(47, 111, 79, 0.45);
+  border-radius: 16px;
+}
+
+/* "dodaj kolejny" is set apart from the Slot cards (FR-044). */
+.add-slot-area {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px dashed rgba(122, 116, 110, 0.35);
+}
+.add-slot-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  padding: 12px 22px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--planner-accent-soft);
+  color: var(--planner-accent);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.add-slot-button .icon {
+  font-size: 20px;
+}
+
+/* "Dodaj składnik" is an action, not a field: a dashed button that opens the search in place
+   (Dish form and Meal sheet). */
+.add-ingredient-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: calc(100% - 32px);
+  margin: 12px 16px;
+  padding: 14px;
+  border: 1.5px dashed rgba(47, 111, 79, 0.45);
+  border-radius: 16px;
+  background: none;
+  color: var(--f7-theme-color);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.add-ingredient-button .icon {
+  font-size: 18px;
+}
+.product-picker-cancel {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 16px 8px;
+  list-style: none;
+}
+
+/* Dania: each Dish is a card (FR-046). One column on phones, a grid on desktop. */
+.dish-grid {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+.dish-card {
+  display: flex;
+  gap: 14px;
+  padding: 12px;
+  overflow: hidden;
+  border-radius: var(--planner-card-radius);
+  background: var(--planner-card-bg);
+  box-shadow: var(--planner-card-shadow);
+  color: var(--planner-text);
+}
+.dish-card .dish-avatar {
+  border-radius: 16px;
+}
+.dish-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.dish-card-name {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.dish-card-meta {
+  font-size: 14px;
+  color: var(--planner-muted);
+}
+.dish-card-totals {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 2px;
+}
+.dish-card-per-serving {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--planner-muted);
+}
+.dish-card-notes {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--planner-muted);
+}
+@media (min-width: 1024px) {
+  .dish-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    padding: 16px 0;
+  }
+  .dish-card {
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+  }
+  .dish-card .dish-avatar {
+    width: 100% !important;
+    height: 150px !important;
+    border-radius: 0;
+  }
+  .dish-card-body {
+    padding: 12px 14px 14px;
+  }
 }

@@ -9,9 +9,11 @@ interface DishAvatarProps {
   size: number;
   /** Shows this image instead of the stored photo, e.g. a picked file before saving. */
   src?: string | null;
+  /** A circle in lists (default), a square filling the side of a Meal card. */
+  shape?: 'circle' | 'square';
 }
 
-export function DishAvatar({ name, photo, size, src }: DishAvatarProps) {
+export function DishAvatar({ name, photo, size, src, shape = 'circle' }: DishAvatarProps) {
   const elementRef = useRef<HTMLDivElement>(null);
   const storedUrl = usePhotoUrl(src ? null : photo, elementRef);
   const url = src ?? storedUrl;
@@ -20,7 +22,7 @@ export function DishAvatar({ name, photo, size, src }: DishAvatarProps) {
   return (
     <div
       ref={elementRef}
-      className="dish-avatar"
+      className={shape === 'square' ? 'dish-avatar dish-avatar-square' : 'dish-avatar'}
       style={{
         width: size,
         height: size,

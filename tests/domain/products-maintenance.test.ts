@@ -5,6 +5,7 @@ import {
   mergeCandidates,
   mergeIngredients,
   productActions,
+  productUsageBreakdown,
   selectProductRows,
 } from '../../src/domain/products';
 import type { Dish, Ingredient, Product } from '../../src/domain/types';
@@ -64,6 +65,35 @@ describe('countProductUsage', () => {
 
   it('leaves unused Products out of the map', () => {
     expect(countProductUsage([], []).has(pomidor.id)).toBe(false);
+  });
+});
+
+describe('productUsageBreakdown', () => {
+  const dishes = [
+    dish('d-1', [{ productId: pomidor.id, amount: 100 }]),
+    dish('d-2', [{ productId: pomidor.id, amount: 50 }], true),
+  ];
+  const detachedLists = [
+    [{ productId: pomidor.id, amount: 30 }],
+    [
+      { productId: pomidor.id, amount: 10 },
+      { productId: cebula.id, amount: 5 },
+    ],
+  ];
+
+  it('counts Dishes (archived included) and Detached Meals separately', () => {
+    const breakdown = productUsageBreakdown(dishes, detachedLists);
+
+    expect(breakdown.get(pomidor.id)).toEqual({ dishes: 2, meals: 2 });
+    expect(breakdown.get(cebula.id)).toEqual({ dishes: 0, meals: 1 });
+    expect(breakdown.has(jajka.id)).toBe(false);
+  });
+
+  it('agrees with countProductUsage, which is its sum', () => {
+    const usage = countProductUsage(dishes, detachedLists);
+
+    expect(usage.get(pomidor.id)).toBe(4);
+    expect(usage.get(cebula.id)).toBe(1);
   });
 });
 

@@ -36,6 +36,7 @@ Help one person plan a full **Week** of meals ahead so that:
 ### Dish
 - `name`
 - `photo` (optional): stored in OPFS, compressed before saving (~800 px longest edge, WebP, or JPEG where the browser cannot encode WebP, e.g. iOS Safari). Without a photo, show a deterministic placeholder: a color derived from a hash of the name, plus initials.
+  - HEIC/HEIF (the iPhone camera default) works today only where the browser can decode it (Safari). Elsewhere, e.g. Chrome or Firefox on a desktop, the preview stays empty and saving reports that the photo could not be read. Support for those browsers comes later (see Out of scope).
 - `servingsYield`: how many servings the recipe makes
 - `ingredients`: list of { product, amount } in the product's unit
 - `macros`: kcal, protein, fat, carbs **for the whole recipe**
@@ -62,10 +63,10 @@ Editing a Meal:
 - Remove from slot.
 
 ### Slots
-- The default number of Slots per day is a global setting.
+- The default number of Slots per day is a global setting: a whole number from 1 to 10, initially 4.
 - Each Slot can hold several Meals.
-- Below the last Slot of a day sits a placeholder, "dodaj kolejny", which adds one extra Slot **to that day only**.
-- A day shows `max(setting, slots in use, that day's extra slots)` Slots.
+- Below the last Slot of a day sits a placeholder, "dodaj kolejny", which adds one Slot **to that day only**. The day keeps the raised Slot count ("added Slots") even while those Slots are empty.
+- A day shows `max(setting, highest Slot in use, that day's raised Slot count)` Slots.
 - In the UI, Slots are labelled with numbers only.
 
 ### Goals
@@ -74,8 +75,9 @@ Editing a Meal:
 
 ### Week
 - Always Monday–Sunday.
-- Past weeks are kept. Navigate with ← / → arrows.
-- **"Skopiuj do następnego tygodnia"** copies all Meals (with servings and their linked/detached state) and per-day extra Slots from the viewed Week into the next one, **replacing** the next Week's Meals and extra Slots. If the next Week is not empty, ask for confirmation first. The next Week's Shopping List layer (Adjustments, Extras, checks) is left as it is.
+- Past weeks are kept. On phones, navigate by swiping the Week card; on desktop with ← / → buttons.
+  - Planned (later): the swipe gets proper microinteractions. While a finger holds and drags the Week card, the card follows it, and the previous and next Weeks show beside it: dragging left reveals the next Week, dragging right the previous one. Only the month label and the day strip move; the day totals and "skopiuj do następnego tygodnia" stay fixed. On release, a long enough drag or a quick flick makes the content fade or slide away and the new Week fade gently in; a short drag springs back. Animations stay short (roughly 150–250 ms), because this is the app's primary interaction. Vertical scrolling and the system back swipe keep working. Today the Week changes on release, with a short slide-in. The approach is being researched in `docs/research/week-swipe-gesture.md`.
+- **"Skopiuj do następnego tygodnia"** copies all Meals (with servings and their linked/detached state) and per-day added Slots from the viewed Week into the next one, **replacing** the next Week's Meals and added Slots. If the next Week is not empty, ask for confirmation first. The next Week's Shopping List layer (Adjustments, Extras, checks) is left as it is.
 
 ## Summaries
 
@@ -104,19 +106,24 @@ Editing a Meal:
 Tabs: **Tydzień**, **Dania**, **Lista zakupów**, **Ustawienia**.
 
 ### Mobile
-- **Tydzień:** week navigation and "skopiuj do następnego tygodnia" at the top, then the Week summary, then 7 day cards (name, date, kcal bar). Tapping a card opens:
-- **Day view:** day summary bars, then Slots with their Meals, then the "dodaj kolejny" placeholder.
-  - Tapping an empty Slot card opens a horizontally scrolling dish picker at the bottom of the screen. Tapping a Dish adds a Meal (1 serving). Filters come later.
+- **Tydzień:** one screen.
+  - At the top, with no page title, a Week card holds the month and year, a strip of 7 days (short name, date, kcal), the selected day's kcal, protein, fat and carbs (each with an icon; bars once goals exist), and "skopiuj do następnego tygodnia". Swipe the card to change Weeks. Today is selected when the app opens, and tapping a day selects it.
+  - Then the Week summary.
+  - Then the selected day: its Slots as cards, each with its own kcal and macro totals and its Meals inside (Dish photo on the left), and, set apart below them, the "dodaj kolejny" placeholder.
+  - Look (all tabs): warm off-white background, white rounded cards with a soft shadow, the app's green as the accent everywhere, input borders with good contrast. Standard parts (tabbar, sheets, dialogs, inputs) stay Framework7's.
+  - Tapping an empty Slot card opens a horizontally scrolling dish picker at the bottom of the screen: small cards with photo, name, and kcal and macros for one serving. Tapping a Dish adds a Meal (1 serving). Filters come later.
   - Tapping a Meal opens a bottom sheet for editing (servings, fields, restore, remove).
-- **Dania:** Dish library (list, create, edit, archive) and a separate **Produkty** section.
+- **Dania:** Dish library (create, edit, archive) as cards: photo, name, servings yield, number of ingredients, kcal and macros per serving, start of the notes. A separate **Produkty** section.
+- Editing a Dish (Dania) and editing a Meal (Tydzień) share one form look: white card sections, outlined inputs, the same ingredient rows and macro fields.
 - **Produkty:** list with usage count. Rename, **merge** duplicates (all Dishes and Meals switch to the kept Product), delete only unused Products, change the unit only on unused Products.
 - **Lista zakupów:** as described above.
 - **Ustawienia:** number of Slots, Daily Goal, backup export/import.
 
 ### Desktop (≥ ~1024 px)
+- Navigation is a vertical bar on the left. Every screen shows its content in one column of the same maximum width (960 px), centred in the space next to it, and sheets line up with that column. Components use the iOS style, as on iPhones.
 - **Tydzień** becomes one screen:
   - a 7-column grid (Mon–Sun) × Slots, with day summary bars under each column,
-  - the Week summary as an 8th column,
+  - the Week summary as a column on the right of the Week page, next to the selected day (Summaries feature),
   - a side panel with the Dish library and search.
 - Drag and drop (dnd-kit):
   - Dish from the library onto a Slot adds a Meal (1 serving).
@@ -131,7 +138,7 @@ Tabs: **Tydzień**, **Dania**, **Lista zakupów**, **Ustawienia**.
 
 ## Out of scope (later)
 
-Sync between devices, nutrition import (Open Food Facts), prices and cost, pantry or inventory, per-day goals (training days), goal history, copying a single day or Meal, Dish tags and filters, package sizes on the shopping list, marking Meals as eaten.
+Sync between devices, nutrition import (Open Food Facts), prices and cost, pantry or inventory, per-day goals (training days), goal history, copying a single day or Meal, Dish tags and filters, package sizes on the shopping list, marking Meals as eaten, HEIC/HEIF Dish photos in browsers that cannot decode them (e.g. desktop Chrome, Firefox): decode them offline in the app, convert to WebP/JPEG like any other photo, and show a working preview before saving.
 
 ## Decisions
 
