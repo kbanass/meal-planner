@@ -32,8 +32,8 @@ import {
   restoreConfirmMessage,
 } from '../view-models/meal-sheet';
 import { removeMealConfirmMessage } from '../view-models/week';
-import { IngredientRow } from './IngredientRow';
-import { ProductPicker } from './ProductPicker';
+import { IngredientsEditor } from './IngredientsEditor';
+import { MacroFields } from './MacroFields';
 
 interface MealSheetProps {
   mealId: string | null;
@@ -181,7 +181,7 @@ export function MealSheet({ mealId, title, opened, onClose }: MealSheetProps) {
                 <p className="meal-detached-note">{detachedNote}</p>
               </Block>
             )}
-            <List strong inset>
+            <List strong inset className="form-card">
               <ListInput
                 outline
                 label="Porcje"
@@ -208,51 +208,27 @@ export function MealSheet({ mealId, title, opened, onClose }: MealSheetProps) {
             </List>
 
             <BlockTitle>Składniki (w tym posiłku)</BlockTitle>
-            {values.ingredients.length > 0 && (
-              // Plain list markup: Framework7's <List> only puts its own item components inside <ul>.
-              <div className="list list-strong inset">
-                <ul>
-                  {values.ingredients.map((ingredient, index) => {
-                    const path = `ingredients[${index}]`;
-                    return (
-                      <IngredientRow
-                        key={ingredient.productId}
-                        inputId={mealFieldDomId(`${path}.amount`)}
-                        name={ingredient.name}
-                        unit={ingredient.unitLabel}
-                        amount={ingredient.amount}
-                        error={error(`${path}.productId`) ?? error(`${path}.amount`)}
-                        onAmountChange={(amount) => setAmount(index, amount)}
-                        onRemove={() => {
-                          setEdited(removeMealIngredient(draft, index));
-                          setErrors({});
-                        }}
-                      />
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
             {/* Its "Nowy produkt" sheet opens on top of this one and closes on its own. */}
-            <ProductPicker onPick={pickProduct} insideSheet />
+            <IngredientsEditor
+              rows={values.ingredients}
+              inputId={mealFieldDomId}
+              error={error}
+              onAmountChange={setAmount}
+              onRemove={(index) => {
+                setEdited(removeMealIngredient(draft, index));
+                setErrors({});
+              }}
+              onPick={pickProduct}
+              insideSheet
+            />
 
             <BlockTitle>Makro (ten posiłek)</BlockTitle>
-            <List strong inset>
-              {values.macros.map((macro) => (
-                <ListInput
-                  outline
-                  key={macro.key}
-                  label={macro.label}
-                  type="text"
-                  inputmode="decimal"
-                  inputId={mealFieldDomId(`macros.${macro.key}`)}
-                  value={macro.text}
-                  onInput={(event) => setMacro(macro.key, (event.target as HTMLInputElement).value)}
-                  errorMessage={error(`macros.${macro.key}`)}
-                  errorMessageForce={errors[`macros.${macro.key}`] !== undefined}
-                />
-              ))}
-            </List>
+            <MacroFields
+              macros={values.macros}
+              inputId={mealFieldDomId}
+              error={error}
+              onChange={setMacro}
+            />
           </>
         )}
         <List strong inset>

@@ -1,3 +1,4 @@
+import type { IngredientDraft, MacrosDraft } from '../../domain/drafts';
 import {
   draftFromMeal,
   isDetached,
@@ -74,9 +75,12 @@ export interface SheetMacro {
   display: string;
 }
 
-/** The Ingredient and Macro rows of the Meal sheet (FR-017, spec Edge Cases rounding). */
+/**
+ * The Ingredient and Macro rows of a form: the Meal sheet or the Dish form (FR-017, FR-047,
+ * spec Edge Cases rounding).
+ */
 export function sheetValues(
-  draft: MealDraft,
+  draft: { ingredients: IngredientDraft[]; macros: MacrosDraft },
   products: readonly Product[],
 ): { ingredients: SheetIngredient[]; macros: SheetMacro[] } {
   const byId = new Map(products.map((product) => [product.id, product]));

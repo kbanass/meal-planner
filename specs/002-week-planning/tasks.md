@@ -664,26 +664,26 @@ At 1280 px the ← / → buttons are visible.
 - At 1440×900: navigation on the left, every tab in the same 960 px column next to it, the iOS style, the Meal sheet and the picker no wider than the column, and the picker strip scrolling with the wheel.
 - At 390×844: Dania shows cards, and the Dish form matches the Meal sheet.
 
-- [ ] T106 [P] Theme in `src/ui/App.tsx`: `theme` becomes `'md'` on Android and `'ios'` everywhere else, desktop included, through the user-agent check Framework7 exposes (`getDevice().android`) (FR-041).
-- [ ] T107 [P] Desktop shell in `src/ui/styles/app.css` (≥ 1024 px):
+- [X] T106 [P] Theme in `src/ui/App.tsx`: `theme` becomes `'md'` on Android and `'ios'` everywhere else, desktop included, through the user-agent check Framework7 exposes (`getDevice().android`) (FR-041).
+- [X] T107 [P] Desktop shell in `src/ui/styles/app.css` (≥ 1024 px):
   - The tabbar becomes a fixed vertical bar on the left (`--planner-sidebar-width: 232px`), with each tab as a row of icon and label and the active tab highlighted.
   - The views start after it.
   - `.page-wide` becomes the shared column: `max-width: var(--planner-container-max, 960px)`, left-aligned with 32 px side padding. Drop `.page-wide-grid`.
   - Sheets get the same width and left edge as the column.
-- [ ] T108 [P] Picker wheel:
+- [X] T108 [P] Picker wheel:
   - Add `wheelScrollDelta(deltaX, deltaY)` to `src/ui/view-models/week.ts` (a mostly vertical wheel gives `deltaY`, otherwise 0), with tests.
   - `DishPickerSheet` adds a non-passive `wheel` listener on the strip that scrolls it sideways (FR-045).
-- [ ] T109 Dania cards:
+- [X] T109 Dania cards:
   - `dishCard(dish)` in a new `src/ui/view-models/dishes.ts` returns name, photo, "2 porcje · 5 składników" (with Polish plurals for składnik), per-Serving `macroTotals`, and the notes trimmed to the first 120 characters. Test it in `tests/ui/dishes-vm.test.ts`.
   - New `src/ui/components/DishCard.tsx`. `DishLibraryPage` renders the cards in `.dish-grid`: one column on phones, `repeat(auto-fill, minmax(260px, 1fr))` on desktop.
   - Remove the old `.card-grid` styles (FR-046).
-- [ ] T110 Shared form parts:
+- [X] T110 Shared form parts:
   - `src/ui/components/IngredientsEditor.tsx`: the Ingredient rows in a white card section, plus `ProductPicker`.
   - `src/ui/components/MacroFields.tsx`: the four outlined Macro inputs in a white card section.
 
   `DishFormPage` and `MealSheet` both use them. The Dish form's name, Servings yield and notes sections become white card sections too, and the Meal sheet's background is the warm page colour (FR-047).
-- [ ] T111 Update `tests/ui/dish-form.test.tsx`, `tests/ui/meal-sheet.test.tsx`, `tests/ui/app-shell.test.tsx` and any test affected by the card markup. Add a Dania card test: name, "na porcję" values, notes snippet, and that tapping opens the form.
-- [ ] T112 Check at 1440×900 and 390×844 on all four tabs, plus the Meal sheet and picker, with the headless-Chrome screenshots. Record as-built details in [contracts/ui.md](contracts/ui.md).
+- [X] T111 Update `tests/ui/dish-form.test.tsx`, `tests/ui/meal-sheet.test.tsx`, `tests/ui/app-shell.test.tsx` and any test affected by the card markup. Add a Dania card test: name, "na porcję" values, notes snippet, and that tapping opens the form.
+- [X] T112 Check at 1440×900 and 390×844 on all four tabs, plus the Meal sheet and picker, with the headless-Chrome screenshots. Record as-built details in [contracts/ui.md](contracts/ui.md).
 
 ---
 

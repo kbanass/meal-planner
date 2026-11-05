@@ -86,6 +86,14 @@ export function swipeWeekDelta(dx: number, dy: number): number {
   return dx < 0 ? 7 : -7;
 }
 
+/**
+ * How far a mouse-wheel event scrolls the Dish picker strip sideways (FR-045). A mostly
+ * vertical wheel turn moves the strip; horizontal trackpad swipes already scroll it natively.
+ */
+export function wheelScrollDelta(deltaX: number, deltaY: number): number {
+  return Math.abs(deltaY) > Math.abs(deltaX) ? deltaY : 0;
+}
+
 export const pickerEmptyMessage = 'Nie masz jeszcze żadnych dań. Dodaj je w zakładce Dania.';
 
 export function removeMealConfirmMessage(name: string): string {

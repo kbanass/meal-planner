@@ -9,6 +9,7 @@ import {
 } from './drafts';
 import { normalizeName } from './names';
 import { formatDecimal, parseDecimal, roundTo2 } from './numbers';
+import { pluralForm } from './plural';
 import type { Dish, Ingredient, IsoDate, Macros, Meal, MealSource, Product } from './types';
 
 export type { FieldError } from './drafts';
@@ -56,15 +57,6 @@ export function scaleMeal(source: MealSource, servings: number): ScaledMeal {
       amount: ingredient.amount * factor,
     })),
   };
-}
-
-/** Which Polish plural form follows `n`: 1 → one; 2–4 (not 12–14) → few; else, fractions too → many. */
-function pluralForm(n: number): 'one' | 'few' | 'many' {
-  if (n === 1) return 'one';
-  const lastDigit = n % 10;
-  const lastTwo = n % 100;
-  const few = lastDigit >= 2 && lastDigit <= 4 && !(lastTwo >= 12 && lastTwo <= 14);
-  return Number.isInteger(n) && few ? 'few' : 'many';
 }
 
 /** Macros of one Serving, e.g. for the Dish picker. Unrounded. */

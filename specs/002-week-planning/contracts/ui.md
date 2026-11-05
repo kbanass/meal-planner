@@ -165,6 +165,30 @@ Removed in the 2026-11-04 redesign. The day title ("Czwartek, 5 lis"), the Slots
 - The sheets keep Framework7's default sheet behaviour.
 - No grid, side panel or drag and drop (spec Assumptions).
 
+## Desktop layout, Dania cards and shared forms (as built 2026-11-05, T106–T112)
+
+- **Theme:** `<App theme>` is `'md'` on Android (`getDevice().android`) and `'ios'` everywhere else, desktop included. Framework7's "auto" gave desktops the Material style, whose colour scheme generated from the green tinted the inputs.
+- **Desktop shell** (≥ 1024 px):
+  - The same tabbar is a fixed 232 px column on the left: a white card, each tab a row of icon and label, the active tab tinted green. The iOS sliding highlight is hidden.
+  - The views start after the column.
+  - `.page-wide` is the one content column on every screen: at most 960 px, 32 px from the navigation, not centred. Inset lists inside it lose their side margin, so all cards share one edge.
+  - The navbar contents are limited to the same width.
+- **Sheets:** on desktop they are 960 px at most, lined up with the column. On all sizes they use the warm page background (`--f7-sheet-bg-color`).
+- **Dish picker:** a non-passive `wheel` listener turns a mostly vertical wheel scroll (`wheelScrollDelta`) into horizontal scrolling of the strip.
+- **Dania** (`DishLibraryPage`):
+  - Cards in `.dish-grid`: one column on phones, `repeat(auto-fill, minmax(260px, 1fr))` on desktop.
+  - Each `DishCard` is a plain `a` to `/dishes/{id}/` with:
+    - the photo or placeholder (88 px square on the left on phones, a 150 px band on top on desktop)
+    - the name
+    - "2 porcje · 5 składników"
+    - "NA PORCJĘ" with compact per-Serving totals
+    - up to 2 lines of notes (at most 120 characters)
+- **Shared form parts:**
+  - `IngredientsEditor` (Ingredient rows in a white `list-strong inset` card, then "Dodaj składnik") and `MacroFields` (the four outlined Macro inputs in a white card) are used by both the Dish form and the Meal sheet.
+  - Their rows come from `sheetValues`, which now takes any draft with `ingredients` and `macros`.
+  - The Dish form's name, yield and notes are white card sections too, with a "Notatki" title.
+- **Later (Summaries feature):** on desktop, the Week summary becomes a column to the right of the selected day, inside the same container.
+
 ## ProductPicker (change to feature 001, 2026-11-04)
 
 Asked for by the user: "Dodaj składnik" looked like a text field, so it was misleading.

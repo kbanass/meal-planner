@@ -3,7 +3,8 @@ import { Block, Link, PageContent, Sheet, Toolbar } from 'framework7-react';
 import { selectLibrary } from '../../domain/dishes';
 import type { Dish } from '../../domain/types';
 import { useDeps } from '../hooks/useDeps';
-import { pickerEmptyMessage, pickerTile } from '../view-models/week';
+import { useEffect, useRef } from 'react';
+import { pickerEmptyMessage, pickerTile, wheelScrollDelta } from '../view-models/week';
 import { DishAvatar } from './DishAvatar';
 import { MacroTotals } from './MacroTotals';
 
@@ -18,6 +19,22 @@ export function DishPickerSheet({ opened, onClose, onPick }: DishPickerSheetProp
   const deps = useDeps();
   const dishes = useLiveQuery(() => deps.dishes.list(), [deps]);
   const library = selectLibrary(dishes ?? []);
+  const strip = useRef<HTMLDivElement>(null);
+
+  // A mouse wheel scrolls the strip sideways (FR-045). Not passive, so the sheet itself does
+  // not scroll at the same time.
+  useEffect(() => {
+    const element = strip.current;
+    if (!element) return;
+    function onWheel(event: WheelEvent) {
+      const delta = wheelScrollDelta(event.deltaX, event.deltaY);
+      if (delta === 0 || !element) return;
+      event.preventDefault();
+      element.scrollLeft += delta;
+    }
+    element.addEventListener('wheel', onWheel, { passive: false });
+    return () => element.removeEventListener('wheel', onWheel);
+  }, [library.length]);
 
   return (
     <Sheet
@@ -41,7 +58,7 @@ export function DishPickerSheet({ opened, onClose, onPick }: DishPickerSheetProp
             <p>{pickerEmptyMessage}</p>
           </Block>
         ) : (
-          <div className="dish-picker-strip">
+          <div className="dish-picker-strip" ref={strip}>
             {library.map((dish) => {
               const tile = pickerTile(dish);
               return (

@@ -22,8 +22,8 @@ import {
 } from '../../domain/dishes';
 import type { Product } from '../../domain/types';
 import { DishAvatar } from '../components/DishAvatar';
-import { IngredientRow } from '../components/IngredientRow';
-import { ProductPicker } from '../components/ProductPicker';
+import { IngredientsEditor } from '../components/IngredientsEditor';
+import { MacroFields } from '../components/MacroFields';
 import { useDeps } from '../hooks/useDeps';
 import { useBlobUrl } from '../hooks/usePhotoUrl';
 import {
@@ -36,17 +36,8 @@ import {
   indexProducts,
   photoErrorMessage,
   photoSection,
-  unitLabel,
 } from '../view-models/dish-form';
-
-type MacroKey = keyof DishDraft['macros'];
-
-const MACRO_FIELDS: { key: MacroKey; label: string }[] = [
-  { key: 'kcal', label: 'kcal' },
-  { key: 'protein', label: 'Białko (g)' },
-  { key: 'fat', label: 'Tłuszcz (g)' },
-  { key: 'carbs', label: 'Węglowodany (g)' },
-];
+import { sheetValues } from '../view-models/meal-sheet';
 
 interface DishFormPageProps {
   f7route: Router.Route;
@@ -65,6 +56,8 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
 
   const [edited, setDraft] = useState<DishDraft | null>(null);
   const draft = currentDraft(edited, stored);
+  // The same rows as the Meal sheet (FR-047).
+  const values = draft ? sheetValues(draft, products ?? []) : null;
   const [errors, setErrors] = useState<DishFieldErrors>({});
   const [saving, setSaving] = useState(false);
   const [photoChange, setPhotoChange] = useState<PhotoChange>({ kind: 'keep' });
@@ -147,7 +140,7 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
           <Link onClick={save}>Zapisz</Link>
         </NavRight>
       </Navbar>
-      {draft && (
+      {draft && values && (
         <div className="page-wide">
           <section className="dish-photo" aria-label="Zdjęcie">
             <DishAvatar
@@ -185,7 +178,7 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
             />
           </section>
 
-          <List>
+          <List strong inset className="form-card">
             <ListInput
               outline
               label="Nazwa"
@@ -216,64 +209,39 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
           </List>
 
           <BlockTitle>Składniki</BlockTitle>
-          {draft.ingredients.length > 0 && (
-            // Plain list markup: Framework7's <List> only puts its own item components inside <ul>.
-            <div className="list">
-              <ul>
-                {draft.ingredients.map((ingredient, index) => {
-                const product = productsById.get(ingredient.productId);
-                const path = `ingredients[${index}]`;
-                return (
-                  <IngredientRow
-                    key={ingredient.productId}
-                    inputId={fieldDomId(`${path}.amount`)}
-                    name={product?.name ?? ''}
-                    unit={product ? unitLabel(product.unit) : ''}
-                    amount={ingredient.amount}
-                    error={error(`${path}.productId`) ?? error(`${path}.amount`)}
-                    onAmountChange={(amount) => {
-                      setDraft({
-                        ...draft,
-                        ingredients: draft.ingredients.map((other, i) =>
-                          i === index ? { ...other, amount } : other,
-                        ),
-                      });
-                      clearError(`${path}.amount`);
-                    }}
-                    onRemove={() => {
-                      setDraft(removeIngredient(draft, index));
-                      setErrors({});
-                    }}
-                  />
-                );
-              })}
-              </ul>
-            </div>
-          )}
-          <ProductPicker onPick={pickProduct} />
+          <IngredientsEditor
+            rows={values.ingredients}
+            inputId={fieldDomId}
+            error={error}
+            onAmountChange={(index, amount) => {
+              setDraft({
+                ...draft,
+                ingredients: draft.ingredients.map((other, i) =>
+                  i === index ? { ...other, amount } : other,
+                ),
+              });
+              clearError(`ingredients[${index}].amount`);
+            }}
+            onRemove={(index) => {
+              setDraft(removeIngredient(draft, index));
+              setErrors({});
+            }}
+            onPick={pickProduct}
+          />
 
           <BlockTitle>Makro (całe danie)</BlockTitle>
-          <List>
-            {MACRO_FIELDS.map(({ key, label }) => (
-              <ListInput
-                outline
-                key={key}
-                label={label}
-                type="text"
-                inputmode="decimal"
-                inputId={fieldDomId(`macros.${key}`)}
-                value={draft.macros[key]}
-                onInput={(event) => {
-                  setDraft({ ...draft, macros: { ...draft.macros, [key]: event.target.value } });
-                  clearError(`macros.${key}`);
-                }}
-                errorMessage={error(`macros.${key}`)}
-                errorMessageForce={errors[`macros.${key}`] !== undefined}
-              />
-            ))}
-          </List>
+          <MacroFields
+            macros={values.macros}
+            inputId={fieldDomId}
+            error={error}
+            onChange={(key, text) => {
+              setDraft({ ...draft, macros: { ...draft.macros, [key]: text } });
+              clearError(`macros.${key}`);
+            }}
+          />
 
-          <List>
+          <BlockTitle>Notatki</BlockTitle>
+          <List strong inset className="form-card">
             <ListInput
               outline
               label="Notatki"

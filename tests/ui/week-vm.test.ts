@@ -12,6 +12,7 @@ import {
   removeMealConfirmMessage,
   swipeWeekDelta,
   weekPage,
+  wheelScrollDelta,
 } from '../../src/ui/view-models/week';
 import { dish, meal, owsianka } from '../fakes/dishes';
 
@@ -189,5 +190,17 @@ describe('swipeWeekDelta', () => {
     [0, 0, 0],
   ])('dx %d, dy %d → %d days', (dx, dy, delta) => {
     expect(swipeWeekDelta(dx, dy)).toBe(delta);
+  });
+});
+
+describe('wheelScrollDelta', () => {
+  it.each([
+    [0, 120, 120],
+    [0, -40, -40],
+    [5, 30, 30],
+    [80, 10, 0],
+    [0, 0, 0],
+  ])('dx %d, dy %d → %d px sideways', (dx, dy, delta) => {
+    expect(wheelScrollDelta(dx, dy)).toBe(delta);
   });
 });
