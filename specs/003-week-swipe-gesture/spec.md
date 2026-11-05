@@ -21,6 +21,13 @@ Words used in this spec (UI terms, not domain terms):
 - **Viewed Week**: the Week the page is showing. **Neighbour Weeks**: the Week before it and the Week after it.
 - **Settle**: the short animation after release that brings a neighbour Week into the centre. **Spring back**: the short animation that returns the viewed Week to the centre.
 
+## Clarifications
+
+### Session 2026-11-05
+
+- Q: When the drag is released and the Week changes, should the new Week slide the rest of the way into place, or fade? → A: Slide into place, continuing the finger's motion. Neighbour Weeks are slightly dimmed and reach full strength in the centre. No fade-out and fade-in.
+- Q: If the user touches the Week card again while it is still settling after a swipe, what should happen? → A: The card can be grabbed mid-settle. It stops where it is and follows the finger from there, so two quick flicks move two Weeks.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Drag to the next or previous Week (Priority: P1)
@@ -78,7 +85,7 @@ On a desktop, the user clicks ← or → and the Week face slides to the neighbo
 ### Edge Cases
 
 - **Quick repeated swipes**: two or more flicks within a fraction of a second. Each finished swipe moves by exactly one Week, the face always ends centred on one Week, and there's no visible jump or flash of the wrong Week when the next swipe starts.
-- **Grabbing during a settle**: the user touches the card while it's still settling. The card must not freeze between two Weeks or skip a Week.
+- **Grabbing during a settle**: the user touches the card while it's still settling. The card stops where it is and follows the finger from there (FR-017). It must not freeze between two Weeks or skip a Week.
 - **Multi-touch**: a second finger lands during a drag. The gesture keeps following one finger, or springs back. It never jumps.
 - **Interrupted drag**: an incoming call, the app being backgrounded, or the system taking over the touch mid-drag. The face springs back to the viewed Week.
 - **Week spanning two months or years**: neighbour Weeks show their own label ("Grudzień 2026 – styczeń 2027"), exactly as they will once viewed.
@@ -107,7 +114,8 @@ On a desktop, the user clicks ← or → and the Week face slides to the neighbo
 - **FR-006**: The settle MUST continue the finger's motion into place as a slide, without fading the Week out and in. Settle and spring-back MUST each take about 150–250 ms.
 - **FR-007**: After a settle, the viewed Week MUST be 7 days later (dragged left) or 7 days earlier (dragged right), and the selected day MUST be the same weekday in the new Week. These are the same results as the ← / → buttons.
 - **FR-008**: After a settle, the face MUST be ready for the next swipe straight away, with new neighbours on both sides and no visible jump or flash. Weeks are unbounded in both directions.
-- **FR-009**: Every finished swipe MUST move by at most one Week. When the gesture ends for any reason other than a release (interrupted by the system, app backgrounded, a second finger), the face MUST end centred on exactly one Week.
+- **FR-009**: Every finished swipe MUST move by at most one Week, counted from the Week that was settling or centred when the finger touched down. When the gesture ends for any reason other than a release (interrupted by the system, app backgrounded, a second finger), the face MUST end centred on exactly one Week.
+- **FR-017**: A touch on the Week card while it is still settling or springing back MUST stop the animation where the face is, and the face MUST follow the finger from that position. Two quick flicks in the same direction MUST therefore move two Weeks.
 
 **Coexistence**
 
@@ -133,7 +141,7 @@ No stored data changes. The feature reads what already exists:
 
 ### Measurable Outcomes
 
-- **SC-001**: On an iPhone, 10 quick swipes in a row, alternating and in one direction, each end on the correct Week, with no visible jump, flash or blank strip on screen.
+- **SC-001**: On an iPhone, 10 quick swipes in a row, alternating and in one direction (including swipes started while the previous one is still settling), each end on the correct Week, with no visible jump, flash or blank strip on screen.
 - **SC-002**: Settle and spring-back each feel like about 200 ms and never take longer than 250 ms, including on 120 Hz displays.
 - **SC-003**: Of 20 vertical and diagonal scrolls started on the Week card, none moves the Week face or changes the Week.
 - **SC-004**: Of 10 system back swipes from the left screen edge in the installed app, none also drags the Week face.
@@ -145,7 +153,7 @@ No stored data changes. The feature reads what already exists:
 ## Assumptions
 
 - **Phones and iPhone first.** The gesture is checked on a real iPhone, both as the installed app and in a Safari tab. The Android check stays deferred, as in feature 001.
-- **Slide, not fade.** docs/SPEC.md says the content should "fade or slide away and the new Week fade gently in". With neighbours already visible beside the viewed Week, a fade would make the Week being pulled in disappear and reappear. So the settle is a slide that continues the finger's motion, and the fade survives only as the neighbours' dimming (FR-004). This follows the research (§2, "What changed with the peek requirement"). docs/SPEC.md's wording should be updated to match when the feature is built.
+- **Slide, not fade.** docs/SPEC.md says the content should "fade or slide away and the new Week fade gently in". With neighbours already visible beside the viewed Week, a fade would make the Week being pulled in disappear and reappear. So the settle is a slide that continues the finger's motion, and the fade survives only as the neighbours' dimming (FR-004). This follows the research (§2, "What changed with the peek requirement"), and the user confirmed it on 2026-11-05 (see Clarifications). docs/SPEC.md's wording should be updated to match when the feature is built.
 - **What moves.** Only the month label and the day strip swipe. The totals row and "Skopiuj do następnego tygodnia" stay fixed under them (decided by the user on 2026-11-05, recorded in the research §6).
 - **Neighbours show no totals.** Neighbour Weeks show only their Week face: month label, and day strip with kcal. The fixed totals row always belongs to the viewed Week's selected day.
 - **Commit rule numbers are starting points.** "About one third of the width" and "a quick flick" are defaults. The plan sets the values, and they're tuned on a device against SC-001 to SC-005.
