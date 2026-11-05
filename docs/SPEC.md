@@ -76,6 +76,7 @@ Editing a Meal:
 ### Week
 - Always Monday–Sunday.
 - Past weeks are kept. On phones, navigate by swiping the Week card; on desktop with ← / → buttons.
+  - Planned (later): the swipe gets proper microinteractions. While a finger holds and drags the Week card, the card follows it. On release, a long enough drag or a quick flick makes the content fade or slide away and the new Week fade gently in; a short drag springs back. Animations stay short (roughly 150–250 ms), because this is the app's primary interaction. Vertical scrolling and the system back swipe keep working. Today the Week changes on release, with a short slide-in. The approach is being researched in `docs/research/week-swipe-gesture.md`.
 - **"Skopiuj do następnego tygodnia"** copies all Meals (with servings and their linked/detached state) and per-day added Slots from the viewed Week into the next one, **replacing** the next Week's Meals and added Slots. If the next Week is not empty, ask for confirmation first. The next Week's Shopping List layer (Adjustments, Extras, checks) is left as it is.
 
 ## Summaries
