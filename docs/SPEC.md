@@ -119,7 +119,7 @@ Tabs: **Tydzień**, **Dania**, **Lista zakupów**, **Ustawienia**.
 - **Ustawienia:** number of Slots, Daily Goal, backup export/import.
 
 ### Desktop (≥ ~1024 px)
-- Navigation is a vertical bar on the left. Every screen shows its content in one column of the same maximum width (960 px) next to it, and sheets line up with that column. Components use the iOS style, as on iPhones.
+- Navigation is a vertical bar on the left. Every screen shows its content in one column of the same maximum width (960 px), centred in the space next to it, and sheets line up with that column. Components use the iOS style, as on iPhones.
 - **Tydzień** becomes one screen:
   - a 7-column grid (Mon–Sun) × Slots, with day summary bars under each column,
   - the Week summary as a column on the right of the Week page, next to the selected day (Summaries feature),

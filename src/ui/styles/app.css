@@ -15,6 +15,12 @@ html {
     --planner-sidebar-width: 232px;
     --planner-container-max: 960px;
     --planner-container-gutter: 32px;
+    /* Space left of the centred column, inside the area next to the navigation: centred on
+       wide windows, never less than the gutter on narrow ones. */
+    --planner-container-offset: max(
+      var(--planner-container-gutter),
+      calc((100vw - var(--planner-sidebar-width) - var(--planner-container-max)) / 2)
+    );
   }
 
   /* Navigation on the left: the same Framework7 tabbar, laid out as a column. */
@@ -75,15 +81,20 @@ html {
     width: calc(100% - var(--planner-sidebar-width));
   }
 
-  /* One content column on every screen, next to the navigation. */
-  .page-wide {
-    max-width: var(--planner-container-max);
-    margin-left: var(--planner-container-gutter);
-    margin-right: var(--planner-container-gutter);
-  }
+  /* One content column on every screen, centred in the space next to the navigation. */
+  .page-wide,
   .page-wide.week-content {
-    padding-left: 0;
-    padding-right: 0;
+    box-sizing: border-box;
+    max-width: calc(var(--planner-container-max) + 2 * var(--planner-container-gutter));
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--planner-container-gutter);
+    padding-right: var(--planner-container-gutter);
+  }
+  /* Scrollbar space on both sides, so the column stays centred whether a page scrolls or not,
+     and lines up with the sheets. */
+  .view .page-content {
+    scrollbar-gutter: stable both-edges;
   }
   /* Card sections line up with the column's edge, like the Week page's cards. */
   .page-wide .list.inset {
@@ -94,12 +105,15 @@ html {
     margin-left: 4px;
   }
   .view .navbar .navbar-inner {
+    right: 0;
     max-width: calc(var(--planner-container-max) + 2 * var(--planner-container-gutter));
+    margin-left: auto;
+    margin-right: auto;
   }
 
   /* Sheets are no wider than the column and line up with it. */
   .sheet-modal {
-    left: calc(var(--planner-sidebar-width) + var(--planner-container-gutter));
+    left: calc(var(--planner-sidebar-width) + var(--planner-container-offset));
     width: min(
       var(--planner-container-max),
       calc(100% - var(--planner-sidebar-width) - 2 * var(--planner-container-gutter))

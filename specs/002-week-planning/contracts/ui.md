@@ -171,9 +171,10 @@ Removed in the 2026-11-04 redesign. The day title ("Czwartek, 5 lis"), the Slots
 - **Desktop shell** (≥ 1024 px):
   - The same tabbar is a fixed 232 px column on the left: a white card, each tab a row of icon and label, the active tab tinted green. The iOS sliding highlight is hidden.
   - The views start after the column.
-  - `.page-wide` is the one content column on every screen: at most 960 px, 32 px from the navigation, not centred. Inset lists inside it lose their side margin, so all cards share one edge.
-  - The navbar contents are limited to the same width.
-- **Sheets:** on desktop they are 960 px at most, lined up with the column. On all sizes they use the warm page background (`--f7-sheet-bg-color`).
+  - `.page-wide` is the one content column on every screen: 960 px of content, centred in the space next to the navigation, with at least a 32 px gutter on narrow windows. Inset lists inside it lose their side margin, so all cards share one edge.
+  - Page content reserves scrollbar space on both sides (`scrollbar-gutter: stable both-edges`), so the column stays centred whether or not a page scrolls.
+  - The navbar contents are limited to the same width and centred.
+- **Sheets:** on desktop they are 960 px at most, lined up with the centred column (`--planner-container-offset`). On all sizes they use the warm page background (`--f7-sheet-bg-color`).
 - **Dish picker:** a non-passive `wheel` listener turns a mostly vertical wheel scroll (`wheelScrollDelta`) into horizontal scrolling of the strip.
 - **Dania** (`DishLibraryPage`):
   - Cards in `.dish-grid`: one column on phones, `repeat(auto-fill, minmax(260px, 1fr))` on desktop.

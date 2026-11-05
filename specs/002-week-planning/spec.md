@@ -48,7 +48,7 @@ Changed requirements: FR-004, FR-005, FR-011, FR-042 and FR-043. New: FR-044, FR
 Asked for by the user, with two annotated desktop screenshots:
 
 - **Desktop navigation on the left**: at about 1024 px and wider, the tabs become a vertical bar on the left side of the screen.
-- **One content container**: every screen uses the same content column, at most 960 px wide, starting next to the navigation rather than centred in the window. Sheets (the Meal sheet, the Dish picker, the slots sheet) are no wider than that column and line up with it.
+- **One content container**: every screen uses the same content column, at most 960 px wide, centred in the space next to the navigation (corrected the same day: the first build left-aligned it, and the user asked for it centred). Sheets (the Meal sheet, the Dish picker, the slots sheet) are no wider than that column and line up with it.
 - **iOS look on desktop**: desktop browsers use the iOS style of the components, like iPhones. Android keeps its own style.
 - **Dish picker on desktop**: the strip of Dish cards also scrolls sideways with a mouse wheel.
 - **Dania as cards** (phones and desktop): each Dish is its own card with its photo, name, Servings yield, number of Ingredients, kcal and macros for one Serving, and the start of its notes.
@@ -261,7 +261,7 @@ When the coming Week should look much like this one, the user taps "Skopiuj do n
 - **FR-040**: All user-facing text MUST be in Polish. Day names, month abbreviations and decimal commas MUST follow Polish conventions.
 - **FR-041**: On screens about 1024 px wide or wider:
   - The tabs MUST form a vertical navigation bar on the left.
-  - Every screen MUST show its content in the same column, at most 960 px wide, next to that bar.
+  - Every screen MUST show its content in the same column, at most 960 px wide, centred in the space next to that bar.
   - Sheets MUST be no wider than that column and MUST line up with it.
   - Components MUST use the iOS style, as on iPhones. Android devices keep Framework7's Android style.
   - All functions stay the same as on phones.
