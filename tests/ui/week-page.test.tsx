@@ -639,3 +639,47 @@ describe('WeekPage track: buttons, reduced motion and screen readers (feature 00
   });
 });
 
+describe('WeekPage track: motion blur', () => {
+  it('blurs the rail while it moves fast, and is sharp again at rest', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+    withMotion();
+
+    pointer(el, 'pointerdown', { x: 300, y: 40, t: 0 });
+    pointer(el, 'pointermove', { x: 270, y: 40, t: 8 });
+    pointer(el, 'pointermove', { x: 240, y: 40, t: 16 });
+    advanceFrames(16);
+    expect(rail().style.filter).toMatch(/^blur\(/);
+
+    pointer(el, 'pointerup', { x: 240, y: 40, t: 16 });
+    runAllFrames();
+    expect(heading()).toBe('Środa, 11 lis');
+    expect(rail().style.filter).toBe('');
+  });
+
+  it('sharpens while the finger holds still', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+    withMotion();
+
+    pointer(el, 'pointerdown', { x: 300, y: 40, t: 0 });
+    pointer(el, 'pointermove', { x: 240, y: 40, t: 16 });
+    advanceFrames(16);
+    expect(rail().style.filter).toMatch(/^blur\(/);
+    advanceFrames(300);
+
+    expect(rail().style.filter).toBe('');
+  });
+
+  it('never blurs with Reduce Motion', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+
+    pointer(el, 'pointerdown', { x: 300, y: 40, t: 0 });
+    pointer(el, 'pointermove', { x: 200, y: 40, t: 16 });
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    expect(rail().style.filter).toBe('');
+  });
+});
+

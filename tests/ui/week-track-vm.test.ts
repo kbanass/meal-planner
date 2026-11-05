@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   WEEK_TRACK,
+  blurFilter,
+  frameSpeed,
+  motionBlur,
+  smoothSpeed,
   classifyDrag,
   dragPosition,
   easeOutCubic,
@@ -262,5 +266,51 @@ describe('trackHeight', () => {
 
   it('gives no height when one is unknown', () => {
     expect(trackHeight(0.5, { 0: 123 })).toBeNull();
+  });
+});
+
+describe('frameSpeed', () => {
+  it('turns a position change into px/ms', () => {
+    expect(frameSpeed({ t: 0, position: 0 }, { t: 16, position: 0.1 }, 320)).toBeCloseTo(2, 10);
+    expect(frameSpeed({ t: 0, position: 0.1 }, { t: 16, position: 0 }, 320)).toBeCloseTo(2, 10);
+  });
+
+  it('gives 0 with no time, no pitch or non-finite values', () => {
+    expect(frameSpeed({ t: 16, position: 0 }, { t: 16, position: 0.5 }, 320)).toBe(0);
+    expect(frameSpeed({ t: 0, position: 0 }, { t: 16, position: 0.5 }, 0)).toBe(0);
+    expect(frameSpeed({ t: 0, position: 0 }, { t: 16, position: Number.NaN }, 320)).toBe(0);
+  });
+});
+
+describe('smoothSpeed', () => {
+  it('moves towards the newest sample by BLUR_SMOOTHING', () => {
+    expect(smoothSpeed(0, 2)).toBeCloseTo(2 * WEEK_TRACK.BLUR_SMOOTHING, 10);
+    expect(smoothSpeed(2, 2)).toBe(2);
+  });
+});
+
+describe('motionBlur', () => {
+  const { BLUR_MIN_SPEED: min, BLUR_PX_PER_SPEED: per, BLUR_MAX_PX: max, BLUR_STEP_PX: step } =
+    WEEK_TRACK;
+
+  it('stays sharp when slow', () => {
+    expect(motionBlur(0)).toBe(0);
+    expect(motionBlur(min)).toBe(0);
+  });
+
+  it('grows with speed, rounded to the step', () => {
+    expect(motionBlur(min + (4 * step) / per)).toBeCloseTo(4 * step, 10);
+    expect(motionBlur(min + (4.4 * step) / per)).toBeCloseTo(4 * step, 10);
+  });
+
+  it('never passes the maximum', () => {
+    expect(motionBlur(100)).toBe(max);
+  });
+});
+
+describe('blurFilter', () => {
+  it('removes the filter at 0 and writes plain decimals otherwise', () => {
+    expect(blurFilter(0)).toBe('');
+    expect(blurFilter(1.25)).toBe('blur(1.25px)');
   });
 });

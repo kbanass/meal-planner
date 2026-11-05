@@ -87,6 +87,12 @@ export const WEEK_TRACK = {
   DIM_OPACITY: 0.5,         // neighbour strength (FR-004)
   SETTLE_MIN_MS: 150,       // FR-006
   SETTLE_MAX_MS: 250,
+  // Motion blur (added after the first device try-out: fast-moving sharp text looked choppy)
+  BLUR_MIN_SPEED: 0.5,      // px/ms: slower than this stays sharp
+  BLUR_PX_PER_SPEED: 1,     // px of blur per px/ms above that
+  BLUR_MAX_PX: 2,
+  BLUR_SMOOTHING: 0.5,      // weight of the newest speed sample
+  BLUR_STEP_PX: 0.25,       // blur is rounded to this
 } as const;
 ```
 
@@ -106,6 +112,10 @@ These are starting values. Tune them on a device (quickstart M3) and keep the te
 | `tweenPosition(from, to, elapsedMs, durationMs)` | `from + (to − from) × easeOutCubic(elapsed / duration)`. Duration 0 → `to` | Halfway is 87.5% of the way; past the duration → `to`; duration 0 → `to` |
 | `trackFrame(position)` | `{ railShift: −position, opacities: Record<offset, number> }`, with `opacity = 1 − (1 − DIM_OPACITY) × min(1, \|offset − position\|)` | Position 0: offset 0 → 1, ±1 → 0.5, ±2 → 0.5; position 0.5: offsets 0 and 1 → 0.75 |
 | `trackHeight(position, heights)` (added during implementation) | `null` at position 0, between two equal heights, or when a height is missing. Otherwise the linear blend of the face heights at `floor` and `floor + 1` of the position, clamped to −2…2 | 0 → null; −0.5 between 123 and 152 → 137.5; between two 123s → null; +2.4 → the +2 height; a missing height → null |
+| `frameSpeed(previous, current, pitchPx)` | The rail's speed between two drawn frames, `\|Δposition\| × pitch / Δt`, in px/ms. No time, no pitch or non-finite values → 0 | 0.1 pitch of 320 px in 16 ms → 2; either direction; Δt 0, pitch 0, NaN → 0 |
+| `smoothSpeed(previous, sample)` | `previous + (sample − previous) × BLUR_SMOOTHING` | From 0 towards 2; a steady speed stays |
+| `motionBlur(speed)` | `(speed − BLUR_MIN_SPEED) × BLUR_PX_PER_SPEED`, clamped to [0, BLUR_MAX_PX], rounded to BLUR_STEP_PX | 0 and BLUR_MIN_SPEED → 0; rounding to the step; a huge speed → BLUR_MAX_PX |
+| `blurFilter(px)` | `''` at 0 (no filter, so text at rest is fully sharp), otherwise `blur(<n>px)` | 0 → `''`; 1.25 → `blur(1.25px)` |
 | `railTransform(shift)` / `faceTransform(offset)` | CSS strings: `translateX(calc(<n> * (100% + 12px)))` | The exact string for 0, 1 and −0.25 (no exponent notation) |
 
 The adapter only wires these together. Every number it writes to the DOM comes from one of them.

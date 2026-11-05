@@ -337,7 +337,8 @@ html {
 /*
  * The Week track (feature 003): five Week faces on one rail, moved only by the gesture adapter,
  * so there are no transitions here. Each face is shifted by its offset.
- * - Every face is its own GPU layer, so moving the rail and dimming a face never repaint text.
+ * - Every face is its own GPU layer, so moving the rail, dimming a face and the motion blur
+ *   (a CSS blur on the rail, set by the adapter from the speed) never repaint text.
  *   WebKit repaints a whole layer when a child's opacity changes, which made drags look like a
  *   low frame rate on iPhone.
  * - Only the viewed face takes up height. A neighbour with a two-line month label
@@ -370,7 +371,8 @@ html {
   flex-direction: column;
   justify-content: flex-end;
   height: 100%;
-  will-change: transform;
+  /* filter: the motion blur, applied by the GPU to the already-drawn face layers. */
+  will-change: transform, filter;
 }
 .week-face {
   position: absolute;

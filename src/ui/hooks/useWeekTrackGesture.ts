@@ -2,18 +2,23 @@ import { useCallback, useEffect, useRef, type RefObject } from 'react';
 import { flushSync } from 'react-dom';
 import {
   WEEK_TRACK,
+  blurFilter,
   classifyDrag,
   dragPosition,
+  frameSpeed,
   inEdgeZone,
+  motionBlur,
   railTransform,
   releaseTarget,
   releaseVelocity,
   settleDuration,
+  smoothSpeed,
   trackFrame,
   trackHeight,
   tweenPosition,
   type DragAxis,
   type FaceOffset,
+  type MotionSample,
   type VelocitySample,
 } from '../view-models/week-track';
 
@@ -44,6 +49,11 @@ interface Gesture {
   swallowClick: boolean;
   /** A drag frame waiting for the next animation frame, or 0. */
   dragFrame: number;
+  /** The last drawn frame and the rail's smoothed speed, for the motion blur. */
+  lastDrawn: MotionSample;
+  speed: number;
+  /** Off with Reduce Motion; read when a gesture or settle starts. */
+  blurs: boolean;
 }
 
 interface TrackElements {
@@ -69,12 +79,19 @@ function createTrack(elements: TrackElements) {
     tween: null,
     swallowClick: false,
     dragFrame: 0,
+    lastDrawn: { t: 0, position: 0 },
+    speed: 0,
+    blurs: false,
   };
   // The last value written per element and property: unchanged values aren't written again,
   // so a frame touches only what moved.
   const written = new WeakMap<HTMLElement, Map<string, string>>();
 
-  function setStyle(el: HTMLElement, property: 'transform' | 'opacity' | 'height', value: string) {
+  function setStyle(
+    el: HTMLElement,
+    property: 'transform' | 'opacity' | 'height' | 'filter',
+    value: string,
+  ) {
     let values = written.get(el);
     if (!values) {
       values = new Map();
@@ -94,28 +111,39 @@ function createTrack(elements: TrackElements) {
     g.heights = heights;
   }
 
-  function writeFrame(): void {
+  function writeFrame(now: number = performance.now()): void {
     if (g.dragFrame) {
       cancelAnimationFrame(g.dragFrame);
       g.dragFrame = 0;
     }
     const frame = trackFrame(g.position);
+    // At rest the blur is dropped at once; while moving it follows the rail's speed.
+    const moving = g.tween !== null || g.pointerId !== null;
+    const current = { t: now, position: g.position };
+    g.speed = moving ? smoothSpeed(g.speed, frameSpeed(g.lastDrawn, current, g.pitch)) : 0;
+    g.lastDrawn = current;
+    const blur = moving && g.blurs ? motionBlur(g.speed) : 0;
     const rail = elements.rail();
-    if (rail) setStyle(rail, 'transform', railTransform(frame.railShift));
+    if (rail) {
+      setStyle(rail, 'transform', railTransform(frame.railShift));
+      setStyle(rail, 'filter', blurFilter(blur));
+    }
     const track = elements.track();
     const height = trackHeight(g.position, g.heights);
     if (track) setStyle(track, 'height', height === null ? '' : `${height}px`);
     for (const [offset, face] of elements.faces()) {
       setStyle(face, 'opacity', String(frame.opacities[offset]));
     }
+    // A finger held still sends no moves: keep drawing until the blur has faded.
+    if (blur > 0 && g.tween === null) scheduleFrame();
   }
 
   /** Drag moves can come faster than frames: draw once per frame, with the latest position. */
   function scheduleFrame(): void {
     if (!g.dragFrame) {
-      g.dragFrame = requestAnimationFrame(() => {
+      g.dragFrame = requestAnimationFrame((now) => {
         g.dragFrame = 0;
-        writeFrame();
+        writeFrame(now);
       });
     }
   }
@@ -125,6 +153,7 @@ function createTrack(elements: TrackElements) {
     if (n !== 0) {
       flushSync(() => elements.onMove(7 * n));
       g.position -= n;
+      g.lastDrawn.position -= n;
       if (g.position !== 0) measureHeights();
     }
     writeFrame();
@@ -155,6 +184,9 @@ function createTrack(elements: TrackElements) {
       return;
     }
     measureHeights();
+    g.blurs = true;
+    const track = elements.track();
+    if (track && track.clientWidth > 0) g.pitch = track.clientWidth + WEEK_TRACK.GAP_PX;
     const from = g.position;
     const duration = settleDuration(to - from);
     const startT = performance.now();
@@ -166,7 +198,7 @@ function createTrack(elements: TrackElements) {
         commit(to);
         return;
       }
-      writeFrame();
+      writeFrame(now);
       if (g.tween) g.tween.frame = requestAnimationFrame(tick);
     };
     g.tween = { to, frame: requestAnimationFrame(tick) };
@@ -205,6 +237,8 @@ function createTrack(elements: TrackElements) {
     g.lastX = event.clientX;
     g.samples = [{ t: event.timeStamp, x: event.clientX }];
     g.pitch = track.clientWidth + WEEK_TRACK.GAP_PX;
+    g.blurs = !window.matchMedia(REDUCED_MOTION).matches;
+    g.lastDrawn = { t: performance.now(), position: g.position };
     measureHeights();
   }
 

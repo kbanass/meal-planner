@@ -14,6 +14,12 @@ export const WEEK_TRACK = {
   DIM_OPACITY: 0.5, // neighbour strength (FR-004)
   SETTLE_MIN_MS: 150, // FR-006
   SETTLE_MAX_MS: 250,
+  // Motion blur: the moving card softens with speed, like a camera, and is sharp at rest.
+  BLUR_MIN_SPEED: 0.5, // px/ms: slower than this stays sharp
+  BLUR_PX_PER_SPEED: 1, // px of blur per px/ms above BLUR_MIN_SPEED
+  BLUR_MAX_PX: 2,
+  BLUR_SMOOTHING: 0.5, // weight of the newest speed sample, so the blur doesn't flicker
+  BLUR_STEP_PX: 0.25, // blur is rounded to this, so tiny changes aren't redrawn
 } as const;
 
 export type FaceOffset = -2 | -1 | 0 | 1 | 2;
@@ -158,6 +164,40 @@ export function trackHeight(
   // Equal heights need no override, so the usual drag causes no layout at all.
   if (lowHeight === undefined || highHeight === undefined || lowHeight === highHeight) return null;
   return lowHeight + (highHeight - lowHeight) * (clamped - low);
+}
+
+export interface MotionSample {
+  t: number; // ms
+  position: number; // Weeks
+}
+
+/** How fast the rail moved between two frames, in px/ms. */
+export function frameSpeed(
+  previous: MotionSample,
+  current: MotionSample,
+  pitchPx: number,
+): number {
+  const dt = current.t - previous.t;
+  if (!(dt > 0) || !(pitchPx > 0)) return 0;
+  const speed = (Math.abs(current.position - previous.position) * pitchPx) / dt;
+  return Number.isFinite(speed) ? speed : 0;
+}
+
+/** Eases the measured speed towards the newest sample. */
+export function smoothSpeed(previous: number, sample: number): number {
+  return previous + (sample - previous) * WEEK_TRACK.BLUR_SMOOTHING;
+}
+
+/** The blur radius, in px, for a speed in px/ms: 0 when slow, at most BLUR_MAX_PX. */
+export function motionBlur(speed: number): number {
+  const { BLUR_MIN_SPEED, BLUR_PX_PER_SPEED, BLUR_MAX_PX, BLUR_STEP_PX } = WEEK_TRACK;
+  const raw = Math.min(BLUR_MAX_PX, Math.max(0, (speed - BLUR_MIN_SPEED) * BLUR_PX_PER_SPEED));
+  return Math.round(raw / BLUR_STEP_PX) * BLUR_STEP_PX;
+}
+
+/** The CSS filter for a blur radius: none at all at 0, so text at rest is fully sharp. */
+export function blurFilter(px: number): string {
+  return px > 0 ? `blur(${formatPitches(px)}px)` : '';
 }
 
 /** A plain decimal, never in exponent notation, with -0 shown as 0. */
