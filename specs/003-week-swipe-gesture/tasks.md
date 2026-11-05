@@ -48,7 +48,7 @@ description: "Task list for Week Swipe Gesture"
 
 **Purpose**: Confirm the starting point. This feature adds no dependencies or tooling.
 
-- [ ] T001 On branch `003-week-swipe-gesture`, run `npm run lint`, `npm run typecheck`, `npm test` and `npm run coverage`, and confirm everything passes before any change. If anything fails, stop and report it, because it predates this feature.
+- [X] T001 On branch `003-week-swipe-gesture`, run `npm run lint`, `npm run typecheck`, `npm test` and `npm run coverage`, and confirm everything passes before any change. If anything fails, stop and report it, because it predates this feature.
 
 ---
 
@@ -60,11 +60,11 @@ description: "Task list for Week Swipe Gesture"
 
 ### Tests (write first, they must fail)
 
-- [ ] T002 [P] Add `mealsInRange` tests to `tests/domain/week.test.ts`, per [contracts/view-models.md](contracts/view-models.md) "Domain":
+- [X] T002 [P] Add `mealsInRange` tests to `tests/domain/week.test.ts`, per [contracts/view-models.md](contracts/view-models.md) "Domain":
   - It keeps Meals dated on the range's first and last day, and drops Meals the day before and the day after.
   - An empty input gives `[]`.
   - Input order is kept.
-- [ ] T003 [P] Create `tests/ui/week-track-vm.test.ts` with one `describe` per row of the "Functions and required tests" table in [contracts/view-models.md](contracts/view-models.md). Cover every case listed:
+- [X] T003 [P] Create `tests/ui/week-track-vm.test.ts` with one `describe` per row of the "Functions and required tests" table in [contracts/view-models.md](contracts/view-models.md). Cover every case listed:
   - `inEdgeZone` (0, 23, 24, `width − 24` and `width − 23` against `WEEK_TRACK.EDGE_ZONE_PX`)
   - `classifyDrag`, including the (9, 9) tie, which is `'vertical'`
   - `dragPosition`: half pitch, 1.5 pitches with `RESISTANCE`, the catch start −0.3, pitch 0
@@ -75,7 +75,7 @@ description: "Task list for Week Swipe Gesture"
   - `tweenPosition`: halfway, past the duration, duration 0
   - `trackFrame` at positions 0 and 0.5
   - `railTransform` / `faceTransform`: exact strings for 0, 1 and −0.25, with no exponent notation
-- [ ] T004 [P] Add to `tests/ui/week-vm.test.ts`, per [contracts/view-models.md](contracts/view-models.md) "View model: week.ts":
+- [X] T004 [P] Add to `tests/ui/week-vm.test.ts`, per [contracts/view-models.md](contracts/view-models.md) "View model: week.ts":
   - `trackMealsRange('2026-11-02')` → `2026-10-19`…`2026-11-22`, and `trackMealsRange('2026-12-28')` → `2026-12-14`…`2027-01-17`.
   - `weekFace`:
     - The next face of Wed 4 Nov 2026 has Wed 11 `isSelected`.
@@ -88,23 +88,23 @@ description: "Task list for Week Swipe Gesture"
 
 ### Implementation
 
-- [ ] T005 [P] Implement `mealsInRange(meals: readonly Meal[], range: DateRange): Meal[]` in `src/domain/week.ts`. It keeps Meals with `range.start ≤ date ≤ range.end` (ISO string comparison), in input order. T002 must pass, and `npm run coverage` must stay at 100%.
-- [ ] T006 [P] Create `src/ui/view-models/week-track.ts`:
+- [X] T005 [P] Implement `mealsInRange(meals: readonly Meal[], range: DateRange): Meal[]` in `src/domain/week.ts`. It keeps Meals with `range.start ≤ date ≤ range.end` (ISO string comparison), in input order. T002 must pass, and `npm run coverage` must stay at 100%.
+- [X] T006 [P] Create `src/ui/view-models/week-track.ts`:
   - `WEEK_TRACK` holds exactly the constants in [contracts/view-models.md](contracts/view-models.md): `GAP_PX` 12, `EDGE_ZONE_PX` 24, `SLOP_PX` 8, `COMMIT_RATIO` 1/3, `FLICK_VELOCITY` 0.3, `FLICK_MIN_PX` 20, `VELOCITY_WINDOW_MS` 100, `RESISTANCE` 0.35, `DIM_OPACITY` 0.5, `SETTLE_MIN_MS` 150, `SETTLE_MAX_MS` 250, `as const`.
   - The pure functions are `inEdgeZone`, `classifyDrag`, `dragPosition`, `releaseVelocity`, `releaseTarget`, `settleDuration`, `easeOutCubic`, `tweenPosition`, `trackFrame`, `railTransform` and `faceTransform`, with the signatures and contracts of that table and [research.md](research.md) R4–R6.
   - The file imports no DOM, React or Framework7 code.
   - Format transform numbers with a fixed number of decimal places, so the output never uses exponent notation.
   - T003 must pass.
-- [ ] T007 Add `trackMealsRange`, the `WeekFace` type, `weekFace` and `weekTrackFaces` to `src/ui/view-models/week.ts`:
+- [X] T007 Add `trackMealsRange`, the `WeekFace` type, `weekFace` and `weekTrackFaces` to `src/ui/view-models/week.ts`:
   - The face's `strip` reuses the existing `StripCell` mapping, with `isSelected = cell.date === sameWeekday(selected, faceWeekStart)`.
   - Change `weekPage` so `monthLabel` and `strip` come from `weekFace(weekStart, 0, …)`, and `canCopy = weekHasPlan(mealsInRange(meals, weekRange(weekStart)), daySlots)`.
   - Keep `swipeWeekDelta` for now, because `WeekPage` still uses it until T013.
   - Depends on T005. T004 must pass.
-- [ ] T008 [P] Update the jsdom stand-ins in `tests/setup.ts` (research R10):
+- [X] T008 [P] Update the jsdom stand-ins in `tests/setup.ts` (research R10):
   - Add no-op `Element.prototype.setPointerCapture`, `releasePointerCapture` and `hasPointerCapture` (returns `false`), only when they're missing.
   - Change the `matchMedia` stand-in so it returns `matches: true` only for a query containing `prefers-reduced-motion: reduce`, and `false` for everything else, so tests keep the mobile layout. Update its comment.
   - Confirm `npm test` still passes.
-- [ ] T009 [P] Create `tests/ui/pointer.ts`, with test helpers for driving the track:
+- [X] T009 [P] Create `tests/ui/pointer.ts`, with test helpers for driving the track:
   - `setTrackWidth(el, px)` defines `clientWidth` with `Object.defineProperty`.
   - `pointer(el, type, { x, y, t, pointerId = 1, pointerType = 'touch' })` dispatches a bubbling `PointerEvent` inside `act`, with `timeStamp` overridden to `t` through `Object.defineProperty` on the event.
   - `drag(el, { from: [x, y], to: [x, y], steps, durationMs, startT = 0, pointerType })` sends down, evenly spaced moves and up.

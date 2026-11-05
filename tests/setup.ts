@@ -22,10 +22,11 @@ if (typeof window !== 'undefined') {
   }
 
   if (typeof window.matchMedia !== 'function') {
-    // Never matches, so tests render the mobile layout.
+    // Matches only the reduced-motion query, so Week settles finish at once without timers
+    // (feature 003, research R10). Every other query is false, so tests render the mobile layout.
     window.matchMedia = (media: string) =>
       ({
-        matches: false,
+        matches: media.includes('prefers-reduced-motion: reduce'),
         media,
         onchange: null,
         addEventListener() {},
@@ -34,6 +35,17 @@ if (typeof window !== 'undefined') {
         removeListener() {},
         dispatchEvent: () => false,
       }) as MediaQueryList;
+  }
+
+  // Pointer capture for the Week track's gesture adapter: no-ops in jsdom.
+  if (typeof Element.prototype.setPointerCapture !== 'function') {
+    Element.prototype.setPointerCapture = () => {};
+  }
+  if (typeof Element.prototype.releasePointerCapture !== 'function') {
+    Element.prototype.releasePointerCapture = () => {};
+  }
+  if (typeof Element.prototype.hasPointerCapture !== 'function') {
+    Element.prototype.hasPointerCapture = () => false;
   }
 
   if (typeof Element.prototype.scrollIntoView !== 'function') {
