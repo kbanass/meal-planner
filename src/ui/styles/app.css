@@ -305,6 +305,25 @@ html {
   flex: none;
   gap: 10px;
 }
+/*
+ * Desktop: the ← / → buttons sit over the track's top right, outside the rail, so they stay put
+ * while the Week slides. The month row keeps their height and leaves room for them, so a long
+ * label ("Grudzień 2026 – styczeń 2027") never runs under them.
+ */
+@media (min-width: 1024px) {
+  .week-card-nav {
+    position: absolute;
+    top: 0;
+    right: 4px;
+    z-index: 1;
+  }
+  .week-face .week-card-month {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding-right: 112px;
+  }
+}
 /* Phones swipe the Week card, so the buttons are hidden but kept for screen readers. */
 @media (max-width: 1023px) {
   .week-card-nav {

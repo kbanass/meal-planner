@@ -583,3 +583,59 @@ describe('WeekPage track: no fight with scrolling, taps or the system (feature 0
   });
 });
 
+describe('WeekPage track: buttons, reduced motion and screen readers (feature 003, US3)', () => {
+  it('T11: only the viewed Week is exposed to screen readers', async () => {
+    const { deps } = depsWithClock();
+    renderWithApp(<WeekPage />, deps);
+    await findMonth('Listopad 2026');
+
+    expect(document.querySelectorAll('.week-face[inert]')).toHaveLength(4);
+    expect(document.querySelectorAll('.week-face')).toHaveLength(5);
+    const months = screen.getAllByRole('heading', { level: 2 });
+    expect(months).toHaveLength(1);
+    expect(months[0]).toHaveTextContent('Listopad 2026');
+  });
+
+  it('T13: two quick clicks on "Następny tydzień" move two Weeks', async () => {
+    const { deps } = depsWithClock();
+    renderWithApp(<WeekPage />, deps);
+    await findMonth('Listopad 2026');
+
+    await userEvent.click(screen.getByLabelText('Następny tydzień'));
+    await userEvent.click(screen.getByLabelText('Następny tydzień'));
+
+    expect(heading()).toBe('Środa, 18 lis');
+    expect(pill('Środa, 18 lis')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('T13: with motion on, a click during a settle chains like a flick', async () => {
+    const { deps } = depsWithClock();
+    await renderTrack(deps);
+    withMotion();
+    const next = screen.getByLabelText('Następny tydzień');
+
+    act(() => next.click());
+    advanceFrames(60);
+    expect(heading()).toBe('Środa, 4 lis');
+    act(() => next.click());
+    expect(heading()).toBe('Środa, 11 lis');
+    runAllFrames();
+
+    expect(heading()).toBe('Środa, 18 lis');
+    expect(rail().style.transform).toBe(railTransform(0));
+  });
+
+  it('T14: "Skopiuj…" is off for an empty Week whose next Week has Meals', async () => {
+    const { deps } = depsWithClock();
+    await deps.dishes.put(owsianka);
+    await deps.week.addMeal({ date: '2026-11-11', slot: 1, dishId: owsianka.id });
+    renderWithApp(<WeekPage />, deps);
+    await waitFor(() => {
+      const face = document.querySelectorAll<HTMLElement>('.week-face')[3]!;
+      expect(within(face).getByText('350')).toBeInTheDocument();
+    });
+
+    expect(copyButton()).toBeDisabled();
+  });
+});
+

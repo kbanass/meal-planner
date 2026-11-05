@@ -235,18 +235,18 @@ description: "Task list for Week Swipe Gesture"
 
 ### Tests for User Story 3 (write first, they must fail)
 
-- [ ] T022 [US3] In `tests/ui/week-page.test.tsx`, add tests T11, T13 and T14 from [contracts/ui.md](contracts/ui.md):
+- [X] T022 [US3] In `tests/ui/week-page.test.tsx`, add tests T11, T13 and T14 from [contracts/ui.md](contracts/ui.md):
   - **T11**: exactly four `.week-face` elements have the `inert` attribute, and `screen.getAllByRole('heading', { level: 2 })` has length 1, reading "Listopad 2026".
   - **T13**: the existing "moves between Weeks keeping the weekday (US4-1, US4-2)" test still passes through the buttons, and add a check that two quick clicks on "Następny tydzień" move two Weeks.
   - **T14**: with a Meal only on 2026-11-11, "Skopiuj do następnego tygodnia" is disabled on the Week of 2 Nov.
 
 ### Implementation for User Story 3
 
-- [ ] T023 [US3] Desktop layout in `src/ui/styles/app.css`. At `min-width: 1024px`:
+- [X] T023 [US3] Desktop layout in `src/ui/styles/app.css`. At `min-width: 1024px`:
   - Position `.week-card-nav` absolutely at the top right of `.week-track`, vertically aligned with the month row.
   - Give `.week-face .week-card-month` enough `padding-right` that a long label ("Grudzień 2026 – styczeń 2027") never sits under the buttons.
   - Check the result at 1280 px and 1024 px in `npm run dev`.
-- [ ] T024 [US3] Check `src/ui/hooks/useWeekTrackGesture.ts` against FR-013 and FR-014:
+- [X] T024 [US3] Check `src/ui/hooks/useWeekTrackGesture.ts` against FR-013 and FR-014:
   - The reduced-motion query is read at the start of every settle, not once on mount.
   - `step` during a running tween catches and chains, like a flick (research R8).
   - Fix any gap, and keep T11, T13 and T14 green.
