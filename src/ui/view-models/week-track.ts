@@ -142,7 +142,8 @@ export function trackFrame(position: number): TrackFrame {
 /**
  * The track's height, in px, between two Weeks whose month labels take a different number of
  * lines: it moves with the position, so the totals below slide instead of jumping. `null` at
- * rest, or when a height is unknown, leaves the height to the layout.
+ * rest, between two Weeks of the same height, or when a height is unknown, leaves the height
+ * to the layout.
  */
 export function trackHeight(
   position: number,
@@ -154,7 +155,8 @@ export function trackHeight(
   const high = Math.min(2, low + 1);
   const lowHeight = heights[low as FaceOffset];
   const highHeight = heights[high as FaceOffset];
-  if (lowHeight === undefined || highHeight === undefined) return null;
+  // Equal heights need no override, so the usual drag causes no layout at all.
+  if (lowHeight === undefined || highHeight === undefined || lowHeight === highHeight) return null;
   return lowHeight + (highHeight - lowHeight) * (clamped - low);
 }
 

@@ -105,7 +105,7 @@ These are starting values. Tune them on a device (quickstart M3) and keep the te
 | `easeOutCubic(t)` | `1 − (1 − t)³`, with `t` clamped to [0, 1] | 0 → 0; 1 → 1; 0.5 → 0.875; −1 → 0; 2 → 1 |
 | `tweenPosition(from, to, elapsedMs, durationMs)` | `from + (to − from) × easeOutCubic(elapsed / duration)`. Duration 0 → `to` | Halfway is 87.5% of the way; past the duration → `to`; duration 0 → `to` |
 | `trackFrame(position)` | `{ railShift: −position, opacities: Record<offset, number> }`, with `opacity = 1 − (1 − DIM_OPACITY) × min(1, \|offset − position\|)` | Position 0: offset 0 → 1, ±1 → 0.5, ±2 → 0.5; position 0.5: offsets 0 and 1 → 0.75 |
-| `trackHeight(position, heights)` (added during implementation) | `null` at position 0 or when a height is missing. Otherwise the linear blend of the face heights at `floor` and `floor + 1` of the position, clamped to −2…2 | 0 → null; −0.5 between 123 and 152 → 137.5; +2.4 → the +2 height; a missing height → null |
+| `trackHeight(position, heights)` (added during implementation) | `null` at position 0, between two equal heights, or when a height is missing. Otherwise the linear blend of the face heights at `floor` and `floor + 1` of the position, clamped to −2…2 | 0 → null; −0.5 between 123 and 152 → 137.5; between two 123s → null; +2.4 → the +2 height; a missing height → null |
 | `railTransform(shift)` / `faceTransform(offset)` | CSS strings: `translateX(calc(<n> * (100% + 12px)))` | The exact string for 0, 1 and −0.25 (no exponent notation) |
 
 The adapter only wires these together. Every number it writes to the DOM comes from one of them.

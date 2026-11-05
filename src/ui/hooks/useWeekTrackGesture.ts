@@ -42,6 +42,8 @@ interface Gesture {
   tween: Tween | null;
   /** Set when a gesture locks horizontal: the click that follows isn't a day tap (FR-012). */
   swallowClick: boolean;
+  /** A drag frame waiting for the next animation frame, or 0. */
+  dragFrame: number;
 }
 
 interface TrackElements {
@@ -66,24 +68,55 @@ function createTrack(elements: TrackElements) {
     heights: {},
     tween: null,
     swallowClick: false,
+    dragFrame: 0,
   };
+  // The last value written per element and property: unchanged values aren't written again,
+  // so a frame touches only what moved.
+  const written = new WeakMap<HTMLElement, Map<string, string>>();
+
+  function setStyle(el: HTMLElement, property: 'transform' | 'opacity' | 'height', value: string) {
+    let values = written.get(el);
+    if (!values) {
+      values = new Map();
+      written.set(el, values);
+    }
+    if (values.get(property) === value) return;
+    values.set(property, value);
+    el.style[property] = value;
+  }
 
   /** One layout read per gesture, settle or commit, never per frame. */
   function measureHeights(): void {
     const heights: Partial<Record<FaceOffset, number>> = {};
-    for (const [offset, face] of elements.faces()) heights[offset] = face.offsetHeight;
+    for (const [offset, face] of elements.faces()) {
+      heights[offset] = face.getBoundingClientRect().height;
+    }
     g.heights = heights;
   }
 
   function writeFrame(): void {
+    if (g.dragFrame) {
+      cancelAnimationFrame(g.dragFrame);
+      g.dragFrame = 0;
+    }
     const frame = trackFrame(g.position);
     const rail = elements.rail();
-    if (rail) rail.style.transform = railTransform(frame.railShift);
+    if (rail) setStyle(rail, 'transform', railTransform(frame.railShift));
     const track = elements.track();
     const height = trackHeight(g.position, g.heights);
-    if (track) track.style.height = height === null ? '' : `${height}px`;
+    if (track) setStyle(track, 'height', height === null ? '' : `${height}px`);
     for (const [offset, face] of elements.faces()) {
-      face.style.opacity = String(frame.opacities[offset]);
+      setStyle(face, 'opacity', String(frame.opacities[offset]));
+    }
+  }
+
+  /** Drag moves can come faster than frames: draw once per frame, with the latest position. */
+  function scheduleFrame(): void {
+    if (!g.dragFrame) {
+      g.dragFrame = requestAnimationFrame(() => {
+        g.dragFrame = 0;
+        writeFrame();
+      });
     }
   }
 
@@ -196,7 +229,7 @@ function createTrack(elements: TrackElements) {
     g.lastX = event.clientX;
     g.samples.push({ t: event.timeStamp, x: event.clientX });
     g.samples = g.samples.filter((s) => s.t >= event.timeStamp - WEEK_TRACK.VELOCITY_WINDOW_MS);
-    writeFrame();
+    scheduleFrame();
   }
 
   function onPointerUp(event: PointerEvent): void {
@@ -282,6 +315,8 @@ function createTrack(elements: TrackElements) {
       track.removeEventListener('click', onClickCapture, true);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       stopTween();
+      if (g.dragFrame) cancelAnimationFrame(g.dragFrame);
+      g.dragFrame = 0;
       g.pointerId = null;
     };
   }

@@ -245,14 +245,19 @@ describe('trackHeight', () => {
 
   it('moves between the two Weeks in view', () => {
     expect(trackHeight(-0.5, heights)).toBeCloseTo(137.5, 10);
-    expect(trackHeight(0.5, heights)).toBe(123);
+    expect(trackHeight(-0.75, heights)).toBeCloseTo(123 + 29 * 0.75, 10);
     expect(trackHeight(1.25, heights)).toBeCloseTo(123 + 29 * 0.25, 10);
     expect(trackHeight(-1, heights)).toBe(152);
   });
 
-  it('stays within the five faces', () => {
-    expect(trackHeight(2.4, heights)).toBe(152);
+  it('stays within the five faces, with nothing past ±2', () => {
+    expect(trackHeight(1.6, heights)).toBeCloseTo(123 + 29 * 0.6, 10);
+    expect(trackHeight(2.4, heights)).toBeNull();
     expect(trackHeight(-2.4, heights)).toBe(123);
+  });
+
+  it('gives no height between two Weeks of the same height', () => {
+    expect(trackHeight(0.5, heights)).toBeNull();
   });
 
   it('gives no height when one is unknown', () => {

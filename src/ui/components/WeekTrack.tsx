@@ -26,27 +26,30 @@ export function WeekTrack({ faces, onMove, onSelect }: WeekTrackProps) {
 
   return (
     <div className="week-track" ref={trackRef}>
-      <div className="week-track-rail" ref={railRef}>
-        {faces.map((face) => (
-          <div
-            key={face.weekStart}
-            className={face.isViewed ? 'week-face week-face-viewed' : 'week-face'}
-            style={{ transform: faceTransform(face.offset) }}
-            inert={!face.isViewed}
-            aria-hidden={face.isViewed ? undefined : 'true'}
-            ref={(el) => {
-              if (!el) return;
-              const faces = faceRefs.current;
-              faces.set(face.offset, el);
-              return () => {
-                if (faces.get(face.offset) === el) faces.delete(face.offset);
-              };
-            }}
-          >
-            <h2 className="week-card-month">{face.monthLabel}</h2>
-            <DayStrip cells={face.strip} onSelect={onSelect} />
-          </div>
-        ))}
+      {/* Clips the rail with overflow, not clip-path: WebKit keeps the faces' layers composited. */}
+      <div className="week-track-clip">
+        <div className="week-track-rail" ref={railRef}>
+          {faces.map((face) => (
+            <div
+              key={face.weekStart}
+              className={face.isViewed ? 'week-face week-face-viewed' : 'week-face'}
+              style={{ transform: faceTransform(face.offset) }}
+              inert={!face.isViewed}
+              aria-hidden={face.isViewed ? undefined : 'true'}
+              ref={(el) => {
+                if (!el) return;
+                const faces = faceRefs.current;
+                faces.set(face.offset, el);
+                return () => {
+                  if (faces.get(face.offset) === el) faces.delete(face.offset);
+                };
+              }}
+            >
+              <h2 className="week-card-month">{face.monthLabel}</h2>
+              <DayStrip cells={face.strip} onSelect={onSelect} />
+            </div>
+          ))}
+        </div>
       </div>
       {/* Visible on desktop; on phones the card is swiped, and these stay for screen readers. */}
       <div className="week-card-nav">

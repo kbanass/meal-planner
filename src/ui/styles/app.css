@@ -337,22 +337,32 @@ html {
 /*
  * The Week track (feature 003): five Week faces on one rail, moved only by the gesture adapter,
  * so there are no transitions here. Each face is shifted by its offset.
+ * - Every face is its own GPU layer, so moving the rail and dimming a face never repaint text.
+ *   WebKit repaints a whole layer when a child's opacity changes, which made drags look like a
+ *   low frame rate on iPhone.
  * - Only the viewed face takes up height. A neighbour with a two-line month label
  *   ("Październik – listopad 2026") would otherwise leave a gap under every Week's strip.
- * - The faces align at the bottom, so the day pills slide in one row. While a gesture runs, the
- *   adapter sets the track's height between the two Weeks' heights, and the labels rise into
- *   the card's top padding.
- * - The clip reaches 12 px (the gap) past the sides, so a neighbour stays hidden at rest while
- *   the selected pill's shadow isn't cut. The card stops the rail widening the page.
+ * - The faces align at the bottom, so the day pills slide in one row. While a gesture runs
+ *   between Weeks of different heights, the adapter sets the track's height between the two,
+ *   and the labels rise into the card's top padding.
+ * - The clip is plain overflow (no clip-path, no rounded clip: both cost WebKit mask layers).
+ *   It reaches 12 px (the gap) past the sides, so a neighbour stays hidden at rest while the
+ *   selected pill's shadow isn't cut, and keeps the rail from widening the page.
  */
 .week-card {
-  overflow: hidden;
-  overflow: clip;
   touch-action: pan-y;
 }
 .week-track {
   position: relative;
-  clip-path: inset(-20px -12px -24px);
+  /* Its own formatting context, so the clip's negative margins overflow it, not collapse. */
+  display: flow-root;
+}
+.week-track-clip {
+  height: 100%;
+  margin: -20px -12px -24px;
+  padding: 20px 12px 24px;
+  overflow: hidden;
+  overflow: clip;
 }
 .week-track-rail {
   position: relative;
@@ -367,6 +377,7 @@ html {
   bottom: 0;
   left: 0;
   width: 100%;
+  will-change: transform, opacity;
 }
 .week-face-viewed {
   position: relative;
