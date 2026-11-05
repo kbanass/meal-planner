@@ -483,6 +483,11 @@ html {
   flex: none;
   font-size: 17px;
 }
+/* Lucide shapes sized like the Framework7 icon font beside them. */
+.macro-svg-icon {
+  width: 1em;
+  height: 1em;
+}
 .macro-total-unit {
   font-weight: 400;
   font-size: 12px;

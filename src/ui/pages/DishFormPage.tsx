@@ -1,11 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
-  Block,
   BlockTitle,
   Button,
   f7,
   Link,
   List,
+  ListButton,
   ListInput,
   Navbar,
   NavRight,
@@ -254,11 +254,12 @@ export function DishFormPage({ f7route, f7router }: DishFormPageProps) {
           </List>
 
           {stored && (
-            <Block>
-              <Button type="button" large tonal color="red" onClick={confirmDelete}>
+            // The same red list button as "Usuń posiłek" in the Meal sheet.
+            <List strong inset className="form-card">
+              <ListButton color="red" onClick={confirmDelete}>
                 Usuń danie
-              </Button>
-            </Block>
+              </ListButton>
+            </List>
           )}
         </div>
       )}

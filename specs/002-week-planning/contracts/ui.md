@@ -190,6 +190,11 @@ Removed in the 2026-11-04 redesign. The day title ("Czwartek, 5 lis"), the Slots
   - The Dish form's name, yield and notes are white card sections too, with a "Notatki" title.
 - **Later (Summaries feature):** on desktop, the Week summary becomes a column to the right of the selected day, inside the same container.
 
+## Macro icons and the Dish delete button (2026-11-05)
+
+- **Macro icons:** kcal `flame_fill` and fat `drop_fill` stay Framework7 icons. Framework7 Icons has no food glyphs, so protein and carbs use Lucide's "drumstick" and "wheat" shapes (ISC licence, v1.69.0, notice kept in `MacroIcon.tsx`), drawn filled to match. `MacroTotal.icon` holds `'drumstick'` and `'wheat'` for them.
+- **"Usuń danie":** in the Dish form, a red `ListButton` in a white card section, the same as "Usuń posiłek" in the Meal sheet, instead of a large tonal button with its own corner radius.
+
 ## ProductPicker (change to feature 001, 2026-11-04)
 
 Asked for by the user: "Dodaj składnik" looked like a text field, so it was misleading.

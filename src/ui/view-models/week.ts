@@ -49,6 +49,7 @@ export interface MacroTotal {
   label: string;
   value: string;
   unit: 'kcal' | 'g';
+  /** A Framework7 icon name, or a Lucide food shape in MacroIcon ("drumstick", "wheat"). */
   icon: string;
 }
 
@@ -56,9 +57,9 @@ export interface MacroTotal {
 export function macroTotals(macros: Macros): MacroTotal[] {
   return [
     { key: 'kcal', label: 'Kalorie', value: formatKcal(macros.kcal), unit: 'kcal', icon: 'flame_fill' },
-    { key: 'protein', label: 'Białko', value: formatMacro(macros.protein), unit: 'g', icon: 'cube_fill' },
+    { key: 'protein', label: 'Białko', value: formatMacro(macros.protein), unit: 'g', icon: 'drumstick' },
     { key: 'fat', label: 'Tłuszcz', value: formatMacro(macros.fat), unit: 'g', icon: 'drop_fill' },
-    { key: 'carbs', label: 'Węglowodany', value: formatMacro(macros.carbs), unit: 'g', icon: 'hexagon_fill' },
+    { key: 'carbs', label: 'Węglowodany', value: formatMacro(macros.carbs), unit: 'g', icon: 'wheat' },
   ];
 }
 

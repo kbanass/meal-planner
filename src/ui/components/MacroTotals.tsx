@@ -1,5 +1,5 @@
-import { Icon } from 'framework7-react';
 import type { MacroTotal } from '../view-models/week';
+import { MacroIcon } from './MacroIcon';
 
 /** kcal, protein, fat and carbs as small icons with numbers (FR-004, FR-044, FR-045). */
 export function MacroTotals({ totals, compact = false }: { totals: MacroTotal[]; compact?: boolean }) {
@@ -12,7 +12,7 @@ export function MacroTotals({ totals, compact = false }: { totals: MacroTotal[];
           aria-label={`${total.label}: ${total.value} ${total.unit}`}
           title={total.label}
         >
-          <Icon f7={total.icon} aria-hidden="true" />
+          <MacroIcon name={total.icon} />
           <span className="macro-total-value" aria-hidden="true">
             {total.value}
             <span className="macro-total-unit"> {total.unit}</span>

@@ -68,9 +68,14 @@ The `seed` deploy (`npm run deploy:seed`) has a fixture `?seed=weeks-52`: the cu
   - **SC-005**: copying a 35-Meal Week to an empty next Week took 31 ms, toast included (target < 1 s).
 - **Screens:** the Week page, the Dish picker, the Meal sheet (including the nested "Nowy produkt" sheet), Dania, the Dish form and Ustawienia with its slots sheet were checked at 390×844, and the Week page at 1280 px, from screenshots.
 
+### 2026-11-05: manual run by the user
+
+- Rows 1–16 pass. Row 4 asked for clarification: the sheet's inputs keep 2 decimals ("18,75"), while the Slot card shows display rounding ("18,8"), as intended.
+- Feedback from the run, both fixed: the Dish delete button had a different corner radius from the other buttons of its kind, and the protein and carbs icons did not look like protein and carbs.
+
 ### Still to do on a real device (T085)
 
-- Rows 1–20 on an iPhone with current iOS Safari: installed to the home screen, and in airplane mode for row 19.
+- Rows 17–20 on an iPhone with current iOS Safari: installed to the home screen, and in airplane mode for row 19.
 - SC-001 timed by hand.
 - Swipe feel on the Week card.
 - Android stays deferred, as in feature 001.
