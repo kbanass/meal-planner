@@ -308,7 +308,7 @@ html {
 /*
  * Desktop: the ← / → buttons sit over the track's top right, outside the rail, so they stay put
  * while the Week slides. The month row keeps their height and leaves room for them, so a long
- * label ("Grudzień 2026 – styczeń 2027") never runs under them.
+ * label ("Październik 2026") never runs under them.
  */
 @media (min-width: 1024px) {
   .week-card-nav {
@@ -341,11 +341,10 @@ html {
  *   (a CSS blur on the rail, set by the adapter from the speed) never repaint text.
  *   WebKit repaints a whole layer when a child's opacity changes, which made drags look like a
  *   low frame rate on iPhone.
- * - Only the viewed face takes up height. A neighbour with a two-line month label
- *   ("Październik – listopad 2026") would otherwise leave a gap under every Week's strip.
- * - The faces align at the bottom, so the day pills slide in one row. While a gesture runs
- *   between Weeks of different heights, the adapter sets the track's height between the two,
- *   and the labels rise into the card's top padding.
+ * - Only the viewed face takes up height, and the faces align at the bottom, so the day pills
+ *   slide in one row. Month labels name one month, so every face is normally the same height.
+ *   If one ever isn't (a label that wraps), the adapter sets the track's height between the
+ *   two while a gesture runs, and the labels rise into the card's top padding.
  * - The clip is plain overflow (no clip-path, no rounded clip: both cost WebKit mask layers).
  *   It reaches 12 px (the gap) past the sides, so a neighbour stays hidden at rest while the
  *   selected pill's shadow isn't cut, and keeps the rail from widening the page.

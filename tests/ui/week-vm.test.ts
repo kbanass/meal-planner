@@ -203,9 +203,9 @@ describe('weekFace', () => {
     ]);
   });
 
-  it('labels a Week spanning two months', () => {
+  it('labels a Week spanning two months by the month with most of its days', () => {
     expect(weekFace('2026-10-26', -1, '2026-11-04', '2026-11-04', [], dishes).monthLabel).toBe(
-      'Październik – listopad 2026',
+      'Październik 2026',
     );
   });
 

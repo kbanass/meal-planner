@@ -163,7 +163,7 @@ describe('WeekPage', () => {
 
     await userEvent.click(screen.getByLabelText('Poprzedni tydzień'));
     await userEvent.click(screen.getByLabelText('Poprzedni tydzień'));
-    expect(await findMonth('Październik – listopad 2026')).toBeInTheDocument();
+    expect(await findMonth('Październik 2026')).toBeInTheDocument();
     expect(heading()).toBe('Czwartek, 29 paź');
   });
 

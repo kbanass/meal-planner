@@ -195,10 +195,13 @@ describe('Week view redesign labels', () => {
     ]);
   });
 
+  // One month: the one holding most of the Week's days (4 of 7), so the label never wraps.
   it.each([
     ['2026-11-02', 'Listopad 2026'],
-    ['2026-11-30', 'Listopad – grudzień 2026'],
-    ['2026-12-28', 'Grudzień 2026 – styczeń 2027'],
+    ['2026-10-26', 'Październik 2026'], // 26–31 Oct, 1 Nov
+    ['2026-11-30', 'Grudzień 2026'], // 30 Nov, 1–6 Dec
+    ['2026-12-28', 'Grudzień 2026'], // 28–31 Dec, 1–3 Jan
+    ['2025-12-29', 'Styczeń 2026'], // 29–31 Dec, 1–4 Jan: the year follows the month
   ])('labels the Week of %s as %j', (weekStart, label) => {
     expect(weekMonthLabel(weekStart)).toBe(label);
   });

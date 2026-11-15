@@ -166,20 +166,13 @@ export function sameWeekday(date: IsoDate, weekStart: IsoDate): IsoDate {
   return addDays(weekStart, weekdayIndex(date));
 }
 
-function fullMonth(month: number, capitalised: boolean): string {
-  const name = MONTH_NAMES[month - 1] as string;
-  return capitalised ? name.charAt(0).toUpperCase() + name.slice(1) : name;
-}
-
-/** "Listopad 2026", "Listopad – grudzień 2026", "Grudzień 2026 – styczeń 2027". */
+/**
+ * "Listopad 2026": the month holding most of the Week's days. A Week has 7 days, so that month
+ * has at least 4, and it is always the Thursday's. One month keeps the label on one line, so the
+ * Week card doesn't change height between Weeks (feature 003, device run).
+ */
 export function weekMonthLabel(weekStart: IsoDate): string {
-  const first = parse(weekStart);
-  const last = parse(addDays(weekStart, 6));
-  if (first.year !== last.year) {
-    return `${fullMonth(first.month, true)} ${first.year} – ${fullMonth(last.month, false)} ${last.year}`;
-  }
-  if (first.month !== last.month) {
-    return `${fullMonth(first.month, true)} – ${fullMonth(last.month, false)} ${last.year}`;
-  }
-  return `${fullMonth(first.month, true)} ${first.year}`;
+  const { year, month } = parse(addDays(weekStart, 3));
+  const name = MONTH_NAMES[month - 1] as string;
+  return `${name.charAt(0).toUpperCase()}${name.slice(1)} ${year}`;
 }
