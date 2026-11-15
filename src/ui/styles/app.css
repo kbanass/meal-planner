@@ -438,6 +438,11 @@ html {
   line-height: 13px;
   color: var(--planner-muted);
 }
+/* Today: a dashed accent outline as well as the accent text, so it stands out at a glance. */
+.day-pill-today {
+  outline: 2px dashed var(--planner-accent);
+  outline-offset: -2px;
+}
 .day-pill-today .day-pill-name,
 .day-pill-today .day-pill-number {
   color: var(--planner-accent);
@@ -450,6 +455,11 @@ html {
 .day-pill-selected .day-pill-number,
 .day-pill-selected .day-pill-kcal {
   color: #ffffff;
+}
+/* Today while selected: the dashes turn white, just inside the filled pill. */
+.day-pill-selected.day-pill-today {
+  outline-color: rgba(255, 255, 255, 0.9);
+  outline-offset: -5px;
 }
 
 .week-card-copy {

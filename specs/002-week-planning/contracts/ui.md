@@ -59,7 +59,7 @@ The screenshot is a reference for the general look only, not a design to match e
      | 2 | day of the month | 20 px, weight 700 |
      | 3 | Planned kcal, e.g. "1850", empty when no Meals | 11 px, muted |
 
-     The selected day is a filled accent pill (radius 16 px, white text, a soft accent shadow).
+     The selected day is a filled accent pill (radius 16 px, white text, a soft accent shadow). Today has a 2 px dashed accent outline on its pill as well as its accent text. When today is also selected, the dashes are white, just inside the filled pill (changed 2026-11-15: the accent text alone was too easy to miss).
    - **Bottom row**: a text button with a `doc_on_doc` icon, "Skopiuj do następnego tygodnia", in the accent colour. Disabled (muted) when the viewed Week has no plan (FR-036).
 3. **Day heading row**: "Czwartek, 5 lis" on the left (22 px, 700). The summary on the right, muted: "2 posiłki · 875 kcal", "1 posiłek · 350 kcal", "5 posiłków · …", or "brak posiłków".
 4. **Slots**: for each Slot, a small muted label with just its number, then:
