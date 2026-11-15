@@ -67,6 +67,7 @@ Editing a Meal:
 - Each Slot can hold several Meals.
 - Below the last Slot of a day sits a placeholder, "dodaj kolejny", which adds one Slot **to that day only**. The day keeps the raised Slot count ("added Slots") even while those Slots are empty.
 - A day shows `max(setting, highest Slot in use, that day's raised Slot count)` Slots.
+  - Planned (later): an Added Slot can be removed again, which lowers that day's raised Slot count. Today it stays until the default Slot count covers it. Open questions for the spec: only the last Slot or any Added Slot (Slots are numbered, so removing a middle one renumbers the ones after it); what happens to Meals in it (blocked, confirmed and removed, or moved); and where the control sits (on the Slot card or next to "dodaj kolejny").
 - In the UI, Slots are labelled with numbers only.
 
 ### Goals
