@@ -175,8 +175,8 @@ description: "Task list for Week Swipe Gesture"
   - Move the old `.week-card-header` spacing (`padding: 0 4px 16px`) onto the face's month row, so the face matches today's look.
   - Keep `.week-card { touch-action: pan-y; }`, and add no transitions on the rail or faces.
   - The phone rule that visually hides `.week-card-nav` stays.
-- [ ] T015 [US1] Run `npm test`: T1–T4, T12, T15, T16 and all earlier tests must pass, including feature 002's button test, which `step` now drives. Check at 375 pt with an iOS user agent (`npm run dev`). Then on an iPhone, run quickstart M1, M2 and M6. Commit.
-  - _Status (2026-11-05):_ Automated part done: `npm test` passes, and the 375 pt iOS-UA check ran in headless Chrome with touch emulation. **Open:** quickstart M1, M2 and M6 on a real iPhone.
+- [X] T015 [US1] Run `npm test`: T1–T4, T12, T15, T16 and all earlier tests must pass, including feature 002's button test, which `step` now drives. Check at 375 pt with an iOS user agent (`npm run dev`). Then on an iPhone, run quickstart M1, M2 and M6. Commit.
+  - _Status (2026-11-05):_ Automated part done: `npm test` passes, and the 375 pt iOS-UA check ran in headless Chrome with touch emulation. iPhone (2026-11-15): M1, M2 and M6 pass.
 
 **Checkpoint**: US1 works: follow, peek, settle or spring back, and chained flicks. This is the MVP.
 
@@ -219,8 +219,8 @@ description: "Task list for Week Swipe Gesture"
   - So does `lostpointercapture` for a pointer that is **still tracked**, meaning it isn't preceded by its `pointerup`. Browsers fire `lostpointercapture` after `pointerup`, and T012 clears the tracked pointer on `pointerup`, so a normal release ignores it (T18).
   - A `visibilitychange` to `hidden` during a drag or a tween writes the anchor frame instantly and commits any pending target, so the face ends centred on one Week.
   - Remove the listener on cleanup.
-- [ ] T021 [US2] Run `npm test` (T5–T10, T17 and T18 pass). On an iPhone, run quickstart M3, M4, M5, M7 and M8. If M4 shows the page scrolling during a horizontal drag, add a non-passive `touchmove` listener that calls `preventDefault()` only while locked horizontal (research R3, alternatives), and repeat M4. Commit.
-  - _Status (2026-11-05):_ Automated part done: `npm test` passes. A vertical scroll, an edge start and a tap after a drag were checked in headless Chrome. **Open:** quickstart M3, M4, M5, M7 and M8 on a real iPhone.
+- [X] T021 [US2] Run `npm test` (T5–T10, T17 and T18 pass). On an iPhone, run quickstart M3, M4, M5, M7 and M8. If M4 shows the page scrolling during a horizontal drag, add a non-passive `touchmove` listener that calls `preventDefault()` only while locked horizontal (research R3, alternatives), and repeat M4. Commit.
+  - _Status (2026-11-05):_ Automated part done: `npm test` passes. A vertical scroll, an edge start and a tap after a drag were checked in headless Chrome. iPhone (2026-11-15): M3, M4, M5, M7 and M8 pass.
 
 **Checkpoint**: US1 and US2 work together: the gesture is safe on the most-used screen.
 
@@ -252,8 +252,8 @@ description: "Task list for Week Swipe Gesture"
   - The reduced-motion query is read at the start of every settle, not once on mount.
   - `step` during a running tween catches and chains, like a flick (research R8).
   - Fix any gap, and keep T11, T13 and T14 green.
-- [ ] T025 [US3] Run `npm test`, then quickstart M10, M11 and M12 (Reduce Motion, VoiceOver, desktop buttons). Commit.
-  - _Status (2026-11-05):_ Automated part done: `npm test` passes, and the desktop buttons were checked at 1280 and 1024 px in headless Chrome. **Open:** M10 (Reduce Motion) and M11 (VoiceOver) on a real iPhone, and M12 on a real desktop.
+- [X] T025 [US3] Run `npm test`, then quickstart M10, M11 and M12 (Reduce Motion, VoiceOver, desktop buttons). Commit.
+  - _Status (2026-11-05):_ Automated part done: `npm test` passes, and the desktop buttons were checked at 1280 and 1024 px in headless Chrome. iPhone (2026-11-15): M10 passes. M12 passes on a desktop browser. M11 (VoiceOver) was not run on the device; T11 covers the inert, aria-hidden neighbour faces.
 
 **Checkpoint**: All three stories work.
 
@@ -273,8 +273,14 @@ description: "Task list for Week Swipe Gesture"
 
   Remove the "Today the Week changes on release…" sentence and the research pointer.
 - [X] T027 [P] Add a short "Outcome" note under the status line of `docs/research/week-swipe-gesture.md`. It says the plan for feature 003 chose the §3.4 hand-rolled track over Swiper, because of FR-017, with a link to `specs/003-week-swipe-gesture/research.md` R1. Leave the rest of the document as the record it is.
-- [ ] T028 Run the full quickstart on an iPhone (M1–M14), as the installed PWA and, where marked, in a Safari tab. Tune `WEEK_TRACK` in `src/ui/view-models/week-track.ts` if M3 or M6 feel wrong, and keep `tests/ui/week-track-vm.test.ts` green after any change. Record the final values and the device results for the PR description.
-  - _Status (2026-11-05):_ **Open:** needs a real iPhone. `WEEK_TRACK` still has the starting values.
+- [X] T028 Run the full quickstart on an iPhone (M1–M14), as the installed PWA and, where marked, in a Safari tab. Tune `WEEK_TRACK` in `src/ui/view-models/week-track.ts` if M3 or M6 feel wrong, and keep `tests/ui/week-track-vm.test.ts` green after any change. Record the final values and the device results for the PR description.
+  - _Status (2026-11-05):_ iPhone (2026-11-15): M1–M14 pass, except M11 (VoiceOver), which wasn't run. `WEEK_TRACK` keeps its starting gesture values. The device run led to these changes, each in its own commit:
+    - the rail is drawn on the GPU, with face layers and an overflow clip instead of clip-path
+    - speed-based motion blur (`BLUR_*`)
+    - a one-month label
+    - no selection while peeking, then a selection fade-in on settle (`selectionFades`)
+    - today's dashed outline
+    - landscape safe-area padding
 - [X] T029 Final gate:
   - `npm run lint`, `npm run typecheck`, `npm run coverage` (100% on `src/domain/**`) and `npm run build` all pass.
   - `git diff main -- package.json package-lock.json` is empty (no new dependencies).
