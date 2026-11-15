@@ -2,6 +2,7 @@ import {
   addDays,
   dayLabel,
   dayOfMonth,
+  sameWeekday,
   SHORT_DAY_NAMES,
   weekMonthLabel,
   weekRange,
@@ -124,6 +125,8 @@ export interface StripCell {
   kcal: string;
   isToday: boolean;
   isSelected: boolean;
+  /** In a neighbour Week, the day a move there would select: its selection fades in as it arrives. */
+  isPending: boolean;
   ariaLabel: string;
 }
 
@@ -144,8 +147,9 @@ export interface WeekFace {
 
 /**
  * The face of the Week starting `weekStart`, at `offset` from the viewed Week. Only the viewed
- * face marks `selected`: a neighbour peeking in during a drag shows no selection, which moves
- * only once the Week changes (feature 003, device run). `meals` may
+ * face marks `selected`: a neighbour peeking in during a drag shows no selection. Its same
+ * weekday is `isPending` instead, and the adapter fades that selection in while the Week
+ * settles there (feature 003, device run). `meals` may
  * span more than this Week.
  */
 export function weekFace(
@@ -157,6 +161,7 @@ export function weekFace(
   dishesById: ReadonlyMap<string, Dish>,
 ): WeekFace {
   const days = selectWeekDays(weekStart, today, meals, dishesById);
+  const pending = sameWeekday(selected, weekStart);
   return {
     weekStart,
     offset,
@@ -169,6 +174,7 @@ export function weekFace(
       kcal: day.mealCount === 0 ? '' : formatKcal(day.plannedKcal),
       isToday: day.isToday,
       isSelected: offset === 0 && day.date === selected,
+      isPending: offset !== 0 && day.date === pending,
       ariaLabel: dayTitle(day.date),
     })),
   };

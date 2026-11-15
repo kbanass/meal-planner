@@ -335,7 +335,8 @@ describe('WeekPage track: drag to another Week (feature 003, US1)', () => {
 
     const next = await waitFor(() => {
       const face = document.querySelectorAll<HTMLElement>('.week-face')[3]!;
-      expect(within(face).getByText('350')).toBeInTheDocument();
+      // Twice when Wed 11 is the pending day: the fading selection copies the pill's text.
+      expect(within(face).getAllByText('350').length).toBeGreaterThan(0);
       return face;
     });
     expect(next).toHaveAttribute('inert');
@@ -632,7 +633,7 @@ describe('WeekPage track: buttons, reduced motion and screen readers (feature 00
     renderWithApp(<WeekPage />, deps);
     await waitFor(() => {
       const face = document.querySelectorAll<HTMLElement>('.week-face')[3]!;
-      expect(within(face).getByText('350')).toBeInTheDocument();
+      expect(within(face).getAllByText('350').length).toBeGreaterThan(0);
     });
 
     expect(copyButton()).toBeDisabled();
@@ -680,6 +681,40 @@ describe('WeekPage track: motion blur', () => {
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
     expect(rail().style.filter).toBe('');
+  });
+});
+
+describe('WeekPage track: the selection fades in with the arriving Week', () => {
+  function face(offset: number): HTMLElement {
+    return document.querySelectorAll<HTMLElement>('.week-face')[offset + 2]!;
+  }
+
+  function fade(el: HTMLElement): number {
+    return Number(el.style.getPropertyValue('--selection-fade') || 0);
+  }
+
+  it('shows no selection while a drag is held, and fades it in during the settle', async () => {
+    const { deps } = depsWithClock();
+    const el = await renderTrack(deps);
+    withMotion();
+    expect(face(1).querySelector('.day-pill-pending')).not.toBeNull();
+
+    pointer(el, 'pointerdown', { x: 300, y: 40, t: 0 });
+    for (let i = 1; i <= 10; i++) pointer(el, 'pointermove', { x: 300 - 14 * i, y: 40, t: 60 * i });
+    advanceFrames(16);
+    expect(fade(face(1))).toBe(0);
+
+    pointer(el, 'pointerup', { x: 160, y: 40, t: 600 });
+    advanceFrames(100);
+    expect(fade(face(1))).toBeGreaterThan(0);
+    expect(fade(face(1))).toBeLessThan(1);
+    expect(heading()).toBe('Środa, 4 lis');
+
+    runAllFrames();
+    expect(heading()).toBe('Środa, 11 lis');
+    expect(viewedFace().querySelector('.day-pill-pending')).toBeNull();
+    expect(pill('Środa, 11 lis')).toHaveAttribute('aria-pressed', 'true');
+    for (const offset of [-2, -1, 0, 1, 2]) expect(fade(face(offset))).toBe(0);
   });
 });
 

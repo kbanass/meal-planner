@@ -12,6 +12,7 @@ import {
   inEdgeZone,
   railTransform,
   releaseTarget,
+  selectionFades,
   releaseVelocity,
   settleDuration,
   trackFrame,
@@ -312,5 +313,29 @@ describe('blurFilter', () => {
   it('removes the filter at 0 and writes plain decimals otherwise', () => {
     expect(blurFilter(0)).toBe('');
     expect(blurFilter(1.25)).toBe('blur(1.25px)');
+  });
+});
+
+describe('selectionFades', () => {
+  const none = { [-2]: 0, [-1]: 0, 0: 0, 1: 0, 2: 0 };
+
+  it('shows no arriving selection while no settle runs: a held drag only peeks', () => {
+    expect(selectionFades(null, 0.4)).toEqual(none);
+  });
+
+  it('fades the arriving Week\'s selection in with the settle', () => {
+    expect(selectionFades({ from: 0.2, to: 1 }, 0.2)).toEqual(none);
+    expect(selectionFades({ from: 0.2, to: 1 }, 0.6)[1]).toBeCloseTo(0.5, 10);
+    expect(selectionFades({ from: 0.2, to: 1 }, 1)[1]).toBe(1);
+    expect(selectionFades({ from: -0.3, to: -1 }, -0.65)[-1]).toBeCloseTo(0.5, 10);
+    expect(selectionFades({ from: 0.2, to: 1 }, 0.6)[0]).toBe(0);
+  });
+
+  it('fades nothing in on a spring-back: the viewed Week is already selected', () => {
+    expect(selectionFades({ from: 0.2, to: 0 }, 0.1)).toEqual(none);
+  });
+
+  it('is fully in when the settle has no distance', () => {
+    expect(selectionFades({ from: 1, to: 1 }, 1)[1]).toBe(1);
   });
 });

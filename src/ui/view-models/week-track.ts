@@ -166,6 +166,23 @@ export function trackHeight(
   return lowHeight + (highHeight - lowHeight) * (clamped - low);
 }
 
+/**
+ * How far the selected pill has faded in on each face (0–1). Only a settle heading to another
+ * Week fades one in, on that Week's face, in step with the slide; a held drag only peeks, and a
+ * spring-back fades nothing (the viewed Week is already selected).
+ */
+export function selectionFades(
+  tween: { from: number; to: number } | null,
+  position: number,
+): Record<FaceOffset, number> {
+  const fades: Record<FaceOffset, number> = { [-2]: 0, [-1]: 0, 0: 0, 1: 0, 2: 0 };
+  if (!tween || tween.to === 0 || !FACE_OFFSETS.includes(tween.to as FaceOffset)) return fades;
+  const distance = Math.abs(tween.to - tween.from);
+  const progress = distance > 0 ? 1 - Math.abs(tween.to - position) / distance : 1;
+  fades[tween.to as FaceOffset] = Math.min(1, Math.max(0, progress));
+  return fades;
+}
+
 export interface MotionSample {
   t: number; // ms
   position: number; // Weeks

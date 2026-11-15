@@ -10,6 +10,7 @@ import {
   motionBlur,
   railTransform,
   releaseTarget,
+  selectionFades,
   releaseVelocity,
   settleDuration,
   smoothSpeed,
@@ -27,6 +28,7 @@ import {
 // clientWidth. Every decision and every number it writes comes from view-models/week-track.ts.
 
 interface Tween {
+  from: number;
   to: number;
   frame: number;
 }
@@ -89,7 +91,7 @@ function createTrack(elements: TrackElements) {
 
   function setStyle(
     el: HTMLElement,
-    property: 'transform' | 'opacity' | 'height' | 'filter',
+    property: 'transform' | 'opacity' | 'height' | 'filter' | '--selection-fade',
     value: string,
   ) {
     let values = written.get(el);
@@ -99,7 +101,7 @@ function createTrack(elements: TrackElements) {
     }
     if (values.get(property) === value) return;
     values.set(property, value);
-    el.style[property] = value;
+    el.style.setProperty(property, value);
   }
 
   /** One layout read per gesture, settle or commit, never per frame. */
@@ -131,8 +133,10 @@ function createTrack(elements: TrackElements) {
     const track = elements.track();
     const height = trackHeight(g.position, g.heights);
     if (track) setStyle(track, 'height', height === null ? '' : `${height}px`);
+    const fades = selectionFades(g.tween, g.position);
     for (const [offset, face] of elements.faces()) {
       setStyle(face, 'opacity', String(frame.opacities[offset]));
+      setStyle(face, '--selection-fade', String(fades[offset]));
     }
     // A finger held still sends no moves: keep drawing until the blur has faded.
     if (blur > 0 && g.tween === null) scheduleFrame();
@@ -201,7 +205,7 @@ function createTrack(elements: TrackElements) {
       writeFrame(now);
       if (g.tween) g.tween.frame = requestAnimationFrame(tick);
     };
-    g.tween = { to, frame: requestAnimationFrame(tick) };
+    g.tween = { from, to, frame: requestAnimationFrame(tick) };
   }
 
   /** Back to the anchor, so the face never stays between Weeks (rule 4). */

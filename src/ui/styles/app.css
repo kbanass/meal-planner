@@ -412,6 +412,7 @@ html {
   gap: 4px;
 }
 .day-pill {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -440,11 +441,16 @@ html {
   line-height: 13px;
   color: var(--planner-muted);
 }
-/* Today: a dashed accent outline as well as the accent text, so it stands out at a glance.
-   Selected, it is just the filled pill. */
-.day-pill-today:not(.day-pill-selected) {
-  outline: 2px dashed var(--planner-accent);
-  outline-offset: -2px;
+/* Today: a dashed accent ring as well as the accent text, so it stands out at a glance.
+   Selected, it is just the filled pill. Drawn as a layer under the pending copy below, so it
+   fades out as the arriving selection fades in. */
+.day-pill-today:not(.day-pill-selected)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px dashed var(--planner-accent);
+  border-radius: inherit;
+  pointer-events: none;
 }
 .day-pill-today .day-pill-name,
 .day-pill-today .day-pill-number {
@@ -454,9 +460,31 @@ html {
   background: var(--planner-accent);
   box-shadow: 0 6px 14px rgba(47, 111, 79, 0.3);
 }
+/* The selection arriving with a neighbour Week: a filled copy of the pill over it, whose opacity
+   the Week track sets from the settle's progress (--selection-fade, set on the face). Its own
+   layer, so the fade never repaints the strip. */
+.day-pill-pending {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 0 8px;
+  border-radius: inherit;
+  background: var(--planner-accent);
+  box-shadow: 0 6px 14px rgba(47, 111, 79, 0.3);
+  opacity: var(--selection-fade, 0);
+  will-change: opacity;
+  pointer-events: none;
+}
 .day-pill-selected .day-pill-name,
 .day-pill-selected .day-pill-number,
-.day-pill-selected .day-pill-kcal {
+.day-pill-selected .day-pill-kcal,
+.day-pill-pending .day-pill-name,
+.day-pill-pending .day-pill-number,
+.day-pill-pending .day-pill-kcal {
   color: #ffffff;
 }
 

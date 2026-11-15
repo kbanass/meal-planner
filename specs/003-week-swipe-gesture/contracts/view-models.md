@@ -41,6 +41,7 @@ interface WeekFace {
 
 In `strip`:
 - `isSelected` is `offset === 0 && cell.date === selected`: a neighbour has no selected day (changed after the device run).
+- `isPending` is `offset !== 0 && cell.date === sameWeekday(selected, weekStart)`: the day whose selection fades in while the Week settles there.
 - `kcal` is empty for a day without Meals.
 
 `meals` may span more than this Week, because `selectWeekDays` filters by date.
@@ -112,6 +113,7 @@ These are starting values. Tune them on a device (quickstart M3) and keep the te
 | `tweenPosition(from, to, elapsedMs, durationMs)` | `from + (to − from) × easeOutCubic(elapsed / duration)`. Duration 0 → `to` | Halfway is 87.5% of the way; past the duration → `to`; duration 0 → `to` |
 | `trackFrame(position)` | `{ railShift: −position, opacities: Record<offset, number> }`, with `opacity = 1 − (1 − DIM_OPACITY) × min(1, \|offset − position\|)` | Position 0: offset 0 → 1, ±1 → 0.5, ±2 → 0.5; position 0.5: offsets 0 and 1 → 0.75 |
 | `trackHeight(position, heights)` (added during implementation) | `null` at position 0, between two equal heights, or when a height is missing. Otherwise the linear blend of the face heights at `floor` and `floor + 1` of the position, clamped to −2…2 | 0 → null; −0.5 between 123 and 152 → 137.5; between two 123s → null; +2.4 → the +2 height; a missing height → null |
+| `selectionFades(tween, position)` (added after the device run) | Per face, 0–1: only the face a settle is heading to (`tween.to ≠ 0`) gets `1 − \|to − position\| / \|to − from\|`, clamped; no settle or a spring-back → all 0; zero distance → 1 | No tween → all 0; from 0.2 to 1 at 0.6 → 0.5 on +1; at 1 → 1; a spring-back → all 0; from 1 to 1 → 1 |
 | `frameSpeed(previous, current, pitchPx)` | The rail's speed between two drawn frames, `\|Δposition\| × pitch / Δt`, in px/ms. No time, no pitch or non-finite values → 0 | 0.1 pitch of 320 px in 16 ms → 2; either direction; Δt 0, pitch 0, NaN → 0 |
 | `smoothSpeed(previous, sample)` | `previous + (sample − previous) × BLUR_SMOOTHING` | From 0 towards 2; a steady speed stays |
 | `motionBlur(speed)` | `(speed − BLUR_MIN_SPEED) × BLUR_PX_PER_SPEED`, clamped to [0, BLUR_MAX_PX], rounded to BLUR_STEP_PX | 0 and BLUR_MIN_SPEED → 0; rounding to the step; a huge speed → BLUR_MAX_PX |

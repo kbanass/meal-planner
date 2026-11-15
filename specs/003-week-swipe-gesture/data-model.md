@@ -28,7 +28,7 @@ One per offset −2…+2. Built by `weekFace` ([contracts/view-models.md](contra
 | `offset` | `-2 \| -1 \| 0 \| 1 \| 2` | The face's place on the rail |
 | `isViewed` | `boolean` | `offset === 0`. Only this face is focusable and exposed to screen readers (FR-015) |
 | `monthLabel` | `string` | `weekMonthLabel(weekStart)`, for example "Październik – listopad 2026" |
-| `strip` | `StripCell[]` | As in feature 002. `isSelected` marks `selected`, in the viewed face only. A neighbour shows no selection until the Week changes (spec edge case, changed after the device run). `isToday` marks today in any face |
+| `strip` | `StripCell[]` | As in feature 002. `isSelected` marks `selected`, in the viewed face only. In a neighbour, the same weekday is `isPending` instead: a filled copy of its pill fades in, from `selectionFades`, while a settle heads to that Week (spec edge case, changed after the device run). `isToday` marks today in any face |
 
 ## Gesture state (adapter, `useWeekTrackGesture`, refs only)
 

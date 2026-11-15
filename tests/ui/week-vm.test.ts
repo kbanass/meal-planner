@@ -111,6 +111,7 @@ describe('weekPage', () => {
       kcal: '350',
       isToday: false,
       isSelected: false,
+      isPending: false,
       ariaLabel: 'Poniedziałek, 2 lis',
     });
     expect(model.strip[1]?.kcal).toBe('');
@@ -192,6 +193,15 @@ describe('weekFace', () => {
     expect(face).toMatchObject({ weekStart: '2026-11-09', offset: 1, isViewed: false });
     expect(face.strip.some((cell) => cell.isSelected)).toBe(false);
     expect(face.strip.some((cell) => cell.isToday)).toBe(false);
+  });
+
+  it("marks the neighbour's same weekday as pending, for the selection to fade in on", () => {
+    const next = weekFace('2026-11-09', 1, '2026-11-04', '2026-11-04', [], dishes);
+    expect(next.strip.filter((cell) => cell.isPending).map((cell) => cell.date)).toEqual([
+      '2026-11-11',
+    ]);
+    const viewed = weekFace('2026-11-02', 0, '2026-11-04', '2026-11-04', [], dishes);
+    expect(viewed.strip.some((cell) => cell.isPending)).toBe(false);
   });
 
   it('selects the selected day in the viewed face', () => {

@@ -26,6 +26,14 @@ export function DayStrip({ cells, onSelect }: DayStripProps) {
           <span className="day-pill-name">{cell.shortName}</span>
           <span className="day-pill-number">{cell.dayNumber}</span>
           <span className="day-pill-kcal">{cell.kcal}</span>
+          {/* A selected copy on top, faded in by the Week track as this Week arrives. */}
+          {cell.isPending && (
+            <span className="day-pill-pending" aria-hidden="true">
+              <span className="day-pill-name">{cell.shortName}</span>
+              <span className="day-pill-number">{cell.dayNumber}</span>
+              <span className="day-pill-kcal">{cell.kcal}</span>
+            </span>
+          )}
         </button>
       ))}
     </div>
