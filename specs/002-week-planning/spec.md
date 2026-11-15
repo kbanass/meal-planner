@@ -17,7 +17,7 @@ Domain terms in **bold** are defined in [GLOSSARY.md](../../GLOSSARY.md). The pr
 The user shared a reference screenshot from another meal app and asked for the Week view to look more like it, without being limited to Framework7's standard components. The screen becomes one designed page instead of two Framework7 lists:
 
 - **Week card** at the top: a white rounded card with the viewed Week's month and year (e.g. "Listopad 2026") and round ← / → buttons.
-- **Day strip** inside the card: seven columns, Monday to Sunday, each with a short day name ("Pn" … "Nd"), the day of the month and the day's Planned kcal. The selected day is a filled pill in the accent colour, and today has a dashed accent outline (white dashes inside the pill when it is also selected).
+- **Day strip** inside the card: seven columns, Monday to Sunday, each with a short day name ("Pn" … "Nd"), the day of the month and the day's Planned kcal. The selected day is a filled pill in the accent colour, and today is marked in the accent colour when it is not selected.
 - **The selected day's plan** below the card, on the same screen: a heading with the day ("Czwartek, 5 lis") and its summary ("2 posiłki · 875 kcal"), then its Slots, with each Meal shown as a card with the Dish photo or placeholder on the left. **Tapping a day selects it. There is no separate Day view any more.**
 - **Look**: a warm off-white page background, white cards with large rounded corners and a soft shadow, and one accent colour.
 
