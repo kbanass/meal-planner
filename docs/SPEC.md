@@ -108,7 +108,7 @@ Tabs: **Tydzień**, **Dania**, **Lista zakupów**, **Ustawienia**.
 
 ### Mobile
 - **Tydzień:** one screen.
-  - At the top, with no page title, a Week card holds the month and year (one month: the one with most of the Week's days, e.g. "Grudzień 2026" for 28 Dec – 3 Jan), a strip of 7 days (short name, date, kcal), the selected day's kcal, protein, fat and carbs (each with an icon; bars once goals exist), and "skopiuj do następnego tygodnia". Swipe the card to change Weeks. Today is selected when the app opens, and tapping a day selects it. Today's day has a dashed green outline (white dashes inside the pill when it's selected), so it stands out at a glance.
+  - At the top, with no page title, a Week card holds the month and year (one month: the one with most of the Week's days, e.g. "Grudzień 2026" for 28 Dec – 3 Jan), a strip of 7 days (short name, date, kcal), the selected day's kcal, protein, fat and carbs (each with an icon; bars once goals exist), and "skopiuj do następnego tygodnia". Swipe the card to change Weeks. Today is selected when the app opens, and tapping a day selects it. Today's day has a dashed green outline when it isn't selected, so it stands out at a glance; selected, it's the plain green pill.
   - Then the Week summary.
   - Then the selected day: its Slots as cards, each with its own kcal and macro totals and its Meals inside (Dish photo on the left), and, set apart below them, the "dodaj kolejny" placeholder.
   - Look (all tabs): warm off-white background, white rounded cards with a soft shadow, the app's green as the accent everywhere, input borders with good contrast. Standard parts (tabbar, sheets, dialogs, inputs) stay Framework7's.
