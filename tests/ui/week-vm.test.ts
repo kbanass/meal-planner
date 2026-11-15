@@ -10,11 +10,13 @@ import {
   pickerEmptyMessage,
   pickerTile,
   removeMealConfirmMessage,
-  swipeWeekDelta,
+  trackMealsRange,
+  weekFace,
   weekPage,
+  weekTrackFaces,
   wheelScrollDelta,
 } from '../../src/ui/view-models/week';
-import { dish, meal, owsianka } from '../fakes/dishes';
+import { byId, dish, meal, owsianka } from '../fakes/dishes';
 
 function view(overrides: Partial<MealView> = {}): MealView {
   return {
@@ -109,6 +111,7 @@ describe('weekPage', () => {
       kcal: '350',
       isToday: false,
       isSelected: false,
+      isPending: false,
       ariaLabel: 'Poniedziałek, 2 lis',
     });
     expect(model.strip[1]?.kcal).toBe('');
@@ -159,6 +162,101 @@ describe('weekPage', () => {
   });
 });
 
+describe('weekPage on the wider Meals window', () => {
+  it('offers no copy, and shows no kcal, for an empty Week with Meals only next Week', () => {
+    const model = weekPage('2026-11-02', '2026-11-04', '2026-11-04', {
+      meals: [meal({ id: 'm-next', date: '2026-11-11' })],
+      daySlots: [],
+      dishes: [owsianka],
+      settings: undefined,
+    });
+    expect(model.canCopy).toBe(false);
+    expect(model.strip.every((cell) => cell.kcal === '')).toBe(true);
+  });
+});
+
+describe('trackMealsRange', () => {
+  it('covers the five faces around the viewed Week', () => {
+    expect(trackMealsRange('2026-11-02')).toEqual({ start: '2026-10-19', end: '2026-11-22' });
+  });
+
+  it('crosses a year boundary', () => {
+    expect(trackMealsRange('2026-12-28')).toEqual({ start: '2026-12-14', end: '2027-01-17' });
+  });
+});
+
+describe('weekFace', () => {
+  const dishes = byId([owsianka]);
+
+  it('selects no day in a neighbour: the selection moves only when the Week changes', () => {
+    const face = weekFace('2026-11-09', 1, '2026-11-04', '2026-11-04', [], dishes);
+    expect(face).toMatchObject({ weekStart: '2026-11-09', offset: 1, isViewed: false });
+    expect(face.strip.some((cell) => cell.isSelected)).toBe(false);
+    expect(face.strip.some((cell) => cell.isToday)).toBe(false);
+  });
+
+  it("marks the neighbour's same weekday as pending, for the selection to fade in on", () => {
+    const next = weekFace('2026-11-09', 1, '2026-11-04', '2026-11-04', [], dishes);
+    expect(next.strip.filter((cell) => cell.isPending).map((cell) => cell.date)).toEqual([
+      '2026-11-11',
+    ]);
+    const viewed = weekFace('2026-11-02', 0, '2026-11-04', '2026-11-04', [], dishes);
+    expect(viewed.strip.some((cell) => cell.isPending)).toBe(false);
+  });
+
+  it('selects the selected day in the viewed face', () => {
+    const face = weekFace('2026-11-02', 0, '2026-11-04', '2026-11-05', [], dishes);
+    expect(face.strip.filter((cell) => cell.isSelected).map((cell) => cell.date)).toEqual([
+      '2026-11-05',
+    ]);
+  });
+
+  it('marks today in any face', () => {
+    const face = weekFace('2026-10-26', -1, '2026-10-28', '2026-11-04', [], dishes);
+    expect(face.strip.filter((cell) => cell.isToday).map((cell) => cell.date)).toEqual([
+      '2026-10-28',
+    ]);
+  });
+
+  it('labels a Week spanning two months by the month with most of its days', () => {
+    expect(weekFace('2026-10-26', -1, '2026-11-04', '2026-11-04', [], dishes).monthLabel).toBe(
+      'Październik 2026',
+    );
+  });
+
+  it("shows a neighbour's own kcal and ignores Meals outside the face", () => {
+    const meals = [
+      meal({ id: 'm-wed-11', date: '2026-11-11' }),
+      meal({ id: 'm-wed-4', date: '2026-11-04' }),
+      meal({ id: 'm-mon-16', date: '2026-11-16' }),
+    ];
+    const face = weekFace('2026-11-09', 1, '2026-11-04', '2026-11-04', meals, dishes);
+    expect(face.strip.map((cell) => cell.kcal)).toEqual(['', '', '350', '', '', '', '']);
+  });
+
+  it('is the viewed face at offset 0', () => {
+    expect(weekFace('2026-11-02', 0, '2026-11-04', '2026-11-04', [], dishes).isViewed).toBe(true);
+  });
+});
+
+describe('weekTrackFaces', () => {
+  it('gives five faces 7 days apart, with only offset 0 viewed', () => {
+    const faces = weekTrackFaces('2026-11-02', '2026-11-04', '2026-11-04', {
+      meals: undefined,
+      dishes: undefined,
+    });
+    expect(faces.map((face) => face.offset)).toEqual([-2, -1, 0, 1, 2]);
+    expect(faces.map((face) => face.weekStart)).toEqual([
+      '2026-10-19',
+      '2026-10-26',
+      '2026-11-02',
+      '2026-11-09',
+      '2026-11-16',
+    ]);
+    expect(faces.map((face) => face.isViewed)).toEqual([false, false, true, false, false]);
+  });
+});
+
 describe('macroTotals', () => {
   it('gives kcal, protein, fat and carbs with icons, labels and display rounding', () => {
     expect(macroTotals({ kcal: 349.6, protein: 18.75, fat: 11.25, carbs: 82.5 })).toEqual([
@@ -178,18 +276,6 @@ describe('pickerTile', () => {
       photo: null,
       totals: macroTotals({ kcal: 350, protein: 12.5, fat: 7.5, carbs: 55 }),
     });
-  });
-});
-
-describe('swipeWeekDelta', () => {
-  it.each([
-    [-80, 10, 7],
-    [80, -10, -7],
-    [-40, 0, 0],
-    [-80, 70, 0],
-    [0, 0, 0],
-  ])('dx %d, dy %d → %d days', (dx, dy, delta) => {
-    expect(swipeWeekDelta(dx, dy)).toBe(delta);
   });
 });
 

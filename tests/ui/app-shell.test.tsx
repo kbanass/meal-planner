@@ -46,7 +46,7 @@ describe('AppShell', () => {
     const week = document.getElementById('view-week')!;
     expect(week).toHaveClass('tab-active');
     // createTestDeps fixes today at Wednesday 2026-11-04.
-    expect(await within(week).findByText('Listopad 2026')).toBeInTheDocument();
+    expect(await within(week).findByRole('heading', { level: 2, name: 'Listopad 2026' })).toBeInTheDocument();
     expect(within(week).queryByText(NOTICE)).not.toBeInTheDocument();
   });
 
@@ -76,7 +76,7 @@ describe('AppShell', () => {
   it('keeps the Week and the selected day when switching tabs (FR-007)', async () => {
     renderShell();
     const week = document.getElementById('view-week')!;
-    await within(week).findByText('Listopad 2026');
+    await within(week).findByRole('heading', { level: 2, name: 'Listopad 2026' });
 
     await userEvent.click(within(week).getByLabelText('Następny tydzień'));
     await userEvent.click(within(week).getByRole('button', { name: 'Piątek, 13 lis' }));

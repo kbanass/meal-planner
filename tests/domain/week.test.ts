@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  mealsInRange,
   planWeekCopy,
   plannedKcal,
   plannedMacros,
@@ -213,5 +214,32 @@ describe('planWeekCopy', () => {
       new FixedIdGenerator(),
     );
     expect(plan).toEqual({ meals: [], daySlots: [] });
+  });
+});
+
+describe('mealsInRange', () => {
+  const range = { start: '2026-11-02', end: '2026-11-08' };
+
+  it('keeps Meals on the first and last day, and drops the days before and after', () => {
+    const meals = [
+      meal({ id: 'm-before', date: '2026-11-01' }),
+      meal({ id: 'm-first', date: '2026-11-02' }),
+      meal({ id: 'm-last', date: '2026-11-08' }),
+      meal({ id: 'm-after', date: '2026-11-09' }),
+    ];
+    expect(mealsInRange(meals, range).map((m) => m.id)).toEqual(['m-first', 'm-last']);
+  });
+
+  it('gives an empty result for no Meals', () => {
+    expect(mealsInRange([], range)).toEqual([]);
+  });
+
+  it('keeps the input order', () => {
+    const meals = [
+      meal({ id: 'm-sun', date: '2026-11-08' }),
+      meal({ id: 'm-mon', date: '2026-11-02' }),
+      meal({ id: 'm-wed', date: '2026-11-04' }),
+    ];
+    expect(mealsInRange(meals, range).map((m) => m.id)).toEqual(['m-sun', 'm-mon', 'm-wed']);
   });
 });

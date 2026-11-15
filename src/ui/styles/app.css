@@ -215,7 +215,8 @@ html {
   gap: 12px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  padding: 12px 16px calc(16px + var(--f7-safe-area-bottom, 0px));
+  padding: 12px calc(16px + env(safe-area-inset-right, 0px))
+    calc(16px + var(--f7-safe-area-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
   -webkit-overflow-scrolling: touch;
 }
 .dish-picker-tile {
@@ -281,9 +282,11 @@ html {
   --f7-input-outline-border-color: #7a746e;
 }
 
-/* No page title: the Week card starts below the status bar (FR-005). */
+/* No page title: the Week card starts below the status bar (FR-005). The sides add the safe
+   areas, so in landscape nothing sits behind the iPhone's camera island. */
 .week-content {
-  padding: calc(16px + var(--f7-safe-area-top, 0px)) 16px calc(32px + var(--f7-safe-area-bottom, 0px));
+  padding: calc(16px + var(--f7-safe-area-top, 0px)) calc(16px + env(safe-area-inset-right, 0px))
+    calc(32px + var(--f7-safe-area-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
   color: var(--planner-text);
 }
 
@@ -293,15 +296,9 @@ html {
   background: var(--planner-card-bg);
   box-shadow: var(--planner-card-shadow);
 }
-.week-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0 4px 16px;
-}
 .week-card-month {
   margin: 0;
+  padding: 0 4px 16px;
   font-size: 24px;
   font-weight: 700;
   line-height: 1.2;
@@ -310,6 +307,25 @@ html {
   display: flex;
   flex: none;
   gap: 10px;
+}
+/*
+ * Desktop: the ← / → buttons sit over the track's top right, outside the rail, so they stay put
+ * while the Week slides. The month row keeps their height and leaves room for them, so a long
+ * label ("Październik 2026") never runs under them.
+ */
+@media (min-width: 1024px) {
+  .week-card-nav {
+    position: absolute;
+    top: 0;
+    right: 4px;
+    z-index: 1;
+  }
+  .week-face .week-card-month {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding-right: 112px;
+  }
 }
 /* Phones swipe the Week card, so the buttons are hidden but kept for screen readers. */
 @media (max-width: 1023px) {
@@ -321,32 +337,55 @@ html {
     clip-path: inset(50%);
   }
 }
+/*
+ * The Week track (feature 003): five Week faces on one rail, moved only by the gesture adapter,
+ * so there are no transitions here. Each face is shifted by its offset.
+ * - Every face is its own GPU layer, so moving the rail, dimming a face and the motion blur
+ *   (a CSS blur on the rail, set by the adapter from the speed) never repaint text.
+ *   WebKit repaints a whole layer when a child's opacity changes, which made drags look like a
+ *   low frame rate on iPhone.
+ * - Only the viewed face takes up height, and the faces align at the bottom, so the day pills
+ *   slide in one row. Month labels name one month, so every face is normally the same height.
+ *   If one ever isn't (a label that wraps), the adapter sets the track's height between the
+ *   two while a gesture runs, and the labels rise into the card's top padding.
+ * - The clip is plain overflow (no clip-path, no rounded clip: both cost WebKit mask layers).
+ *   It reaches 12 px (the gap) past the sides, so a neighbour stays hidden at rest while the
+ *   selected pill's shadow isn't cut, and keeps the rail from widening the page.
+ */
 .week-card {
   touch-action: pan-y;
 }
-.week-slide-next {
-  animation: week-slide-from-right 220ms ease-out;
+.week-track {
+  position: relative;
+  /* Its own formatting context, so the clip's negative margins overflow it, not collapse. */
+  display: flow-root;
 }
-.week-slide-previous {
-  animation: week-slide-from-left 220ms ease-out;
+.week-track-clip {
+  height: 100%;
+  margin: -20px -12px -24px;
+  padding: 20px 12px 24px;
+  overflow: hidden;
+  overflow: clip;
 }
-@keyframes week-slide-from-right {
-  from {
-    opacity: 0.3;
-    transform: translateX(24px);
-  }
+.week-track-rail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  /* filter: the motion blur, applied by the GPU to the already-drawn face layers. */
+  will-change: transform, filter;
 }
-@keyframes week-slide-from-left {
-  from {
-    opacity: 0.3;
-    transform: translateX(-24px);
-  }
+.week-face {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  will-change: transform, opacity;
 }
-@media (prefers-reduced-motion: reduce) {
-  .week-slide-next,
-  .week-slide-previous {
-    animation: none;
-  }
+.week-face-viewed {
+  position: relative;
+  flex: none;
 }
 .round-button {
   display: flex;
@@ -373,6 +412,7 @@ html {
   gap: 4px;
 }
 .day-pill {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -401,6 +441,17 @@ html {
   line-height: 13px;
   color: var(--planner-muted);
 }
+/* Today: a dashed accent ring as well as the accent text, so it stands out at a glance.
+   Selected, it is just the filled pill. Drawn as a layer under the pending copy below, so it
+   fades out as the arriving selection fades in. */
+.day-pill-today:not(.day-pill-selected)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px dashed var(--planner-accent);
+  border-radius: inherit;
+  pointer-events: none;
+}
 .day-pill-today .day-pill-name,
 .day-pill-today .day-pill-number {
   color: var(--planner-accent);
@@ -409,9 +460,31 @@ html {
   background: var(--planner-accent);
   box-shadow: 0 6px 14px rgba(47, 111, 79, 0.3);
 }
+/* The selection arriving with a neighbour Week: a filled copy of the pill over it, whose opacity
+   the Week track sets from the settle's progress (--selection-fade, set on the face). Its own
+   layer, so the fade never repaints the strip. */
+.day-pill-pending {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 0 8px;
+  border-radius: inherit;
+  background: var(--planner-accent);
+  box-shadow: 0 6px 14px rgba(47, 111, 79, 0.3);
+  opacity: var(--selection-fade, 0);
+  will-change: opacity;
+  pointer-events: none;
+}
 .day-pill-selected .day-pill-name,
 .day-pill-selected .day-pill-number,
-.day-pill-selected .day-pill-kcal {
+.day-pill-selected .day-pill-kcal,
+.day-pill-pending .day-pill-name,
+.day-pill-pending .day-pill-number,
+.day-pill-pending .day-pill-kcal {
   color: #ffffff;
 }
 
@@ -695,11 +768,13 @@ html {
   list-style: none;
 }
 
-/* Dania: each Dish is a card (FR-046). One column on phones, a grid on desktop. */
+/* Dania: each Dish is a card (FR-046). One column on phones, a grid on desktop. The sides
+   add the safe areas for landscape. */
 .dish-grid {
   display: grid;
   gap: 12px;
-  padding: 16px;
+  padding: 16px calc(16px + env(safe-area-inset-right, 0px)) 16px
+    calc(16px + env(safe-area-inset-left, 0px));
 }
 .dish-card {
   display: flex;

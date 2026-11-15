@@ -122,6 +122,14 @@ export function selectDay(
   });
 }
 
+/** The Meals dated within `range`, start and end inclusive, in input order (feature 003, R9). */
+export function mealsInRange(
+  meals: readonly Meal[],
+  range: { start: IsoDate; end: IsoDate },
+): Meal[] {
+  return meals.filter((meal) => meal.date >= range.start && meal.date <= range.end);
+}
+
 /** A Week has a plan when it holds any Meal or any Added Slots (research R4). */
 export function weekHasPlan(meals: readonly Meal[], daySlots: readonly DaySlots[]): boolean {
   return meals.length > 0 || daySlots.length > 0;

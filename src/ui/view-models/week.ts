@@ -1,4 +1,12 @@
-import { dayLabel, dayOfMonth, SHORT_DAY_NAMES, weekMonthLabel } from '../../domain/dates';
+import {
+  addDays,
+  dayLabel,
+  dayOfMonth,
+  sameWeekday,
+  SHORT_DAY_NAMES,
+  weekMonthLabel,
+  weekRange,
+} from '../../domain/dates';
 import { mealsWord, perServing, servingsWord } from '../../domain/meals';
 import { formatKcal, formatMacro, formatServings } from '../../domain/nutrition';
 import { DEFAULT_SETTINGS } from '../../domain/settings';
@@ -11,7 +19,14 @@ import type {
   Meal,
   Settings,
 } from '../../domain/types';
-import { selectDay, selectWeekDays, weekHasPlan, type MealView } from '../../domain/week';
+import {
+  mealsInRange,
+  selectDay,
+  selectWeekDays,
+  weekHasPlan,
+  type MealView,
+} from '../../domain/week';
+import { FACE_OFFSETS, type FaceOffset } from './week-track';
 
 export interface MealRow {
   id: string;
@@ -75,18 +90,6 @@ export function pickerTile(dish: Dish): PickerTile {
   return { id: dish.id, name: dish.name, photo: dish.photo, totals: macroTotals(perServing(dish)) };
 }
 
-/** Pixels a swipe must travel to change the Week. */
-const SWIPE_DISTANCE = 50;
-
-/**
- * Days to move after a swipe on the Week card: left shows the next Week, right the previous.
- * Mostly vertical movement is a scroll, not a swipe.
- */
-export function swipeWeekDelta(dx: number, dy: number): number {
-  if (Math.abs(dx) < SWIPE_DISTANCE || Math.abs(dx) <= 1.5 * Math.abs(dy)) return 0;
-  return dx < 0 ? 7 : -7;
-}
-
 /**
  * How far a mouse-wheel event scrolls the Dish picker strip sideways (FR-045). A mostly
  * vertical wheel turn moves the strip; horizontal trackpad swipes already scroll it natively.
@@ -122,7 +125,73 @@ export interface StripCell {
   kcal: string;
   isToday: boolean;
   isSelected: boolean;
+  /** In a neighbour Week, the day a move there would select: its selection fades in as it arrives. */
+  isPending: boolean;
   ariaLabel: string;
+}
+
+/** The five faces' 35 days: the Meals the Week track needs (feature 003, research R9). */
+export function trackMealsRange(weekStart: IsoDate): { start: IsoDate; end: IsoDate } {
+  return { start: addDays(weekStart, -14), end: addDays(weekStart, 20) };
+}
+
+/** One Week on the Week card's track: its month label and day strip (feature 003). */
+export interface WeekFace {
+  weekStart: IsoDate;
+  offset: FaceOffset;
+  /** Only the viewed face is focusable and read by screen readers (FR-015). */
+  isViewed: boolean;
+  monthLabel: string;
+  strip: StripCell[];
+}
+
+/**
+ * The face of the Week starting `weekStart`, at `offset` from the viewed Week. Only the viewed
+ * face marks `selected`: a neighbour peeking in during a drag shows no selection. Its same
+ * weekday is `isPending` instead, and the adapter fades that selection in while the Week
+ * settles there (feature 003, device run). `meals` may
+ * span more than this Week.
+ */
+export function weekFace(
+  weekStart: IsoDate,
+  offset: FaceOffset,
+  today: IsoDate,
+  selected: IsoDate,
+  meals: readonly Meal[],
+  dishesById: ReadonlyMap<string, Dish>,
+): WeekFace {
+  const days = selectWeekDays(weekStart, today, meals, dishesById);
+  const pending = sameWeekday(selected, weekStart);
+  return {
+    weekStart,
+    offset,
+    isViewed: offset === 0,
+    monthLabel: weekMonthLabel(weekStart),
+    strip: days.map((day, index) => ({
+      date: day.date,
+      shortName: SHORT_DAY_NAMES[index] as string,
+      dayNumber: dayOfMonth(day.date),
+      kcal: day.mealCount === 0 ? '' : formatKcal(day.plannedKcal),
+      isToday: day.isToday,
+      isSelected: offset === 0 && day.date === selected,
+      isPending: offset !== 0 && day.date === pending,
+      ariaLabel: dayTitle(day.date),
+    })),
+  };
+}
+
+/** The track's five faces around the viewed Week, offsets −2…2 in order. */
+export function weekTrackFaces(
+  weekStart: IsoDate,
+  today: IsoDate,
+  selected: IsoDate,
+  data: { meals: readonly Meal[] | undefined; dishes: readonly Dish[] | undefined },
+): WeekFace[] {
+  const meals = data.meals ?? [];
+  const dishesById = indexDishes(data.dishes ?? []);
+  return FACE_OFFSETS.map((offset) =>
+    weekFace(addDays(weekStart, 7 * offset), offset, today, selected, meals, dishesById),
+  );
 }
 
 export interface WeekPageModel {
@@ -168,17 +237,11 @@ export function weekPage(
     dishesById,
     data.settings ?? DEFAULT_SETTINGS,
   );
+  // The viewed face, so the page and the track can't disagree.
+  const face = weekFace(weekStart, 0, today, selected, meals, dishesById);
   return {
-    monthLabel: weekMonthLabel(weekStart),
-    strip: days.map((day, index) => ({
-      date: day.date,
-      shortName: SHORT_DAY_NAMES[index] as string,
-      dayNumber: dayOfMonth(day.date),
-      kcal: day.mealCount === 0 ? '' : formatKcal(day.plannedKcal),
-      isToday: day.isToday,
-      isSelected: day.date === selected,
-      ariaLabel: dayTitle(day.date),
-    })),
+    monthLabel: face.monthLabel,
+    strip: face.strip,
     heading: dayTitle(selected),
     summary: mealCount === 0 ? 'brak posiłków' : `${mealCount} ${mealsWord(mealCount)}`,
     dayTotals: macroTotals(selectedDay?.macros ?? noMacros),
@@ -187,6 +250,7 @@ export function weekPage(
       rows: slot.meals.map(mealRow),
       totals: macroTotals(slot.macros),
     })),
-    canCopy: weekHasPlan(meals, daySlots),
+    // Meals arrive for all five faces; only the viewed Week's count (research R9).
+    canCopy: weekHasPlan(mealsInRange(meals, weekRange(weekStart)), daySlots),
   };
 }

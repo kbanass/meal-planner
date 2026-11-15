@@ -67,6 +67,7 @@ Editing a Meal:
 - Each Slot can hold several Meals.
 - Below the last Slot of a day sits a placeholder, "dodaj kolejny", which adds one Slot **to that day only**. The day keeps the raised Slot count ("added Slots") even while those Slots are empty.
 - A day shows `max(setting, highest Slot in use, that day's raised Slot count)` Slots.
+  - Planned (later): an Added Slot can be removed again, which lowers that day's raised Slot count. Today it stays until the default Slot count covers it. Open questions for the spec: only the last Slot or any Added Slot (Slots are numbered, so removing a middle one renumbers the ones after it); what happens to Meals in it (blocked, confirmed and removed, or moved); and where the control sits (on the Slot card or next to "dodaj kolejny").
 - In the UI, Slots are labelled with numbers only.
 
 ### Goals
@@ -76,7 +77,7 @@ Editing a Meal:
 ### Week
 - Always Monday–Sunday.
 - Past weeks are kept. On phones, navigate by swiping the Week card; on desktop with ← / → buttons.
-  - Planned (later): the swipe gets proper microinteractions. While a finger holds and drags the Week card, the card follows it, and the previous and next Weeks show beside it: dragging left reveals the next Week, dragging right the previous one. Only the month label and the day strip move; the day totals and "skopiuj do następnego tygodnia" stay fixed. On release, a long enough drag or a quick flick makes the content fade or slide away and the new Week fade gently in; a short drag springs back. Animations stay short (roughly 150–250 ms), because this is the app's primary interaction. Vertical scrolling and the system back swipe keep working. Today the Week changes on release, with a short slide-in. The approach is being researched in `docs/research/week-swipe-gesture.md`.
+  - On phones, the month label and day strip follow the finger, and the previous and next Weeks show beside them, dimmed: dragging left reveals the next Week, dragging right the previous one. A long enough drag or a quick flick slides the neighbour into place in roughly 150–250 ms, because this is the app's primary interaction; a short drag springs back. Touching the card while it's still sliding catches it, so quick flicks chain. The day totals and "skopiuj do następnego tygodnia" stay fixed, and change once the new Week is reached. Vertical scrolling and the system back swipe keep working. With Reduce Motion, the change is instant.
 - **"Skopiuj do następnego tygodnia"** copies all Meals (with servings and their linked/detached state) and per-day added Slots from the viewed Week into the next one, **replacing** the next Week's Meals and added Slots. If the next Week is not empty, ask for confirmation first. The next Week's Shopping List layer (Adjustments, Extras, checks) is left as it is.
 
 ## Summaries
@@ -107,7 +108,7 @@ Tabs: **Tydzień**, **Dania**, **Lista zakupów**, **Ustawienia**.
 
 ### Mobile
 - **Tydzień:** one screen.
-  - At the top, with no page title, a Week card holds the month and year, a strip of 7 days (short name, date, kcal), the selected day's kcal, protein, fat and carbs (each with an icon; bars once goals exist), and "skopiuj do następnego tygodnia". Swipe the card to change Weeks. Today is selected when the app opens, and tapping a day selects it.
+  - At the top, with no page title, a Week card holds the month and year (one month: the one with most of the Week's days, e.g. "Grudzień 2026" for 28 Dec – 3 Jan), a strip of 7 days (short name, date, kcal), the selected day's kcal, protein, fat and carbs (each with an icon; bars once goals exist), and "skopiuj do następnego tygodnia". Swipe the card to change Weeks. Today is selected when the app opens, and tapping a day selects it. Today's day has a dashed green outline when it isn't selected, so it stands out at a glance; selected, it's the plain green pill.
   - Then the Week summary.
   - Then the selected day: its Slots as cards, each with its own kcal and macro totals and its Meals inside (Dish photo on the left), and, set apart below them, the "dodaj kolejny" placeholder.
   - Look (all tabs): warm off-white background, white rounded cards with a soft shadow, the app's green as the accent everywhere, input borders with good contrast. Standard parts (tabbar, sheets, dialogs, inputs) stay Framework7's.
