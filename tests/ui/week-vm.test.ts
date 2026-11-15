@@ -187,13 +187,18 @@ describe('trackMealsRange', () => {
 describe('weekFace', () => {
   const dishes = byId([owsianka]);
 
-  it('selects the same weekday in a neighbour', () => {
+  it('selects no day in a neighbour: the selection moves only when the Week changes', () => {
     const face = weekFace('2026-11-09', 1, '2026-11-04', '2026-11-04', [], dishes);
     expect(face).toMatchObject({ weekStart: '2026-11-09', offset: 1, isViewed: false });
-    expect(face.strip.filter((cell) => cell.isSelected).map((cell) => cell.date)).toEqual([
-      '2026-11-11',
-    ]);
+    expect(face.strip.some((cell) => cell.isSelected)).toBe(false);
     expect(face.strip.some((cell) => cell.isToday)).toBe(false);
+  });
+
+  it('selects the selected day in the viewed face', () => {
+    const face = weekFace('2026-11-02', 0, '2026-11-04', '2026-11-05', [], dishes);
+    expect(face.strip.filter((cell) => cell.isSelected).map((cell) => cell.date)).toEqual([
+      '2026-11-05',
+    ]);
   });
 
   it('marks today in any face', () => {

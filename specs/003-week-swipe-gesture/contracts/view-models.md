@@ -40,13 +40,13 @@ interface WeekFace {
 ```
 
 In `strip`:
-- `isSelected` is `cell.date === sameWeekday(selected, weekStart)`.
+- `isSelected` is `offset === 0 && cell.date === selected`: a neighbour has no selected day (changed after the device run).
 - `kcal` is empty for a day without Meals.
 
 `meals` may span more than this Week, because `selectWeekDays` filters by date.
 
 Tests:
-- The next face of Wed 4 Nov 2026 marks Wed 11 as selected.
+- The next face of Wed 4 Nov 2026 has no selected day; the viewed face marks the selected day.
 - A face with today in it marks today.
 - A face spanning two months gets "Październik – listopad 2026".
 - A day in a neighbour with Meals shows its kcal. Meals outside the face are ignored.

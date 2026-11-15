@@ -2,7 +2,6 @@ import {
   addDays,
   dayLabel,
   dayOfMonth,
-  sameWeekday,
   SHORT_DAY_NAMES,
   weekMonthLabel,
   weekRange,
@@ -144,8 +143,9 @@ export interface WeekFace {
 }
 
 /**
- * The face of the Week starting `weekStart`, at `offset` from the viewed Week. It marks the
- * weekday of `selected`, so a neighbour already shows the day a move would select. `meals` may
+ * The face of the Week starting `weekStart`, at `offset` from the viewed Week. Only the viewed
+ * face marks `selected`: a neighbour peeking in during a drag shows no selection, which moves
+ * only once the Week changes (feature 003, device run). `meals` may
  * span more than this Week.
  */
 export function weekFace(
@@ -156,7 +156,6 @@ export function weekFace(
   meals: readonly Meal[],
   dishesById: ReadonlyMap<string, Dish>,
 ): WeekFace {
-  const selectedHere = sameWeekday(selected, weekStart);
   const days = selectWeekDays(weekStart, today, meals, dishesById);
   return {
     weekStart,
@@ -169,7 +168,7 @@ export function weekFace(
       dayNumber: dayOfMonth(day.date),
       kcal: day.mealCount === 0 ? '' : formatKcal(day.plannedKcal),
       isToday: day.isToday,
-      isSelected: day.date === selectedHere,
+      isSelected: offset === 0 && day.date === selected,
       ariaLabel: dayTitle(day.date),
     })),
   };

@@ -90,7 +90,7 @@ On a desktop, the user clicks ← or → and the Week face slides to the neighbo
 - **Interrupted drag**: an incoming call, the app being backgrounded, or the system taking over the touch mid-drag. The face springs back to the viewed Week.
 - **Week spanning two months or years**: neighbour Weeks show their own label ("Grudzień 2026 – styczeń 2027"), exactly as they will once viewed.
 - **Today in a neighbour Week**: today's mark shows in the neighbour's strip, so nothing changes visually when that Week settles in.
-- **Selected weekday in a neighbour Week**: the neighbour's strip already shows the day that will be selected after settling (the same weekday), so its highlight doesn't jump when it arrives.
+- **Selected weekday in a neighbour Week**: a neighbour shows no selected day while it peeks in. The selection (the same weekday) appears only once the Week has changed, so holding a drag never looks like a choice already made. *Changed after the first device run (2026-11-15): the earlier rule showed the selection in the neighbour, and it read as selected too early.*
 - **Neighbour Week with no Meals**: its days show no kcal, as in a viewed empty Week.
 - **Neighbour Meals still loading**: right after a settle, the new neighbour Week (off-screen) may briefly show no kcal. The Weeks on screen must not flash blank.
 - **Resize or rotation**, and switching tabs and coming back: the face is centred on the viewed Week, and the neighbours are sized correctly.
