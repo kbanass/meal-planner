@@ -215,7 +215,8 @@ html {
   gap: 12px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  padding: 12px 16px calc(16px + var(--f7-safe-area-bottom, 0px));
+  padding: 12px calc(16px + env(safe-area-inset-right, 0px))
+    calc(16px + var(--f7-safe-area-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
   -webkit-overflow-scrolling: touch;
 }
 .dish-picker-tile {
@@ -281,9 +282,11 @@ html {
   --f7-input-outline-border-color: #7a746e;
 }
 
-/* No page title: the Week card starts below the status bar (FR-005). */
+/* No page title: the Week card starts below the status bar (FR-005). The sides add the safe
+   areas, so in landscape nothing sits behind the iPhone's camera island. */
 .week-content {
-  padding: calc(16px + var(--f7-safe-area-top, 0px)) 16px calc(32px + var(--f7-safe-area-bottom, 0px));
+  padding: calc(16px + var(--f7-safe-area-top, 0px)) calc(16px + env(safe-area-inset-right, 0px))
+    calc(32px + var(--f7-safe-area-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
   color: var(--planner-text);
 }
 
@@ -737,11 +740,13 @@ html {
   list-style: none;
 }
 
-/* Dania: each Dish is a card (FR-046). One column on phones, a grid on desktop. */
+/* Dania: each Dish is a card (FR-046). One column on phones, a grid on desktop. The sides
+   add the safe areas for landscape. */
 .dish-grid {
   display: grid;
   gap: 12px;
-  padding: 16px;
+  padding: 16px calc(16px + env(safe-area-inset-right, 0px)) 16px
+    calc(16px + env(safe-area-inset-left, 0px));
 }
 .dish-card {
   display: flex;
