@@ -8,6 +8,7 @@ import type { Deps } from '../../src/app/deps';
 import { createDishRepository } from '../../src/data/dish-repository';
 import { createProductRepository } from '../../src/data/product-repository';
 import { createSettingsRepository } from '../../src/data/settings-repository';
+import { createShoppingRepository } from '../../src/data/shopping-repository';
 import { createWeekRepository } from '../../src/data/week-repository';
 import { DepsProvider } from '../../src/ui/hooks/useDeps';
 import { FakeImageCompressor } from '../fakes/fake-image-compressor';
@@ -33,6 +34,7 @@ export function createTestDeps(): Deps {
     compressor: new FakeImageCompressor(),
     week: createWeekRepository(db, ids),
     settings: createSettingsRepository(db),
+    shopping: createShoppingRepository(db, ids),
   };
 }
 

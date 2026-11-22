@@ -7,6 +7,7 @@ import { createDishRepository, type DishRepository } from '../data/dish-reposito
 import type { ImageCompressor, PhotoStore } from '../data/ports';
 import { createProductRepository, type ProductRepository } from '../data/product-repository';
 import { createSettingsRepository, type SettingsRepository } from '../data/settings-repository';
+import { createShoppingRepository, type ShoppingRepository } from '../data/shopping-repository';
 import { createWeekRepository, type WeekRepository } from '../data/week-repository';
 import type { Clock, IdGenerator } from '../domain/ports';
 
@@ -20,6 +21,7 @@ export interface Deps {
   compressor: ImageCompressor;
   week: WeekRepository;
   settings: SettingsRepository;
+  shopping: ShoppingRepository;
 }
 
 export function createDeps(): Deps {
@@ -35,5 +37,6 @@ export function createDeps(): Deps {
     compressor: createCanvasImageCompressor(),
     week: createWeekRepository(db, ids),
     settings: createSettingsRepository(db),
+    shopping: createShoppingRepository(db, ids),
   };
 }
