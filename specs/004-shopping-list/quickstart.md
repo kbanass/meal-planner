@@ -59,3 +59,11 @@ In Tydzień, plan this Week: "Owsianka" Monday 1 Serving and Wednesday 3 Serving
 ## Results
 
 _Filled in during `/speckit-implement`._
+
+**Automated (2026-11-22)**: `npm run lint`, `npm run typecheck`, `npm run coverage` (50 files, 738 tests, 100% on `src/domain/**`) and `npm run build` pass. No new dependencies. The component tests cover S1–S11 in jsdom.
+
+**Manual: not run yet.** No iPhone or browser was available in the implementation session, so these stay open:
+- T060: every story at 375 pt with an iOS user agent and at ≥ 1024 px (shared column, amount sheet alignment, wrapping, tap targets).
+- T061: rows 1–18 on an iPhone (installed PWA and Safari tab), the SC-002 spot check with `?seed=weeks-52`, a row swipe not scrolling sideways, and the system back swipe.
+
+**Deviation to check on the device**: the Extra row's "Usuń" is a red `SwipeoutButton` with `close` that calls `deleteExtra`, not Framework7's `delete` button. Framework7's delete removes the `<li>` from the DOM itself, which conflicts with React's rendering. It looks the same, but there's no collapse animation.

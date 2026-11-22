@@ -173,13 +173,13 @@ description: "Task list for the Shopping List"
 
 ### Tests for User Story 1
 
-- [ ] T016 [P] [US1] Create `tests/ui/shopping-vm.test.ts` for `src/ui/view-models/shopping.ts`:
+- [X] T016 [P] [US1] Create `tests/ui/shopping-vm.test.ts` for `src/ui/view-models/shopping.ts`:
   - `shoppingPage('2026-11-02', data)` returns `null` while any of `products`, `meals`, `dishes`, `states`, `extras` is `undefined` (research R8).
   - With data: `weekLabel` "2–8 lis 2026", `empty`, and rows with `kind`, `key`, `productId` / `id`, `name`, `ticked`, `atHome` and `amountText` ("1,1 l", "3 szt.").
   - `empty: true` for no Meals and no Extras.
   - `headerSwipeDelta`: (−49, 0) → 0, (−50, 0) → 7, (50, 0) → −7, (−60, 50) → 0 (diagonal), (0, 0) → 0.
   - `emptyMessage` equals "Na ten tydzień nie ma nic do kupienia.".
-- [ ] T017 [P] [US1] Create `tests/ui/shopping-page.test.tsx` (jsdom, `createTestDeps()`, data seeded through the repositories):
+- [X] T017 [P] [US1] Create `tests/ui/shopping-page.test.tsx` (jsdom, `createTestDeps()`, data seeded through the repositories):
   - **S1**: the US1-1/2/3 Week → rows "jajka 3 szt.", "mleko 1,1 l", "płatki owsiane 200 g" in alphabetical order.
   - **Live**: while the page is open, add a Meal using "mleko" through `deps.week` → the row shows the new amount with no other action (FR-006). Then rename "mleko" through `deps.products` → the row shows the new name at once (spec Edge Cases "Product renamed", SC-008).
   - **S8**: tap "Następny tydzień" → label "9–15 lis 2026" and only that Week's rows. Then a header swipe right (`tests/ui/pointer.ts` helpers, starting outside the edge zone) → "2–8 lis 2026". A swipe starting in the edge zone does nothing.
@@ -187,22 +187,22 @@ description: "Task list for the Shopping List"
 
 ### Implementation for User Story 1
 
-- [ ] T018 [P] [US1] Create `src/ui/view-models/shopping.ts` with `ShoppingPageModel`, `ShoppingRow` (US1 fields), `shoppingPage`, `headerSwipeDelta` and `emptyMessage` per [contracts/ui.md](contracts/ui.md):
+- [X] T018 [P] [US1] Create `src/ui/view-models/shopping.ts` with `ShoppingPageModel`, `ShoppingRow` (US1 fields), `shoppingPage`, `headerSwipeDelta` and `emptyMessage` per [contracts/ui.md](contracts/ui.md):
   - `shoppingPage` indexes Dishes with `indexDishes`, filters Meals to `weekRange(weekStart)`, calls `buildShoppingList`, and maps lines to rows: `amountText = formatListAmount(line.amount, product.unit)`, `key` = `p:{productId}` or `e:{id}`.
   - `headerSwipeDelta`: `|dx| ≥ 50` and `|dx| > 1.5·|dy|`; `dx < 0` → 7, otherwise −7; else 0.
   - US3, US4 and US6 add their row fields and `shareText`.
 
   This makes T016 pass.
-- [ ] T019 [P] [US1] Create `src/ui/components/ShoppingRow.tsx`: a Framework7 list item `li.shopping-row` that renders a Product row (name, wrapping; amount text on the right) or an Extra row (text only). US2–US5 add the tick, the house button, the amount button and the swipeout.
-- [ ] T020 [US1] Create `src/ui/pages/ShoppingListPage.tsx`:
+- [X] T019 [P] [US1] Create `src/ui/components/ShoppingRow.tsx`: a Framework7 list item `li.shopping-row` that renders a Product row (name, wrapping; amount text on the right) or an Extra row (text only). US2–US5 add the tick, the house button, the amount button and the swipeout.
+- [X] T020 [US1] Create `src/ui/pages/ShoppingListPage.tsx`:
   - `weekStart` state = `weekStartOf(deps.clock.today())` on mount (FR-003).
   - Five live queries: `deps.week.listMeals(weekRange(weekStart))`, `deps.dishes.list()`, `deps.products.list()`, `deps.shopping.listProductStates(weekStart)`, `deps.shopping.listExtras(weekStart)` (match the existing method names). `shoppingPage(…)`; render nothing while it's `null`.
   - Inside `.page-wide`: `Navbar title="Lista zakupów"`; the `.list-week-card` with round 44 px ← / → buttons (`arrow_left` "Poprzedni tydzień", `arrow_right` "Następny tydzień") around the centred label; the `Block` with `emptyMessage` when `empty`; `List strong inset dividersIos` `.shopping-list` of `toBuy` (omitted when empty); `.shopping-list.is-done` of `done` (omitted when empty).
   - Header swipe: `touch-action: pan-y`; on pointer down record `(x, y)` unless `inEdgeZone(x, window.innerWidth)`; on pointer up `setWeekStart(addDays(weekStart, headerSwipeDelta(dx, dy)))` when non-zero.
 
   This makes T017 pass.
-- [ ] T021 [P] [US1] Add to `src/ui/styles/app.css`: `.list-week-card` (the Week card's look; label 20 px, weight 700, centred), its round buttons, `.shopping-list`, `.shopping-row` (name wraps, amount right-aligned, row min height 44 px).
-- [ ] T022 [US1] In `src/ui/routes.ts` set `shoppingRoutes = [{ path: '/', component: ShoppingListPage }]`, remove `placeholder()` and delete `src/ui/components/PlaceholderPage.tsx` (no other user; check with grep). Update `tests/ui/app-shell.test.tsx`: the Lista zakupów tab shows "2–8 lis 2026" instead of the placeholder notice (the one earlier test changed on purpose). Add a test for FR-003 and US1-11: on Lista zakupów tap "Następny tydzień", switch to Tydzień (still "2–8 lis 2026" there) and back → the list still shows "9–15 lis 2026".
+- [X] T021 [P] [US1] Add to `src/ui/styles/app.css`: `.list-week-card` (the Week card's look; label 20 px, weight 700, centred), its round buttons, `.shopping-list`, `.shopping-row` (name wraps, amount right-aligned, row min height 44 px).
+- [X] T022 [US1] In `src/ui/routes.ts` set `shoppingRoutes = [{ path: '/', component: ShoppingListPage }]`, remove `placeholder()` and delete `src/ui/components/PlaceholderPage.tsx` (no other user; check with grep). Update `tests/ui/app-shell.test.tsx`: the Lista zakupów tab shows "2–8 lis 2026" instead of the placeholder notice (the one earlier test changed on purpose). Add a test for FR-003 and US1-11: on Lista zakupów tap "Następny tydzień", switch to Tydzień (still "2–8 lis 2026" there) and back → the list still shows "9–15 lis 2026".
 
 **Checkpoint**: The list is visible and live. Quickstart rows 1–3 pass at 375 pt.
 
@@ -216,7 +216,7 @@ description: "Task list for the Shopping List"
 
 ### Tests for User Story 2
 
-- [ ] T023 [P] [US2] Extend `tests/ui/shopping-page.test.tsx`:
+- [X] T023 [P] [US2] Extend `tests/ui/shopping-page.test.tsx`:
   - **S2**: tick "cebula" → it is in `.is-done`, has `.is-ticked`, the checkbox is checked, and the row has no `.is-at-home`. Tap its name → back in the top part.
   - US2-5: tick "mleko", add a Meal using "mleko" → new amount, still ticked.
   - US2-6: the next Week's "mleko" is not ticked.
@@ -224,9 +224,9 @@ description: "Task list for the Shopping List"
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] In `src/ui/components/ShoppingRow.tsx`, add the tick: a `<label class="item-checkbox shopping-tick">` holding a hidden `<input type="checkbox" checked={row.ticked}>`, Framework7's `<i class="icon icon-checkbox">` and the name, with an `onToggleTick(row)` prop. The amount stays outside the label. Add `.is-ticked` to the `li` when `row.ticked`.
-- [ ] T025 [US2] In `src/ui/pages/ShoppingListPage.tsx`, handle `onToggleTick`: Product → `deps.shopping.updateProductState(weekStart, productId, { ticked: !row.ticked })`; Extra → `deps.shopping.setExtraTicked(id, !row.ticked)`. This makes T023 pass.
-- [ ] T026 [P] [US2] Add `.shopping-row.is-ticked` to `src/ui/styles/app.css`: name and amount in `--planner-muted` at 0.55 opacity, **no** line-through (FR-012).
+- [X] T024 [US2] In `src/ui/components/ShoppingRow.tsx`, add the tick: a `<label class="item-checkbox shopping-tick">` holding a hidden `<input type="checkbox" checked={row.ticked}>`, Framework7's `<i class="icon icon-checkbox">` and the name, with an `onToggleTick(row)` prop. The amount stays outside the label. Add `.is-ticked` to the `li` when `row.ticked`.
+- [X] T025 [US2] In `src/ui/pages/ShoppingListPage.tsx`, handle `onToggleTick`: Product → `deps.shopping.updateProductState(weekStart, productId, { ticked: !row.ticked })`; Extra → `deps.shopping.setExtraTicked(id, !row.ticked)`. This makes T023 pass.
+- [X] T026 [P] [US2] Add `.shopping-row.is-ticked` to `src/ui/styles/app.css`: name and amount in `--planner-muted` at 0.55 opacity, **no** line-through (FR-012).
 
 **Checkpoint**: Quickstart rows 4 and 12 (ticks) pass. US1 and US2 together are a usable shopping list.
 
@@ -240,8 +240,8 @@ description: "Task list for the Shopping List"
 
 ### Tests for User Story 3
 
-- [ ] T027 [P] [US3] Extend `tests/ui/shopping-vm.test.ts`: a Product row's `atHomeLabel` is "Mam w domu: ryż". An At Home row is in `done`.
-- [ ] T028 [P] [US3] Extend `tests/ui/shopping-page.test.tsx`:
+- [X] T027 [P] [US3] Extend `tests/ui/shopping-vm.test.ts`: a Product row's `atHomeLabel` is "Mam w domu: ryż". An At Home row is in `done`.
+- [X] T028 [P] [US3] Extend `tests/ui/shopping-page.test.tsx`:
   - **S3** (US3 part): tap "Mam w domu: ryż" → `aria-pressed="true"`, the row in `.is-done` with `.is-at-home`. Tap again → back in the top part, `aria-pressed="false"`.
   - US3-6: At Home, then tick → both `.is-at-home` and `.is-ticked`.
   - US3-3: with "ryż" At Home, add a Meal using rice → the row shows the new amount and stays `.is-at-home`.
@@ -249,10 +249,10 @@ description: "Task list for the Shopping List"
 
 ### Implementation for User Story 3
 
-- [ ] T029 [US3] Add `atHomeLabel` (`"Mam w domu: {name}"`) to Product rows in `src/ui/view-models/shopping.ts`. This makes T027 pass.
-- [ ] T030 [US3] In `src/ui/components/ShoppingRow.tsx`, add the At Home button to Product rows, outside the label, right of the amount: `<button class="shopping-at-home" aria-pressed={row.atHome} aria-label={row.atHomeLabel}>` with the Framework7 icon `house`, or `house_fill` when pressed, and no visible text, 44 × 44 px. Add `.is-at-home` to the `li` when `row.atHome`. Prop `onToggleAtHome(row)`.
-- [ ] T031 [US3] In `src/ui/pages/ShoppingListPage.tsx`, handle `onToggleAtHome`: `deps.shopping.updateProductState(weekStart, productId, { atHome: !row.atHome })`. This makes T028 pass.
-- [ ] T032 [P] [US3] Add to `src/ui/styles/app.css`: `.shopping-row.is-at-home` name and amount `text-decoration: line-through` with the same dimming; `.shopping-at-home` 44 × 44 px, muted icon, `[aria-pressed="true"]` icon in `--planner-accent` (FR-015).
+- [X] T029 [US3] Add `atHomeLabel` (`"Mam w domu: {name}"`) to Product rows in `src/ui/view-models/shopping.ts`. This makes T027 pass.
+- [X] T030 [US3] In `src/ui/components/ShoppingRow.tsx`, add the At Home button to Product rows, outside the label, right of the amount: `<button class="shopping-at-home" aria-pressed={row.atHome} aria-label={row.atHomeLabel}>` with the Framework7 icon `house`, or `house_fill` when pressed, and no visible text, 44 × 44 px. Add `.is-at-home` to the `li` when `row.atHome`. Prop `onToggleAtHome(row)`.
+- [X] T031 [US3] In `src/ui/pages/ShoppingListPage.tsx`, handle `onToggleAtHome`: `deps.shopping.updateProductState(weekStart, productId, { atHome: !row.atHome })`. This makes T028 pass.
+- [X] T032 [P] [US3] Add to `src/ui/styles/app.css`: `.shopping-row.is-at-home` name and amount `text-decoration: line-through` with the same dimming; `.shopping-at-home` 44 × 44 px, muted icon, `[aria-pressed="true"]` icon in `--planner-accent` (FR-015).
 
 **Checkpoint**: Quickstart row 5 passes.
 
@@ -266,20 +266,20 @@ description: "Task list for the Shopping List"
 
 ### Tests for User Story 4
 
-- [ ] T033 [P] [US4] Extend `tests/domain/shopping.test.ts`:
+- [X] T033 [P] [US4] Extend `tests/domain/shopping.test.ts`:
   - `adjustmentFieldText(1234.5, 'g')` → `"1235"`, `(2.5, 'pcs')` → `"3"`, `(0.3, 'g')` → `"1"`.
   - `decideAdjustmentSave`, every row of the contract table: `"400"`/`"400"`/400 → unchanged; `"400,0"`/`"400"` → unchanged; `"500"`/`"400"` → set {500, 400}; `" 250 "` → set {250, 400}; `""`/`"500"` → clear; `"   "` → clear; `"400"`/`"500"` → clear; `"400,004"`/`"500"` → clear; `"0"`, `"-5"`, `"abc"` → invalid; `"1236"`/`"1235"`/1234.5 → set {1236, 1234.5}; `"6"`/`"3"`/2.5 → set {6, 2.5}; `"2,5"`/`"3"`/2.5 → clear.
-- [ ] T034 [P] [US4] Create `tests/app/shopping.test.ts` (`saveAdjustment` part) on a test db:
+- [X] T034 [P] [US4] Create `tests/app/shopping.test.ts` (`saveAdjustment` part) on a test db:
   - The US4-2 example stores `{ amount: 500, plannedAmount: 400 }` → `{ kind: 'saved' }`.
   - Saving the filled value → `unchanged`, record deep-equal to before.
   - Empty text on a record with an Adjustment and At Home → `cleared`, Adjustment removed, At Home kept.
   - `"abc"` → `invalid`, nothing written.
-- [ ] T035 [P] [US4] Extend `tests/ui/shopping-vm.test.ts`:
+- [X] T035 [P] [US4] Extend `tests/ui/shopping-vm.test.ts`:
   - With an applying Adjustment {500, 400} on "ryż": `amountText` "500 g", `direction: 'more'`, `plannedText` "plan: 400 g", `amountLabel` "ryż: 500 g, więcej niż w planie (400 g), zmień ilość". {250, 400} → `'less'` and "mniej niż w planie".
   - Without one (or dormant): `direction: null`, `plannedText: null`, `amountLabel` "ryż: 400 g, zmień ilość".
   - `planned` is the unrounded Planned amount, `fieldText` is `adjustmentFieldText(line.amount, unit)`, `unitLabel` is "g" / "ml" / "szt." (`unitLabel` from `view-models/dish-form.ts`).
   - `amountErrorMessage` "Wpisz liczbę większą od zera." and `amountFooter` "Zostaw puste, aby wrócić do ilości z planu.".
-- [ ] T036 [P] [US4] Extend `tests/ui/shopping-page.test.tsx`:
+- [X] T036 [P] [US4] Extend `tests/ui/shopping-page.test.tsx`:
   - **S4**: tap "ryż: 400 g, zmień ilość" → the sheet shows "W planie: 400 g" and the field "400". Type 500, "Zapisz" → "500 g", `.is-more`, "plan: 400 g".
   - **S5**: type "abc", "Zapisz" → the error text is shown, the sheet stays open, nothing is stored.
   - **S6**: with the typed 500 g, add a Meal using rice → the row shows the new Planned amount, no `.is-more`, no "plan:" line.
@@ -287,15 +287,15 @@ description: "Task list for the Shopping List"
 
 ### Implementation for User Story 4
 
-- [ ] T037 [US4] Add `adjustmentFieldText(amount, unit)` (`String(displayQuantity(amount, unit))`) and `decideAdjustmentSave({ text, filledText, planned })` to `src/domain/shopping.ts`, in the contract's order: (1) `parseDecimal(text)` equals `parseDecimal(filledText)` → unchanged; (2) blank → clear; (3) not a number or ≤ 0 → invalid; (4) `roundTo2(value) === roundTo2(planned)` → clear; (5) set `{ amount: roundTo2(value), plannedAmount: roundTo2(planned) }`. This makes T033 pass at 100% coverage.
-- [ ] T038 [US4] Create `src/app/shopping.ts` with `saveAdjustment(deps: { shopping }, { weekStart, productId, text, filledText, planned })`: `decideAdjustmentSave` → set: `updateProductState(…, { adjustment })` → `saved`; clear: `{ adjustment: null }` → `cleared`; unchanged / invalid: no write. This makes T034 pass.
-- [ ] T039 [US4] Add the row fields `direction`, `plannedText`, `amountLabel`, `planned`, `fieldText`, `unitLabel` and the constants `amountErrorMessage`, `amountFooter` to `src/ui/view-models/shopping.ts`. This makes T035 pass.
-- [ ] T040 [US4] Create `src/ui/components/AmountSheet.tsx`: a Framework7 `Sheet` (`backdrop`, `swipeToClose`, height auto, aligned with the desktop column like the other sheets, FR-034), props `row` (or `null`), `opened`, `onClose()`, `onSave(text)`:
+- [X] T037 [US4] Add `adjustmentFieldText(amount, unit)` (`String(displayQuantity(amount, unit))`) and `decideAdjustmentSave({ text, filledText, planned })` to `src/domain/shopping.ts`, in the contract's order: (1) `parseDecimal(text)` equals `parseDecimal(filledText)` → unchanged; (2) blank → clear; (3) not a number or ≤ 0 → invalid; (4) `roundTo2(value) === roundTo2(planned)` → clear; (5) set `{ amount: roundTo2(value), plannedAmount: roundTo2(planned) }`. This makes T033 pass at 100% coverage.
+- [X] T038 [US4] Create `src/app/shopping.ts` with `saveAdjustment(deps: { shopping }, { weekStart, productId, text, filledText, planned })`: `decideAdjustmentSave` → set: `updateProductState(…, { adjustment })` → `saved`; clear: `{ adjustment: null }` → `cleared`; unchanged / invalid: no write. This makes T034 pass.
+- [X] T039 [US4] Add the row fields `direction`, `plannedText`, `amountLabel`, `planned`, `fieldText`, `unitLabel` and the constants `amountErrorMessage`, `amountFooter` to `src/ui/view-models/shopping.ts`. This makes T035 pass.
+- [X] T040 [US4] Create `src/ui/components/AmountSheet.tsx`: a Framework7 `Sheet` (`backdrop`, `swipeToClose`, height auto, aligned with the desktop column like the other sheets, FR-034), props `row` (or `null`), `opened`, `onClose()`, `onSave(text)`:
   - `Toolbar`: left "Anuluj" (`sheetClose`), title the Product name, right "Zapisz".
   - "W planie: {formatListAmount(planned)}" (from the row's text), an outlined `ListInput` "Ilość do kupienia", `inputmode="decimal"`, filled with `row.fieldText`, the `unitLabel` after it, and the footer `amountFooter`.
   - `onSave` returning `invalid` keeps it open and shows `amountErrorMessage` on the field (FR-019).
-- [ ] T041 [US4] In `src/ui/components/ShoppingRow.tsx`, turn the amount into `<button class="shopping-amount" aria-label={row.amountLabel}>`: line 1 `amountText` plus an `arrow_up` / `arrow_down` icon and the class `is-more` / `is-less` when `direction` is set; line 2 `plannedText` when set. In `src/ui/pages/ShoppingListPage.tsx`, keep the target `productId` in state, render one `AmountSheet` per page, look the row up in the live model at render and at save time (so `planned` is current), and call `saveAdjustment` with `filledText: row.fieldText`. This makes T036 pass.
-- [ ] T042 [P] [US4] Add to `src/ui/styles/app.css`: a `--planner-adjust-less` token on `:root` (a dark amber with at least 4.5:1 contrast on white), `.shopping-amount` (two lines, right-aligned, 44 px min height), `.is-more` in `--planner-accent`, `.is-less` in `--planner-adjust-less`, and the plan line at 12 px in `--planner-muted`.
+- [X] T041 [US4] In `src/ui/components/ShoppingRow.tsx`, turn the amount into `<button class="shopping-amount" aria-label={row.amountLabel}>`: line 1 `amountText` plus an `arrow_up` / `arrow_down` icon and the class `is-more` / `is-less` when `direction` is set; line 2 `plannedText` when set. In `src/ui/pages/ShoppingListPage.tsx`, keep the target `productId` in state, render one `AmountSheet` per page, look the row up in the live model at render and at save time (so `planned` is current), and call `saveAdjustment` with `filledText: row.fieldText`. This makes T036 pass.
+- [X] T042 [P] [US4] Add to `src/ui/styles/app.css`: a `--planner-adjust-less` token on `:root` (a dark amber with at least 4.5:1 contrast on white), `.shopping-amount` (two lines, right-aligned, 44 px min height), `.is-more` in `--planner-accent`, `.is-less` in `--planner-adjust-less`, and the plan line at 12 px in `--planner-muted`.
 
 **Checkpoint**: Quickstart rows 6–9 pass.
 
@@ -309,19 +309,19 @@ description: "Task list for the Shopping List"
 
 ### Tests for User Story 5
 
-- [ ] T043 [P] [US5] Extend `tests/app/shopping.test.ts` with `addExtra`: `" papier  toaletowy "` → `'added'`, stored as `"papier toaletowy"`. `"  "` → `'empty'`, nothing stored.
-- [ ] T044 [P] [US5] Extend `tests/ui/shopping-page.test.tsx`:
+- [X] T043 [P] [US5] Extend `tests/app/shopping.test.ts` with `addExtra`: `" papier  toaletowy "` → `'added'`, stored as `"papier toaletowy"`. `"  "` → `'empty'`, nothing stored.
+- [X] T044 [P] [US5] Extend `tests/ui/shopping-page.test.tsx`:
   - **S7**: type "kawa" in the "Dodaj coś spoza planu…" field and press Enter → the row appears in alphabetical place, and the input is empty and focused. Tap "Usuń" in its swipeout → gone, with no dialog.
   - US5-2: Enter on an empty or spaces-only field adds nothing.
   - **S11** (US5 part): an empty Week still shows the Extra field.
 
 ### Implementation for User Story 5
 
-- [ ] T045 [US5] Add `addExtra(deps: { shopping }, weekStart, text): Promise<'added' | 'empty'>` to `src/app/shopping.ts`. This makes T043 pass.
-- [ ] T046 [US5] Add `extraPlaceholder` ("Dodaj coś spoza planu…") to `src/ui/view-models/shopping.ts`.
-- [ ] T047 [US5] In `src/ui/pages/ShoppingListPage.tsx`, add the Add Extra block between the top list and the done list (also in the empty state): an inset list with one row holding a `<form>` with an outlined text input (`extraPlaceholder`, `enterkeyhint="done"`) and a "Dodaj" button. Submit calls `addExtra`; on `'added'` clear the input and keep focus (FR-022).
-- [ ] T048 [US5] In `src/ui/components/ShoppingRow.tsx`, wrap Extra rows in Framework7's `swipeout` with one right-side `SwipeoutButton delete` labelled "Usuń" and no `confirmText`. Its `onDelete` calls `deps.shopping.deleteExtra(id)` from the page (FR-023). This makes T044 pass.
-- [ ] T049 [P] [US5] Add the Extra form styles to `src/ui/styles/app.css` (input fills the row, "Dodaj" as a text button in the accent colour).
+- [X] T045 [US5] Add `addExtra(deps: { shopping }, weekStart, text): Promise<'added' | 'empty'>` to `src/app/shopping.ts`. This makes T043 pass.
+- [X] T046 [US5] Add `extraPlaceholder` ("Dodaj coś spoza planu…") to `src/ui/view-models/shopping.ts`.
+- [X] T047 [US5] In `src/ui/pages/ShoppingListPage.tsx`, add the Add Extra block between the top list and the done list (also in the empty state): an inset list with one row holding a `<form>` with an outlined text input (`extraPlaceholder`, `enterkeyhint="done"`) and a "Dodaj" button. Submit calls `addExtra`; on `'added'` clear the input and keep focus (FR-022).
+- [X] T048 [US5] In `src/ui/components/ShoppingRow.tsx`, wrap Extra rows in Framework7's `swipeout` with one right-side `SwipeoutButton delete` labelled "Usuń" and no `confirmText`. Its `onDelete` calls `deps.shopping.deleteExtra(id)` from the page (FR-023). This makes T044 pass.
+- [X] T049 [P] [US5] Add the Extra form styles to `src/ui/styles/app.css` (input fills the row, "Dodaj" as a text button in the accent colour).
 
 **Checkpoint**: Quickstart rows 10–11 pass.
 
@@ -335,12 +335,12 @@ description: "Task list for the Shopping List"
 
 ### Tests for User Story 6
 
-- [ ] T050 [P] [US6] Create `tests/adapters/web-text-sharer.test.ts` (node project, `vi.stubGlobal('navigator', …)`, with `afterEach(() => vi.unstubAllGlobals())`, because the config restores mocks but not stubbed globals): `share` resolves → `'shared'` and was called with `{ text }`; rejects with `AbortError` → `'cancelled'`; rejects with `NotAllowedError` → throws; no `share` → `clipboard.writeText(text)` called, `'copied'`.
-- [ ] T051 [P] [US6] Extend `tests/ui/shopping-vm.test.ts`:
+- [X] T050 [P] [US6] Create `tests/adapters/web-text-sharer.test.ts` (node project, `vi.stubGlobal('navigator', …)`, with `afterEach(() => vi.unstubAllGlobals())`, because the config restores mocks but not stubbed globals): `share` resolves → `'shared'` and was called with `{ text }`; rejects with `AbortError` → `'cancelled'`; rejects with `NotAllowedError` → throws; no `share` → `clipboard.writeText(text)` called, `'copied'`.
+- [X] T051 [P] [US6] Extend `tests/ui/shopping-vm.test.ts`:
   - `shareText('2026-11-16', toBuy)` → `"Lista zakupów 16–22 lis 2026\nmleko 1,1 l\npapier toaletowy\nryż 500 g"`: heading, screen order, the typed amount, Extras as text, no ticked or At Home lines, no plan amount.
   - `shoppingPage(...).shareText` is `null` when `toBuy` is empty (every item ticked or At Home).
   - `copiedToast` "Skopiowano listę do schowka." and `shareFailedMessage` "Nie udało się udostępnić listy.".
-- [ ] T052 [P] [US6] Extend `tests/ui/shopping-page.test.tsx` (each test passes its own `RecordingTextSharer` to `createTestDeps`):
+- [X] T052 [P] [US6] Extend `tests/ui/shopping-page.test.tsx` (each test passes its own `RecordingTextSharer` to `createTestDeps`):
   - **S9**: sharer `'copied'` → the sharer recorded the US6 text and the toast is shown.
   - **S10**: `'cancelled'` → no toast, no dialog. `'fail'` → an alert with `shareFailedMessage`.
   - **S3** (share part): after marking "ryż" At Home the shared text has no "ryż".
@@ -348,11 +348,11 @@ description: "Task list for the Shopping List"
 
 ### Implementation for User Story 6
 
-- [ ] T053 [US6] Add the `TextSharer` interface to `src/data/ports.ts` (`share(text): Promise<'shared' | 'copied' | 'cancelled'>`, other failures throw), and create `tests/fakes/recording-text-sharer.ts`: `RecordingTextSharer` with `texts: string[]`, constructed with a result (default `'shared'`) or `'fail'` (throws).
-- [ ] T054 [US6] Create `src/adapters/web-text-sharer.ts` exporting `webTextSharer: TextSharer` per research R5. This makes T050 pass.
-- [ ] T055 [US6] Add `shareList(deps: { sharer }, text)` to `src/app/shopping.ts` (passes through). Add `sharer: TextSharer` to `Deps` / `createDeps()` (`webTextSharer`) and to `createTestDeps()` (`new RecordingTextSharer()` by default, overridable).
-- [ ] T056 [US6] Add `shareText(weekStart, toBuy)`, the `shareText` model field, `copiedToast` and `shareFailedMessage` to `src/ui/view-models/shopping.ts`. Lines use `formatListAmount(line.amount, unit)` for Products and the text for Extras. This makes T051 pass.
-- [ ] T057 [US6] In `src/ui/pages/ShoppingListPage.tsx`, add the full-width "Udostępnij listę" text button (`square_arrow_up` icon) under the Week row, styled like "Skopiuj do następnego tygodnia", rendered only when `model.shareText !== null` (FR-025). The click handler calls `shareList(deps, model.shareText)` **synchronously, with no `await` before it** (research R5): `'copied'` → `f7.toast.show({ text: copiedToast })`; `'shared'` / `'cancelled'` → nothing; a throw → `f7.dialog.alert(shareFailedMessage)`. This makes T052 pass.
+- [X] T053 [US6] Add the `TextSharer` interface to `src/data/ports.ts` (`share(text): Promise<'shared' | 'copied' | 'cancelled'>`, other failures throw), and create `tests/fakes/recording-text-sharer.ts`: `RecordingTextSharer` with `texts: string[]`, constructed with a result (default `'shared'`) or `'fail'` (throws).
+- [X] T054 [US6] Create `src/adapters/web-text-sharer.ts` exporting `webTextSharer: TextSharer` per research R5. This makes T050 pass.
+- [X] T055 [US6] Add `shareList(deps: { sharer }, text)` to `src/app/shopping.ts` (passes through). Add `sharer: TextSharer` to `Deps` / `createDeps()` (`webTextSharer`) and to `createTestDeps()` (`new RecordingTextSharer()` by default, overridable).
+- [X] T056 [US6] Add `shareText(weekStart, toBuy)`, the `shareText` model field, `copiedToast` and `shareFailedMessage` to `src/ui/view-models/shopping.ts`. Lines use `formatListAmount(line.amount, unit)` for Products and the text for Extras. This makes T051 pass.
+- [X] T057 [US6] In `src/ui/pages/ShoppingListPage.tsx`, add the full-width "Udostępnij listę" text button (`square_arrow_up` icon) under the Week row, styled like "Skopiuj do następnego tygodnia", rendered only when `model.shareText !== null` (FR-025). The click handler calls `shareList(deps, model.shareText)` **synchronously, with no `await` before it** (research R5): `'copied'` → `f7.toast.show({ text: copiedToast })`; `'shared'` / `'cancelled'` → nothing; a throw → `f7.dialog.alert(shareFailedMessage)`. This makes T052 pass.
 
 **Checkpoint**: Quickstart rows 13–15 pass.
 
@@ -362,14 +362,14 @@ description: "Task list for the Shopping List"
 
 **Purpose**: The dev seed for SC-002, the device run and the final checks.
 
-- [ ] T058 [P] Update `src/dev/seed.ts`:
+- [X] T058 [P] Update `src/dev/seed.ts`:
   - `replaceData` also clears `productListStates` and `extras`.
   - `weeks-N` gives the current Week 35 Meals over at least 100 distinct Products (more seeded Products, or Ingredients spread over them), and gives each past Week a few state records (ticked, At Home, one Adjustment) and Extras, using `deps.shopping`.
   - `dishes-N-photos-M` and `products-N` behave as before.
-- [ ] T059 [P] Remove leftovers: `grep -rn "PlaceholderPage\|placeholder(" src tests` finds nothing related to tabs, and every string in [contracts/ui.md](contracts/ui.md) appears exactly once as a constant or inline in the page or components.
+- [X] T059 [P] Remove leftovers: `grep -rn "PlaceholderPage\|placeholder(" src tests` finds nothing related to tabs, and every string in [contracts/ui.md](contracts/ui.md) appears exactly once as a constant or inline in the page or components.
 - [ ] T060 Check every story at 375 pt with an iOS user agent and at ≥ 1024 px desktop width (FR-034, quickstart row 18): the page sits in the shared column, the amount sheet lines up with it, long names and Extras wrap, and the amount and house buttons stay tappable.
 - [ ] T061 Run the full [quickstart.md](quickstart.md) on an iPhone (rows 1–18), as the installed PWA and in a Safari tab, plus the SC-002 spot check with `?seed=weeks-52`. Check that a row swipe doesn't scroll the page sideways and the system back swipe still works. Record the results under "Results" in `quickstart.md`. If no device is available, record that and leave the task open (as with feature 001's Android check).
-- [ ] T062 Final gate:
+- [X] T062 Final gate:
   - `npm run lint`, `npm run typecheck`, `npm run coverage` (100% on `src/domain/**`) and `npm run build` all pass.
   - `git diff main -- package.json package-lock.json` is empty (no new dependencies).
   - `grep -n "Date\|Math.random\|toLocale" src/domain/shopping.ts` finds nothing.
