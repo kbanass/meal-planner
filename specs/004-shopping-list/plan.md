@@ -63,7 +63,7 @@ All Technical Context items are resolved in [research.md](research.md). There ar
 | Principle / constraint | How this plan complies | Pre | Post |
 |---|---|---|---|
 | I. English code, Polish UI | Identifiers are English. Every string we write is Polish and inline ([contracts/ui.md](contracts/ui.md)). The share-failure alert shows Framework7's default "OK": the justified deviation carried over from features 001 and 002 (Complexity Tracking) | ⚠️ | ⚠️ |
-| II. Glossary-bound language | `ShoppingList`, `Adjustment`, `Extra`, `atHome` (**At Home**), `Planned` (`plannedAmounts`, `planned`). The tick is a UI concept (`ticked`; SPEC.md's "checked state"). **At Home** was added to GLOSSARY.md and **Adjustment** redefined on 2026-11-17, before any code, as the principle requires. Avoided terms (override, correction, pantry, stock, have) aren't used as identifiers. "Item" names only UI rows (`ShoppingRow`), never a Product. Follow-up: the principle's enumerated term list doesn't name At Home yet. It needs a PATCH amendment through `/speckit-constitution`, which the rule itself doesn't depend on | ✅ | ✅ |
+| II. Glossary-bound language | `ShoppingList`, `Adjustment`, `Extra`, `atHome` (**At Home**), `Planned` (`plannedAmounts`, `planned`). The tick is a UI concept (`ticked`; SPEC.md's "checked state"). **At Home** was added to GLOSSARY.md and **Adjustment** redefined on 2026-11-17, before any code, as the principle requires. Avoided terms (override, correction, pantry, stock, have) aren't used as identifiers. "Item" names only UI rows (`ShoppingRow`), never a Product. The principle's term list names At Home since constitution v1.0.2 (2026-11-22) | ✅ | ✅ |
 | III. Single-user, local-only | Only new IndexedDB tables. Extras get UUIDs from `IdGenerator`. State records use the natural key (Week Monday, Product UUID), which is stable across devices, like `daySlots` (R1). Sharing is a local OS hand-off, not a network call | ✅ | ✅ |
 | IV. Functional core / imperative shell | The constitution's own list names "Shopping List aggregation with Adjustments and rounding" and "Unit formatting (g→kg, ml→l, pcs rounded up)". Both live in `src/domain/shopping.ts` and `units.ts` ([contracts/domain-api.md](contracts/domain-api.md)), and so do the save decision and merge rule | ✅ | ✅ |
 | IV. No hidden nondeterminism | "Today" comes from `Clock` (page mount only). Extra ids come from `IdGenerator`. Sorting uses the existing explicit `Intl.Collator('pl')`. Meals are summed in id order, so float sums don't depend on IndexedDB order (R3) | ✅ | ✅ |
@@ -163,7 +163,7 @@ tests/
 - **Sheets**: one `AmountSheet` per page, with the target row's `productId` in state. Look the row up in the live model at render and save time, so `planned` is current (contracts/ui.md).
 - **Swipeout and the header swipe** don't overlap: the swipe handlers sit only on the header card. Check on the iPhone that a row swipe doesn't scroll the page sideways and that the system back swipe from the edge still works.
 - **iPhone check**: test every story at 375 pt with an iOS user agent before calling it done, then on the device (project memory: Framework7 native patterns).
-- **Constitution PATCH**: suggest `/speckit-constitution` to add At Home to Principle II's term list. It isn't a blocking task.
+- **Constitution PATCH**: done. v1.0.2 (2026-11-22) adds At Home to Principle II's term list.
 
 ## Complexity Tracking
 

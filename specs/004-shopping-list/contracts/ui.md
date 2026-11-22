@@ -119,7 +119,7 @@ The fixed clock is 2026-11-04 (Week 2–8 lis 2026). Data is seeded through the 
 
 | # | Scenario | Asserts |
 |---|---|---|
-| S1 | US1-1/2/3 Week | rows "mleko 1,1 l", "płatki owsiane 200 g", "jajka 3 szt." in order |
+| S1 | US1-1/2/3 Week | rows "jajka 3 szt.", "mleko 1,1 l", "płatki owsiane 200 g" in this (alphabetical) order |
 | S2 | tick "cebula" | it moves to `.is-done`, has `.is-ticked` and no line-through class. Untick → back in the top part |
 | S3 | house on "ryż" | `aria-pressed="true"`, row in `.is-done` with `.is-at-home`. The share text no longer has "ryż" |
 | S4 | amount 400 → 500 | the sheet shows "W planie: 400 g" and the field "400". After saving: "500 g", `.is-more`, "plan: 400 g" |

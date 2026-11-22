@@ -155,7 +155,7 @@ description: "Task list for the Shopping List"
   - **`changeUnit`**: after the usage check passes, for each record of the Product, `applyStatePatch(record, record, { adjustment: null })`, then `put` or `delete`.
   - **`merge`**: after the unit check and before Dishes and Meals are rewritten:
     1. read `productListStates.where('productId').anyOf(fromId, intoId)`;
-    2. for each distinct `weekStart`, read that Week's Meals (`meals.where('date').between(...weekRange(weekStart), true, true)`) and compute `plannedAmounts` from the Dishes as read before the rewrite;
+    2. for each distinct `weekStart`, read that Week's Meals (`const { start, end } = weekRange(weekStart)`, then `meals.where('date').between(start, end, true, true)`) and compute `plannedAmounts` from the Dishes as read before the rewrite;
     3. `mergeProductListStates({ weekStart, intoId, from, into, fromPlanned, intoPlanned })` with `?? 0` for absent amounts;
     4. delete both Products' records for that Week, then `put` the result if it isn't `null`.
 
@@ -181,7 +181,7 @@ description: "Task list for the Shopping List"
   - `emptyMessage` equals "Na ten tydzień nie ma nic do kupienia.".
 - [ ] T017 [P] [US1] Create `tests/ui/shopping-page.test.tsx` (jsdom, `createTestDeps()`, data seeded through the repositories):
   - **S1**: the US1-1/2/3 Week → rows "jajka 3 szt.", "mleko 1,1 l", "płatki owsiane 200 g" in alphabetical order.
-  - **Live**: while the page is open, add a Meal using "mleko" through `deps.week` → the row shows the new amount with no other action (FR-006).
+  - **Live**: while the page is open, add a Meal using "mleko" through `deps.week` → the row shows the new amount with no other action (FR-006). Then rename "mleko" through `deps.products` → the row shows the new name at once (spec Edge Cases "Product renamed", SC-008).
   - **S8**: tap "Następny tydzień" → label "9–15 lis 2026" and only that Week's rows. Then a header swipe right (`tests/ui/pointer.ts` helpers, starting outside the edge zone) → "2–8 lis 2026". A swipe starting in the edge zone does nothing.
   - **S11** (US1 part): an empty Week shows `emptyMessage`. US5 and US6 extend this test.
 
@@ -202,7 +202,7 @@ description: "Task list for the Shopping List"
 
   This makes T017 pass.
 - [ ] T021 [P] [US1] Add to `src/ui/styles/app.css`: `.list-week-card` (the Week card's look; label 20 px, weight 700, centred), its round buttons, `.shopping-list`, `.shopping-row` (name wraps, amount right-aligned, row min height 44 px).
-- [ ] T022 [US1] In `src/ui/routes.ts` set `shoppingRoutes = [{ path: '/', component: ShoppingListPage }]`, remove `placeholder()` and delete `src/ui/components/PlaceholderPage.tsx` (no other user; check with grep). Update `tests/ui/app-shell.test.tsx`: the Lista zakupów tab shows "2–8 lis 2026" instead of the placeholder notice (the one earlier test changed on purpose).
+- [ ] T022 [US1] In `src/ui/routes.ts` set `shoppingRoutes = [{ path: '/', component: ShoppingListPage }]`, remove `placeholder()` and delete `src/ui/components/PlaceholderPage.tsx` (no other user; check with grep). Update `tests/ui/app-shell.test.tsx`: the Lista zakupów tab shows "2–8 lis 2026" instead of the placeholder notice (the one earlier test changed on purpose). Add a test for FR-003 and US1-11: on Lista zakupów tap "Następny tydzień", switch to Tydzień (still "2–8 lis 2026" there) and back → the list still shows "9–15 lis 2026".
 
 **Checkpoint**: The list is visible and live. Quickstart rows 1–3 pass at 375 pt.
 
@@ -244,6 +244,7 @@ description: "Task list for the Shopping List"
 - [ ] T028 [P] [US3] Extend `tests/ui/shopping-page.test.tsx`:
   - **S3** (US3 part): tap "Mam w domu: ryż" → `aria-pressed="true"`, the row in `.is-done` with `.is-at-home`. Tap again → back in the top part, `aria-pressed="false"`.
   - US3-6: At Home, then tick → both `.is-at-home` and `.is-ticked`.
+  - US3-3: with "ryż" At Home, add a Meal using rice → the row shows the new amount and stays `.is-at-home`.
   - US3-5: an Extra row has no "Mam w domu" button.
 
 ### Implementation for User Story 3
@@ -294,7 +295,7 @@ description: "Task list for the Shopping List"
   - "W planie: {formatListAmount(planned)}" (from the row's text), an outlined `ListInput` "Ilość do kupienia", `inputmode="decimal"`, filled with `row.fieldText`, the `unitLabel` after it, and the footer `amountFooter`.
   - `onSave` returning `invalid` keeps it open and shows `amountErrorMessage` on the field (FR-019).
 - [ ] T041 [US4] In `src/ui/components/ShoppingRow.tsx`, turn the amount into `<button class="shopping-amount" aria-label={row.amountLabel}>`: line 1 `amountText` plus an `arrow_up` / `arrow_down` icon and the class `is-more` / `is-less` when `direction` is set; line 2 `plannedText` when set. In `src/ui/pages/ShoppingListPage.tsx`, keep the target `productId` in state, render one `AmountSheet` per page, look the row up in the live model at render and at save time (so `planned` is current), and call `saveAdjustment` with `filledText: row.fieldText`. This makes T036 pass.
-- [ ] T042 [P] [US4] Add to `src/ui/styles/app.css`: a `--planner-adjust-less` token on `:root` (a dark amber with at least 4.5:1 contrast on white, with a matching value wherever the existing tokens are redefined), `.shopping-amount` (two lines, right-aligned, 44 px min height), `.is-more` in `--planner-accent`, `.is-less` in `--planner-adjust-less`, and the plan line at 12 px in `--planner-muted`.
+- [ ] T042 [P] [US4] Add to `src/ui/styles/app.css`: a `--planner-adjust-less` token on `:root` (a dark amber with at least 4.5:1 contrast on white), `.shopping-amount` (two lines, right-aligned, 44 px min height), `.is-more` in `--planner-accent`, `.is-less` in `--planner-adjust-less`, and the plan line at 12 px in `--planner-muted`.
 
 **Checkpoint**: Quickstart rows 6–9 pass.
 
@@ -334,7 +335,7 @@ description: "Task list for the Shopping List"
 
 ### Tests for User Story 6
 
-- [ ] T050 [P] [US6] Create `tests/adapters/web-text-sharer.test.ts` (node project, `vi.stubGlobal('navigator', …)`): `share` resolves → `'shared'` and was called with `{ text }`; rejects with `AbortError` → `'cancelled'`; rejects with `NotAllowedError` → throws; no `share` → `clipboard.writeText(text)` called, `'copied'`.
+- [ ] T050 [P] [US6] Create `tests/adapters/web-text-sharer.test.ts` (node project, `vi.stubGlobal('navigator', …)`, with `afterEach(() => vi.unstubAllGlobals())`, because the config restores mocks but not stubbed globals): `share` resolves → `'shared'` and was called with `{ text }`; rejects with `AbortError` → `'cancelled'`; rejects with `NotAllowedError` → throws; no `share` → `clipboard.writeText(text)` called, `'copied'`.
 - [ ] T051 [P] [US6] Extend `tests/ui/shopping-vm.test.ts`:
   - `shareText('2026-11-16', toBuy)` → `"Lista zakupów 16–22 lis 2026\nmleko 1,1 l\npapier toaletowy\nryż 500 g"`: heading, screen order, the typed amount, Extras as text, no ticked or At Home lines, no plan amount.
   - `shoppingPage(...).shareText` is `null` when `toBuy` is empty (every item ticked or At Home).
@@ -475,5 +476,5 @@ Task: "T052 tests/ui/shopping-page.test.tsx (S9, S10)"
 
 ### Notes
 
-- Not a task: the constitution's Principle II term list doesn't name At Home yet. Suggest a PATCH amendment through `/speckit-constitution` (plan.md, Constitution Check). The glossary rule itself is already met.
+- The constitution's Principle II term list names At Home since v1.0.2 (2026-11-22).
 - `checklists/requirements.md` notes still describe the pre-clarify ±Adjustments; leave them as the record of the specify step.

@@ -220,7 +220,7 @@ The user taps "Udostępnij listę" and sends what is left to buy as plain text, 
 **Adjustments**
 
 - **FR-017**: Tapping a Product item's amount MUST open a field for the amount to buy, in the Product's unit, filled with the current Amount to buy rounded as on screen. The field MUST also show the Planned amount.
-- **FR-018**: The field MUST accept a number above zero with up to 2 decimals (comma or dot as separator), stored rounded to 2 decimals. Saving MUST:
+- **FR-018**: The field MUST accept a number above zero (comma or dot as separator), stored rounded to 2 decimals; more decimals are rounded, not rejected. Saving MUST:
   - change nothing when the value is the one it was filled with;
   - remove the Adjustment when the field is empty or the value equals the Planned amount (to 2 decimals);
   - otherwise set the Adjustment to the typed amount, replacing any earlier one.
@@ -230,7 +230,7 @@ The user taps "Udostępnij listę" and sends what is left to buy as plain text, 
 
 **Extras**
 
-- **FR-022**: The tab MUST offer a field for adding an Extra to the Shown Week. Confirming it MUST add an Extra with the typed text, trimmed of leading and trailing spaces, and clear the field. Empty or whitespace-only text MUST NOT add anything.
+- **FR-022**: The tab MUST offer a field for adding an Extra to the Shown Week. Confirming it MUST add an Extra with the typed text, trimmed of leading and trailing spaces and with runs of inner spaces collapsed to one, and clear the field. Empty or whitespace-only text MUST NOT add anything.
 - **FR-023**: The user MUST be able to delete an Extra by swiping it. Deleting MUST NOT ask for confirmation.
 - **FR-024**: Extras MUST belong to one Week and MUST NOT be changed by plan changes or by "Skopiuj do następnego tygodnia". Extras have no amount, no Adjustment and no At Home mark.
 
