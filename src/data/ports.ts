@@ -23,3 +23,9 @@ export class PhotoDecodeError extends Error {
 export class PhotoQuotaError extends Error {
   override name = 'PhotoQuotaError';
 }
+
+/** Shares plain text, or copies it where sharing isn't available (research R5). */
+export interface TextSharer {
+  /** Other failures throw. */
+  share(text: string): Promise<'shared' | 'copied' | 'cancelled'>;
+}

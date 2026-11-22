@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   adjustmentApplies,
   adjustmentDirection,
+  adjustmentFieldText,
   applyStatePatch,
   buildShoppingList,
+  decideAdjustmentSave,
   isListEmpty,
   mergeProductListStates,
   plannedAmounts,
@@ -408,5 +410,36 @@ describe('mergeProductListStates', () => {
       intoPlanned: 0,
     });
     expect(result).toEqual({ weekStart: '2026-11-09', productId: 'pB', ticked: true, atHome: false, adjustment: null });
+  });
+});
+
+describe('adjustmentFieldText', () => {
+  it.each([
+    [1234.5, 'g', '1235'],
+    [2.5, 'pcs', '3'],
+    [0.3, 'g', '1'],
+  ] as const)('(%d, %s) → %j', (amount, unit, expected) => {
+    expect(adjustmentFieldText(amount, unit)).toBe(expected);
+  });
+});
+
+describe('decideAdjustmentSave', () => {
+  it.each([
+    ['400', '400', 400, { kind: 'unchanged' }],
+    ['400,0', '400', 400, { kind: 'unchanged' }],
+    ['500', '400', 400, { kind: 'set', adjustment: { amount: 500, plannedAmount: 400 } }],
+    [' 250 ', '400', 400, { kind: 'set', adjustment: { amount: 250, plannedAmount: 400 } }],
+    ['', '500', 400, { kind: 'clear' }],
+    ['   ', '400', 400, { kind: 'clear' }],
+    ['400', '500', 400, { kind: 'clear' }],
+    ['400,004', '500', 400, { kind: 'clear' }],
+    ['0', '400', 400, { kind: 'invalid' }],
+    ['-5', '400', 400, { kind: 'invalid' }],
+    ['abc', '400', 400, { kind: 'invalid' }],
+    ['1236', '1235', 1234.5, { kind: 'set', adjustment: { amount: 1236, plannedAmount: 1234.5 } }],
+    ['6', '3', 2.5, { kind: 'set', adjustment: { amount: 6, plannedAmount: 2.5 } }],
+    ['2,5', '3', 2.5, { kind: 'clear' }],
+  ] as const)('(%j, filled %j, planned %d) → %j', (text, filledText, planned, expected) => {
+    expect(decideAdjustmentSave({ text, filledText, planned })).toEqual(expected);
   });
 });

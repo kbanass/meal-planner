@@ -1,6 +1,6 @@
 import { mealSource, scaleMeal } from './meals';
 import { compareIds, compareNames } from './names';
-import { roundTo2 } from './numbers';
+import { parseDecimal, roundTo2 } from './numbers';
 import type {
   Adjustment,
   Dish,
@@ -9,7 +9,9 @@ import type {
   Meal,
   Product,
   ProductListState,
+  Unit,
 } from './types';
+import { displayQuantity } from './units';
 
 /** One Product on the Week's Shopping List. */
 export interface ProductLine {
@@ -169,4 +171,35 @@ export function mergeProductListStates(input: {
     { weekStart: input.weekStart, productId: input.intoId },
     { ticked: all('ticked'), atHome: all('atHome') },
   );
+}
+
+/** The amount field's starting text: the shown quantity as plain digits, e.g. "1235", "3" (FR-017). */
+export function adjustmentFieldText(amount: number, unit: Unit): string {
+  return String(displayQuantity(amount, unit));
+}
+
+export type AdjustmentSave =
+  | { kind: 'unchanged' }
+  | { kind: 'clear' }
+  | { kind: 'set'; adjustment: Adjustment }
+  | { kind: 'invalid' };
+
+/**
+ * What saving the amount sheet does (FR-018, FR-019). The field's untouched text changes
+ * nothing; blank text or the planned value clears the Adjustment; anything else above zero is
+ * stored with the Planned amount it was typed against.
+ */
+export function decideAdjustmentSave(input: {
+  text: string;
+  filledText: string;
+  planned: number;
+}): AdjustmentSave {
+  const value = parseDecimal(input.text);
+  if (value !== null && value === parseDecimal(input.filledText)) return { kind: 'unchanged' };
+  if (input.text.trim() === '') return { kind: 'clear' };
+  if (value === null || value <= 0) return { kind: 'invalid' };
+  const amount = roundTo2(value);
+  const plannedAmount = roundTo2(input.planned);
+  if (amount === plannedAmount) return { kind: 'clear' };
+  return { kind: 'set', adjustment: { amount, plannedAmount } };
 }

@@ -2,9 +2,10 @@ import { createCanvasImageCompressor } from '../adapters/canvas-image-compressor
 import { cryptoIdGenerator } from '../adapters/crypto-id-generator';
 import { createOpfsPhotoStore } from '../adapters/opfs-photo-store';
 import { systemClock } from '../adapters/system-clock';
+import { webTextSharer } from '../adapters/web-text-sharer';
 import { createDb, type PlannerDb } from '../data/db';
 import { createDishRepository, type DishRepository } from '../data/dish-repository';
-import type { ImageCompressor, PhotoStore } from '../data/ports';
+import type { ImageCompressor, PhotoStore, TextSharer } from '../data/ports';
 import { createProductRepository, type ProductRepository } from '../data/product-repository';
 import { createSettingsRepository, type SettingsRepository } from '../data/settings-repository';
 import { createShoppingRepository, type ShoppingRepository } from '../data/shopping-repository';
@@ -22,6 +23,7 @@ export interface Deps {
   week: WeekRepository;
   settings: SettingsRepository;
   shopping: ShoppingRepository;
+  sharer: TextSharer;
 }
 
 export function createDeps(): Deps {
@@ -38,5 +40,6 @@ export function createDeps(): Deps {
     week: createWeekRepository(db, ids),
     settings: createSettingsRepository(db),
     shopping: createShoppingRepository(db, ids),
+    sharer: webTextSharer,
   };
 }

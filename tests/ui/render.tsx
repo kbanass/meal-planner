@@ -15,12 +15,13 @@ import { FakeImageCompressor } from '../fakes/fake-image-compressor';
 import { FixedClock } from '../fakes/fixed-clock';
 import { FixedIdGenerator } from '../fakes/fixed-id-generator';
 import { InMemoryPhotoStore } from '../fakes/in-memory-photo-store';
+import { RecordingTextSharer } from '../fakes/recording-text-sharer';
 import { createTestDb } from '../fakes/test-db';
 
 // eslint-disable-next-line react-hooks/rules-of-hooks -- Framework7 plugin registration, not a React hook
 Framework7.use(Framework7React);
 
-export function createTestDeps(): Deps {
+export function createTestDeps(overrides: Partial<Deps> = {}): Deps {
   const db = createTestDb();
   const ids = new FixedIdGenerator();
   return {
@@ -35,6 +36,8 @@ export function createTestDeps(): Deps {
     week: createWeekRepository(db, ids),
     settings: createSettingsRepository(db),
     shopping: createShoppingRepository(db, ids),
+    sharer: new RecordingTextSharer(),
+    ...overrides,
   };
 }
 
