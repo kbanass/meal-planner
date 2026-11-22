@@ -1,3 +1,4 @@
+import { weekRange } from '../domain/dates';
 import { nameKey, normalizeName } from '../domain/names';
 import type { IdGenerator } from '../domain/ports';
 import {
@@ -9,7 +10,8 @@ import {
   validateProductName,
   type UsageBreakdown,
 } from '../domain/products';
-import type { Product, Unit } from '../domain/types';
+import { applyStatePatch, mergeProductListStates, plannedAmounts } from '../domain/shopping';
+import type { Dish, IsoDate, Product, ProductListState, Unit } from '../domain/types';
 import { isUnit } from '../domain/units';
 import type { PlannerDb, StoredProduct } from './db';
 import { detachedIngredientLists } from './week-repository';
@@ -70,6 +72,41 @@ export function createProductRepository(db: PlannerDb, ids: IdGenerator): Produc
     return { usage: breakdown.dishes + breakdown.meals, breakdown };
   }
 
+  async function putOrDelete(key: ProductListState, next: ProductListState | null): Promise<void> {
+    if (next) await db.productListStates.put(next);
+    else await db.productListStates.delete([key.weekStart, key.productId]);
+  }
+
+  /** FR-028, research R4: one record per Week for the kept Product, inside merge's transaction. */
+  async function mergeListStates(
+    fromId: string,
+    intoId: string,
+    dishesById: ReadonlyMap<string, Dish>,
+  ): Promise<void> {
+    const records = await db.productListStates.where('productId').anyOf(fromId, intoId).toArray();
+    const weeks = new Set<IsoDate>(records.map((r) => r.weekStart));
+    for (const weekStart of weeks) {
+      const { start, end } = weekRange(weekStart);
+      const meals = await db.meals.where('date').between(start, end, true, true).toArray();
+      const planned = plannedAmounts(meals, dishesById);
+      const inWeek = (productId: string) =>
+        records.find((r) => r.weekStart === weekStart && r.productId === productId);
+      const merged = mergeProductListStates({
+        weekStart,
+        intoId,
+        from: inWeek(fromId),
+        into: inWeek(intoId),
+        fromPlanned: planned.get(fromId) ?? 0,
+        intoPlanned: planned.get(intoId) ?? 0,
+      });
+      await db.productListStates.bulkDelete([
+        [weekStart, fromId],
+        [weekStart, intoId],
+      ]);
+      if (merged) await db.productListStates.put(merged);
+    }
+  }
+
   function conflictWith(self: Product, existing: Product): RenameProductResult {
     return { kind: 'conflict', existing, mergeAllowed: canMerge(self, existing) };
   }
@@ -119,31 +156,41 @@ export function createProductRepository(db: PlannerDb, ids: IdGenerator): Produc
 
     async changeUnit(id, unit) {
       if (!isUnit(unit)) return { kind: 'invalid' };
-      return db.transaction('rw', db.products, db.dishes, db.meals, async () => {
+      const tables = [db.products, db.dishes, db.meals, db.productListStates];
+      return db.transaction('rw', tables, async () => {
         const { usage, breakdown } = await usageOf(id);
         if (!productActions(usage).canChangeUnit) return { kind: 'inUse', usage, breakdown } as const;
         await db.products.update(id, { unit });
+        // An amount typed in the old unit means nothing in the new one (FR-030).
+        for (const record of await db.productListStates.where('productId').equals(id).toArray()) {
+          await putOrDelete(record, applyStatePatch(record, record, { adjustment: null }));
+        }
         return { kind: 'changed' } as const;
       });
     },
 
     delete(id) {
-      return db.transaction('rw', db.products, db.dishes, db.meals, async () => {
+      const tables = [db.products, db.dishes, db.meals, db.productListStates];
+      return db.transaction('rw', tables, async () => {
         const { usage, breakdown } = await usageOf(id);
         if (!productActions(usage).canDelete) return { kind: 'inUse', usage, breakdown } as const;
         await db.products.delete(id);
+        await db.productListStates.where('productId').equals(id).delete(); // FR-029
         return { kind: 'deleted' } as const;
       });
     },
 
     async merge(fromId, intoId) {
       if (fromId === intoId) return { kind: 'sameProduct' };
-      const tables = [db.products, db.dishes, db.meals];
+      const tables = [db.products, db.dishes, db.meals, db.productListStates];
       return db.transaction('rw', tables, async (): Promise<MergeProductsResult> => {
         const [from, into] = [await getProduct(fromId), await getProduct(intoId)];
         // Rechecked here: the units may have changed since the UI offered the merge.
         if (!canMerge(from, into)) return { kind: 'unitMismatch' };
-        const affected = (await db.dishes.toArray()).filter((dish) =>
+        const allDishes = await db.dishes.toArray();
+        // Before the rewrite: the merge rule needs each Product's own Planned amounts.
+        await mergeListStates(fromId, intoId, new Map(allDishes.map((dish) => [dish.id, dish])));
+        const affected = allDishes.filter((dish) =>
           dish.ingredients.some((ingredient) => ingredient.productId === fromId),
         );
         for (const dish of affected) {

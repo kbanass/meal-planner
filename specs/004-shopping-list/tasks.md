@@ -39,7 +39,7 @@ description: "Task list for the Shopping List"
 
 **Purpose**: Confirm the starting point. This feature adds no dependencies or tooling (research R12).
 
-- [ ] T001 On branch `004-shopping-list`, run `npm run lint`, `npm run typecheck`, `npm test` and `npm run coverage`, and confirm everything passes before any change. If anything fails, stop and report it, because it predates this feature.
+- [X] T001 On branch `004-shopping-list`, run `npm run lint`, `npm run typecheck`, `npm test` and `npm run coverage`, and confirm everything passes before any change. If anything fails, stop and report it, because it predates this feature.
 
 ---
 
@@ -51,11 +51,11 @@ description: "Task list for the Shopping List"
 
 ### Domain tests (write first, they must fail)
 
-- [ ] T002 [P] Extend `tests/domain/units.test.ts` with every "Required cases" row of [contracts/domain-api.md](contracts/domain-api.md) "units.ts":
+- [X] T002 [P] Extend `tests/domain/units.test.ts` with every "Required cases" row of [contracts/domain-api.md](contracts/domain-api.md) "units.ts":
   - `formatListAmount`: 750 g → `"750 g"`, 74.6 g → `"75 g"`, 0.3 g → `"1 g"`, 999.6 g → `"1 kg"`, 1000 g → `"1 kg"`, 1250 g → `"1,25 kg"`, 1234 g → `"1,23 kg"`, 2000 g → `"2 kg"`, 600 ml → `"600 ml"`, 1100 ml → `"1,1 l"`, 2.5 pcs → `"3 szt."`, 2.01 pcs → `"3 szt."`, 2.0000000004 pcs → `"2 szt."`, 0.2 pcs → `"1 szt."`.
   - `displayQuantity(0, 'g') === 0`, `displayQuantity(0, 'pcs') === 0`, `displayQuantity(0.3, 'ml') === 1`.
   - Every existing `formatAmount` test still passes unchanged.
-- [ ] T003 [P] Create `tests/domain/shopping.test.ts` (list part), with Products, Dishes and Meals built from `tests/fakes/dishes.ts` helpers where they fit:
+- [X] T003 [P] Create `tests/domain/shopping.test.ts` (list part), with Products, Dishes and Meals built from `tests/fakes/dishes.ts` helpers where they fit:
   - **`plannedAmounts`**:
     - US1-1: "Owsianka" (yield 2: 100 g płatki owsiane, 300 ml mleko) at 1 and 3 Servings → mleko 600, płatki 200.
     - US1-2: plus a Dish with 500 ml mleko → mleko 1100.
@@ -82,7 +82,7 @@ description: "Task list for the Shopping List"
     - `{ adjustment: null }` on a record with `atHome: true` and an Adjustment → keeps `atHome`, `adjustment: null`.
     - `{ atHome: false }` on a ticked and At Home record → still ticked.
     - An empty patch on `undefined` → `null`.
-- [ ] T004 Extend `tests/domain/shopping.test.ts` (merge part, after T003 because it is the same file) with `mergeProductListStates` per [contracts/domain-api.md](contracts/domain-api.md):
+- [X] T004 Extend `tests/domain/shopping.test.ts` (merge part, after T003 because it is the same file) with `mergeProductListStates` per [contracts/domain-api.md](contracts/domain-api.md):
   - Both planned, both ticked → ticked, under `intoId`. Only one ticked → not ticked.
   - Only `into` planned and ticked, `from` unticked → ticked.
   - Only `from` planned and At Home, `into` missing → At Home under `intoId`.
@@ -92,27 +92,27 @@ description: "Task list for the Shopping List"
 
 ### Domain implementation
 
-- [ ] T005 Extend `src/domain/types.ts` with the stored types from [data-model.md](data-model.md), copied exactly with their comments:
+- [X] T005 Extend `src/domain/types.ts` with the stored types from [data-model.md](data-model.md), copied exactly with their comments:
   - `Adjustment { amount; plannedAmount }`: `amount` is "> 0, roundTo2, in the Product's unit", `plannedAmount` is "> 0, roundTo2(Planned amount) when it was typed".
   - `ProductListState { weekStart; productId; ticked; atHome; adjustment: Adjustment | null }`, stored only while at least one field is set.
   - `Extra { id; weekStart; text; ticked }`: `id` is a UUID, `text` is "normalizeName(input), non-empty".
-- [ ] T006 [P] Add `displayQuantity(amount, unit)` and `formatListAmount(amount, unit)` to `src/domain/units.ts`:
+- [X] T006 [P] Add `displayQuantity(amount, unit)` and `formatListAmount(amount, unit)` to `src/domain/units.ts`:
   - g, ml: `roundTo(amount, 0)`, and at least 1 when `amount > 0`. pcs: `Math.ceil(roundTo2(amount))`.
   - From 1000 g or ml (on the rounded quantity) divide by 1000 and use `formatDecimal(q / 1000)` with "kg" / "l". Labels "g", "kg", "ml", "l", "szt.".
 
   This makes T002 pass.
-- [ ] T007 Create `src/domain/shopping.ts` with the derived types `ProductLine`, `ExtraLine`, `ShoppingLine`, `ShoppingList` (copied from [data-model.md](data-model.md)) and `plannedAmounts`, `adjustmentApplies`, `adjustmentDirection`, `buildShoppingList`, `isListEmpty`, `applyStatePatch`, per [contracts/domain-api.md](contracts/domain-api.md):
+- [X] T007 Create `src/domain/shopping.ts` with the derived types `ProductLine`, `ExtraLine`, `ShoppingLine`, `ShoppingList` (copied from [data-model.md](data-model.md)) and `plannedAmounts`, `adjustmentApplies`, `adjustmentDirection`, `buildShoppingList`, `isListEmpty`, `applyStatePatch`, per [contracts/domain-api.md](contracts/domain-api.md):
   - `plannedAmounts` sorts the Meals with `compareIds`, resolves each with `mealSource`, skips `null`, and sums `scaleMeal(source, meal.servings).ingredients` by `productId`.
   - `adjustmentApplies` compares `roundTo2(planned) === adjustment.plannedAmount`.
   - `buildShoppingList` sorts each part with `compareNames` on the shown text, then `compareIds` on the Product or Extra id. `done` = ticked or At Home (Products), ticked (Extras).
   - `applyStatePatch` returns `null` when `ticked` and `atHome` are false and `adjustment` is `null`.
 
   This makes T003 pass. `adjustmentFieldText` and `decideAdjustmentSave` come in US4 (T037).
-- [ ] T008 Add `mergeProductListStates` to `src/domain/shopping.ts` (research R4): participants are the Products with planned > 0 that Week, or both when neither has one; a missing record has no marks; a mark is kept only if every participant has it; the Adjustment is always `null`; returns `null` when nothing is set. This makes T004 pass.
+- [X] T008 Add `mergeProductListStates` to `src/domain/shopping.ts` (research R4): participants are the Products with planned > 0 that Week, or both when neither has one; a missing record has no marks; a mark is kept only if every participant has it; the Adjustment is always `null`; returns `null` when nothing is set. This makes T004 pass.
 
 ### Storage, repositories and wiring
 
-- [ ] T009 Add to `src/data/db.ts`, keeping versions 1 and 2 unchanged and with no upgrade function:
+- [X] T009 Add to `src/data/db.ts`, keeping versions 1 and 2 unchanged and with no upgrade function:
 
   ```ts
   this.version(3).stores({
@@ -122,26 +122,26 @@ description: "Task list for the Shopping List"
   ```
 
   Declare `productListStates: Table<ProductListState, [IsoDate, string]>` and `extras: Table<Extra, string>`. `tests/fakes/test-db.ts` needs no change.
-- [ ] T010 [P] Create `tests/data/shopping-repository.test.ts` (on `createTestDb()` and `FixedIdGenerator`), per [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md) "Required integration tests":
+- [X] T010 [P] Create `tests/data/shopping-repository.test.ts` (on `createTestDb()` and `FixedIdGenerator`), per [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md) "Required integration tests":
   - Tick, then untick → no record left in `productListStates`.
   - Tick and At Home on one Product → one record with both. Clearing At Home keeps the tick.
   - `updateProductState(w, p, { adjustment: { amount: 500, plannedAmount: 400 } })` stores it. `{ adjustment: null }` on an Adjustment-only record deletes it.
   - A record or Extra in Week `2026-11-02` is not listed for `2026-11-09`.
   - `addExtra(w, '  kawa ')` → `{ id, weekStart: w, text: 'kawa', ticked: false }`. Two `'kawa'` → two records with different ids. `addExtra(w, '  ')` → `null`, nothing stored.
   - `setExtraTicked(id, true)` stores the tick. `setExtraTicked` and `deleteExtra` of a missing id don't throw.
-- [ ] T011 [P] Extend `tests/data/week-repository.test.ts` with the FR-031 regression: seed a state record (ticked, At Home and an Adjustment) and an Extra in the target Week, run `replaceWeek` from the previous Week, and assert both are deep-equal to before.
-- [ ] T012 Create `src/data/shopping-repository.ts` exporting `ShoppingRepository` and `createShoppingRepository(db, ids)` per [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md):
+- [X] T011 [P] Extend `tests/data/week-repository.test.ts` with the FR-031 regression: seed a state record (ticked, At Home and an Adjustment) and an Extra in the target Week, run `replaceWeek` from the previous Week, and assert both are deep-equal to before.
+- [X] T012 Create `src/data/shopping-repository.ts` exporting `ShoppingRepository` and `createShoppingRepository(db, ids)` per [contracts/persistence-and-ports.md](contracts/persistence-and-ports.md):
   - `listProductStates` / `listExtras`: `where('weekStart').equals(weekStart).toArray()`.
   - `updateProductState`: one `rw` transaction over `productListStates`: `get([weekStart, productId])`, `applyStatePatch`, then `put` or `delete`.
   - `addExtra`: `normalizeName(text)`; `''` → `null`; otherwise `add({ id: ids.next(), weekStart, text, ticked: false })`.
   - `setExtraTicked`: `extras.update(id, { ticked })`. `deleteExtra`: `extras.delete(id)`.
 
   This makes T010 pass.
-- [ ] T013 Wire `shopping: ShoppingRepository` into `Deps` and `createDeps()` in `src/app/deps.ts`, and into `createTestDeps()` in `tests/ui/render.tsx` (`createShoppingRepository(db, ids)`).
+- [X] T013 Wire `shopping: ShoppingRepository` into `Deps` and `createDeps()` in `src/app/deps.ts`, and into `createTestDeps()` in `tests/ui/render.tsx` (`createShoppingRepository(db, ids)`).
 
 ### Product maintenance (FR-028–FR-030, research R4)
 
-- [ ] T014 Extend `tests/data/product-repository-maintenance.test.ts`:
+- [X] T014 Extend `tests/data/product-repository-maintenance.test.ts`:
   - `delete` of an unused Product with records in two Weeks → both gone; another Product's record untouched.
   - `changeUnit` of an unused Product: Adjustments removed, ticks and At Home kept, an Adjustment-only record deleted.
   - `merge(A, B)` across two Weeks, with Meals seeded through `deps.week` / the db:
@@ -149,7 +149,7 @@ description: "Task list for the Shopping List"
     - Week 2: only A planned and A At Home → B At Home.
     - Adjustments on both are gone, and no record of A is left in any Week.
   - `merge` with a unit mismatch leaves `productListStates` deep-equal to before.
-- [ ] T015 Update `src/data/product-repository.ts`, keeping every signature and result type:
+- [X] T015 Update `src/data/product-repository.ts`, keeping every signature and result type:
   - Add `db.productListStates` to the transactions of `delete`, `changeUnit` and `merge`.
   - **`delete`**: after the usage check passes, `productListStates.where('productId').equals(id).delete()`.
   - **`changeUnit`**: after the usage check passes, for each record of the Product, `applyStatePatch(record, record, { adjustment: null })`, then `put` or `delete`.
