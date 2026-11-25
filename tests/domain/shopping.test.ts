@@ -7,6 +7,7 @@ import {
   buildShoppingList,
   decideAdjustmentSave,
   isListEmpty,
+  leftToBuy,
   mergeProductListStates,
   plannedAmounts,
   type ShoppingLine,
@@ -209,7 +210,7 @@ describe('buildShoppingList', () => {
       { kind: 'product', product: mleko, planned: 300, adjustment: null, amount: 300, ticked: false, atHome: false },
       { kind: 'product', product: platki, planned: 100, adjustment: null, amount: 100, ticked: false, atHome: false },
     ]);
-    expect(list.done).toEqual([]);
+    expect(list.atHome).toEqual([]);
   });
 
   it('skips a Product id with no Product record', () => {
@@ -250,14 +251,15 @@ describe('buildShoppingList', () => {
     ]);
   });
 
-  it('moves ticked, At Home and ticked Extra lines to done, each once', () => {
+  it('moves only At Home Products to the bottom; ticked lines keep their place', () => {
     const list = buildShoppingList({
       ...base,
-      states: [state('p-platki', { ticked: true, atHome: true }), state('p-mleko', { atHome: true })],
+      states: [state('p-platki', { ticked: true, atHome: true }), state('p-mleko', { ticked: true })],
       extras: [extra('e1', 'kawa', true), extra('e2', 'herbata')],
     });
-    expect(names(list.toBuy)).toEqual(['herbata']);
-    expect(names(list.done)).toEqual(['kawa', 'mleko', 'płatki owsiane']);
+    expect(names(list.toBuy)).toEqual(['herbata', 'kawa', 'mleko']);
+    expect(names(list.atHome)).toEqual(['płatki owsiane']);
+    expect(names(leftToBuy(list))).toEqual(['herbata']);
   });
 
   it('adds nothing for an unplanned Product or its record', () => {
@@ -267,7 +269,7 @@ describe('buildShoppingList', () => {
       states: [state('p-other', { ticked: true })],
       extras: [],
     });
-    expect(names([...list.toBuy, ...list.done])).toEqual(['mleko', 'płatki owsiane']);
+    expect(names([...list.toBuy, ...list.atHome])).toEqual(['mleko', 'płatki owsiane']);
   });
 
   it('uses an Adjustment only while the Planned amount is unchanged (FR-020)', () => {
@@ -296,7 +298,7 @@ describe('isListEmpty', () => {
     expect(isListEmpty(buildShoppingList({ ...empty, extras: [extra('e1', 'kawa')] }))).toBe(false);
   });
 
-  it('is false with only a done line', () => {
+  it('is false with only a ticked line', () => {
     expect(isListEmpty(buildShoppingList({ ...empty, extras: [extra('e1', 'kawa', true)] }))).toBe(false);
   });
 });

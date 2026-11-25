@@ -32,7 +32,7 @@ Words used in this spec (UI terms, not domain terms):
 - Q: What does "Udostępnij listę" include? → A: Only what is still to buy: unticked Product items that aren't At Home, and unticked Extras.
 - Q: Where does a struck-through item sit in the list? → A: At the bottom, sorted together with the ticked items, so the top part holds only what is still to buy. (Asked when strike-through meant "Total at zero or below". After the answer below, strike-through means At Home, and the answer applies to At Home items.)
 - Q: How does a ticked item look, given that strike-through has its own meaning? → A: A filled tick and dimmed text, never struck through.
-- Q: What should a struck-through item show as its amount? → A: The user replaced amount-based Adjustments. (1) Having a Product at home is a separate yes/no mark, **At Home**, with no amount: the item is crossed out, dimmed and moved to the bottom. It is separate from the tick and has no text label. (2) To buy a different amount, the user taps the item's amount and types the amount to buy (e.g. 500 g where the plan needs 400 g). The item shows the typed amount, styled as more or less than planned, with the Planned amount below it. There are no plus or minus amounts. docs/SPEC.md and GLOSSARY.md were updated to match.
+- Q: What should a struck-through item show as its amount? → A: The user replaced amount-based Adjustments. (1) Having a Product at home is a separate yes/no mark, **At Home**, with no amount: the item is crossed out, dimmed and moved to the bottom. It is separate from the tick and has no text label. (2) To buy a different amount, the user taps the item's amount and types the amount to buy (e.g. 500 g where the plan needs 400 g). The item shows the typed amount, styled as more or less than planned, with the Planned amount below it. There are no plus or minus amounts. docs/SPEC.md and GLOSSARY.md were updated to match. (Later, on 2026-11-25: ticks no longer move items, At Home items sit in a "Mam w domu" card and are not crossed out, and tapping a Product row opens an edit sheet.)
 - Q: The user typed 500 g where the plan needed 400 g, and the plan then changes to 600 g. What does the item show? → A: It resets to the plan: 600 g, unstyled. Any change to the Product's Planned amount discards the typed amount.
 - Q: How does the user mark an item At Home? → A: With a second, small button on each Product item, to the right of the amount (a house icon). The tick on the left stays "bought", and tapping the amount opens the amount field.
 
@@ -72,9 +72,9 @@ In the shop the user ticks each List item as it goes into the basket. Ticked ite
 
 **Acceptance Scenarios**:
 
-1. **Given** a list with "cebula", "mleko" and "ziemniaki", **When** the user ticks "cebula", **Then** "cebula" shows a filled tick and dimmed text (not crossed out) and moves below "mleko" and "ziemniaki".
+1. **Given** a list with "cebula", "mleko" and "ziemniaki", **When** the user ticks "cebula", **Then** "cebula" shows a filled tick and dimmed text (not crossed out) and stays in its place above "mleko".
 2. **Given** "cebula" is ticked, **When** the user unticks it, **Then** it returns to its alphabetical place among the items still to buy.
-3. **Given** several ticked items and an At Home "ryż", **When** the user views the list, **Then** the ticked items and "ryż" form the bottom part, alphabetical among themselves, below every item still to buy.
+3. **Given** several ticked items and an At Home "ryż", **When** the user views the list, **Then** the ticked items stay in their alphabetical places, and "ryż" alone sits in the "Mam w domu" card at the bottom.
 4. **Given** ticked items, **When** the user closes the app and opens it again with no network, **Then** the same items are ticked.
 5. **Given** "mleko" is ticked, **When** the user adds a Meal that also uses "mleko", **Then** "mleko" shows the new amount and stays ticked.
 6. **Given** "mleko" is ticked in one Week, **When** the user views the next Week's list, **Then** "mleko" is not ticked there.
@@ -83,20 +83,20 @@ In the shop the user ticks each List item as it goes into the basket. Ticked ite
 
 ### User Story 3 - Mark what is already at home (Priority: P2)
 
-Before shopping, the user goes through the list at home. They have rice and onions, so they tap the house button on "ryż" and "cebula". Each is crossed out, dimmed and moves to the bottom. They don't say how much they have; the app doesn't need to know.
+Before shopping, the user goes through the list at home. They have rice and onions, so they tap the house button on "ryż" and "cebula". Each is dimmed and moves to the "Mam w domu" card at the bottom. They don't say how much they have; the app doesn't need to know.
 
 **Why this priority**: Buying exactly what is needed means skipping what is already in the kitchen, and it has to be quick or it won't be done. The list is still usable without it (the user can skip a line mentally), so it ranks below seeing and ticking.
 
-**Independent Test**: Mark three Product items At Home, confirm they are crossed out, dimmed and at the bottom, close and reopen the app, and confirm they still are. Unmark one and confirm it returns to the items still to buy.
+**Independent Test**: Mark three Product items At Home, confirm they are dimmed and in the "Mam w domu" card, close and reopen the app, and confirm they still are. Unmark one and confirm it returns to the items still to buy.
 
 **Acceptance Scenarios**:
 
-1. **Given** the list shows "ryż 1 kg" among the items still to buy, **When** the user taps the house button on "ryż", **Then** "ryż" is crossed out and dimmed, moves to the bottom part, and its house button shows as active. No amount is asked for.
-2. **Given** "ryż" is At Home, **When** the user taps its house button again, **Then** it is no longer crossed out or dimmed and returns to its alphabetical place among the items still to buy.
+1. **Given** the list shows "ryż 1 kg" among the items still to buy, **When** the user taps the house button on "ryż", **Then** "ryż" is dimmed, moves to the "Mam w domu" card, and its house button shows as active. No amount is asked for.
+2. **Given** "ryż" is At Home, **When** the user taps its house button again, **Then** it is no longer dimmed and returns to its alphabetical place among the items still to buy.
 3. **Given** "ryż" is At Home, **When** the plan changes the amount of "ryż" needed, **Then** "ryż" stays At Home.
 4. **Given** "ryż" is At Home in one Week, **When** the user views the next Week's list, **Then** "ryż" is not At Home there.
 5. **Given** an Extra "kawa", **When** the user views it, **Then** it has no house button (an Extra the user already has is simply deleted).
-6. **Given** "ryż" is At Home, **When** the user taps its tick, **Then** it is also ticked. It stays crossed out and dimmed in the bottom part.
+6. **Given** "ryż" is At Home, **When** the user taps its tick, **Then** it is also ticked. It stays dimmed in the "Mam w domu" card.
 
 ---
 
@@ -134,7 +134,7 @@ The user also needs toilet paper and coffee, which no Dish uses. They type "papi
 
 1. **Given** the list, **When** the user types "papier toaletowy" in the field for new Extras and confirms, **Then** "papier toaletowy" appears on the list in its alphabetical place, with no amount, and the field is empty again.
 2. **Given** the field for new Extras, **When** the user confirms it empty or with only spaces, **Then** nothing is added.
-3. **Given** an Extra "kawa", **When** the user ticks it, **Then** it moves to the bottom part like a ticked Product item.
+3. **Given** an Extra "kawa", **When** the user ticks it, **Then** it is dimmed in its place like a ticked Product item.
 4. **Given** an Extra "kawa", **When** the user swipes it and deletes it, **Then** it disappears from the list at once, without a confirmation.
 5. **Given** an Extra "kawa" in one Week, **When** the user views another Week's list, **Then** "kawa" is not on it.
 6. **Given** Extras in the Shown Week, **When** the user changes the plan or copies the previous Week into it with "Skopiuj do następnego tygodnia", **Then** the Extras are unchanged.
@@ -202,24 +202,24 @@ The user taps "Udostępnij listę" and sends what is left to buy as plain text, 
   - pcs: rounded up to a whole number, labelled "szt." ("3 szt.").
   - The kg or l switch uses the rounded value (999,6 g → "1 kg").
   - An amount above zero that rounds to 0 g or 0 ml shows as "1 g" or "1 ml".
-- **FR-009**: The list MUST have two parts. The top part holds the items still to buy: Product items that are neither ticked nor At Home, and unticked Extras. The bottom part holds every ticked or At Home item. Each part MUST be sorted alphabetically by the text shown (Product name or Extra text), ignoring case and using Polish alphabetical order. Extras MUST be sorted together with Product items, not in a separate section.
+- **FR-009**: The list MUST have two parts. The top part holds every Extra and every Product item that is not At Home; ticking an item MUST NOT move it. The bottom part, a card titled "Mam w domu", holds the At Home Product items. Each part MUST be sorted alphabetically by the text shown (Product name or Extra text), ignoring case and using Polish alphabetical order. Extras MUST be sorted together with Product items, not in a separate section.
 - **FR-010**: When the Shown Week has no Product items and no Extras, the tab MUST show a short message that there is nothing to buy for this Week yet, and the field for adding Extras.
 
 **Ticks**
 
-- **FR-011**: Each List item MUST have a tick control that ticks or unticks it with one tap.
-- **FR-012**: A ticked item MUST show a filled tick and dimmed text. It MUST NOT be crossed out, which is reserved for At Home (FR-015).
+- **FR-011**: Each List item MUST have a tick control (a square checkbox) that ticks or unticks it with one tap. Tapping a Product item's name or amount MUST open its edit sheet instead (FR-017); tapping an Extra's text ticks it.
+- **FR-012**: A ticked item MUST show a filled tick and dimmed text, and stay in its place. It MUST NOT be crossed out.
 - **FR-013**: Ticks MUST be stored per Week: a Product item's tick belongs to that Product in that Week, and an Extra's tick to that Extra. Ticks MUST be kept when the plan changes.
 
 **At Home**
 
 - **FR-014**: Each Product item MUST have an At Home button (a house icon, no text) to the right of its amount, which marks or unmarks the Product as At Home for the Shown Week with one tap. Extras MUST NOT have one.
-- **FR-015**: An At Home item MUST be shown crossed out and dimmed, with its At Home button shown as active, and sit in the bottom part of the list (FR-009). Setting it MUST NOT ask for an amount.
+- **FR-015**: An At Home item MUST be shown dimmed, with its At Home button shown as active, in the "Mam w domu" card at the bottom (FR-009). Setting it MUST NOT ask for an amount.
 - **FR-016**: At Home marks MUST be stored per Week and Product, kept when the plan changes, and independent of the tick: an item can be ticked, At Home, both or neither.
 
 **Adjustments**
 
-- **FR-017**: Tapping a Product item's amount MUST open a field for the amount to buy, in the Product's unit, filled with the current Amount to buy rounded as on screen. The field MUST also show the Planned amount.
+- **FR-017**: Tapping a Product item's name or amount MUST open its edit sheet: a field for the amount to buy, in the Product's unit, filled with the current Amount to buy rounded as on screen. The sheet MUST also show the Planned amount, and "Kupione" and "Mam w domu" toggles; nothing is written until it is saved.
 - **FR-018**: The field MUST accept a number above zero (comma or dot as separator), stored rounded to 2 decimals; more decimals are rounded, not rejected. Saving MUST:
   - change nothing when the value is the one it was filled with;
   - remove the Adjustment when the field is empty or the value equals the Planned amount (to 2 decimals);
@@ -236,8 +236,8 @@ The user taps "Udostępnij listę" and sends what is left to buy as plain text, 
 
 **Sharing**
 
-- **FR-025**: The tab MUST offer "Udostępnij listę" whenever the top part of the list (items still to buy) is not empty.
-- **FR-026**: "Udostępnij listę" MUST produce plain text: a first line naming the list and the Shown Week's dates, then one line per item in the top part of the list, in the order shown on screen. A Product item's line is its name and Amount to buy formatted as in FR-008, without the Planned amount; an Extra's line is its text. Ticked and At Home items MUST NOT be included.
+- **FR-025**: The tab MUST offer "Udostępnij listę" whenever the top part of the list has an unticked item (something still to buy).
+- **FR-026**: "Udostępnij listę" MUST produce plain text: a first line naming the list and the Shown Week's dates, then one line per unticked item in the top part of the list, in the order shown on screen. A Product item's line is its name and Amount to buy formatted as in FR-008, without the Planned amount; an Extra's line is its text. Ticked and At Home items MUST NOT be included.
 - **FR-027**: The text MUST be passed to the device's share sheet where available. Otherwise it MUST be copied to the clipboard and a short message MUST confirm the copy. Cancelling the share sheet MUST NOT show an error.
 
 **Interaction with other features**

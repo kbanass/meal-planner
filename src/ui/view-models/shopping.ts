@@ -4,6 +4,7 @@ import {
   adjustmentFieldText,
   buildShoppingList,
   isListEmpty,
+  leftToBuy,
   type ShoppingLine,
 } from '../../domain/shopping';
 import type { Dish, Extra, IsoDate, Meal, Product, ProductListState } from '../../domain/types';
@@ -14,6 +15,7 @@ import { indexDishes } from './week';
 
 export const emptyMessage = 'Na ten tydzień nie ma nic do kupienia.';
 export const extraPlaceholder = 'Coś spoza planu…';
+export const atHomeTitle = 'Mam w domu';
 export const amountErrorMessage = 'Wpisz liczbę większą od zera.';
 export const amountFooter = 'Zostaw puste, aby wrócić do ilości z planu.';
 export const copiedToast = 'Skopiowano listę do schowka.';
@@ -53,8 +55,10 @@ export type ShoppingRow = ProductRow | ExtraRow;
 export interface ShoppingPageModel {
   weekLabel: string;
   empty: boolean;
+  /** The list itself: ticked rows stay in place, dimmed (FR-009, FR-012). */
   toBuy: ShoppingRow[];
-  done: ShoppingRow[];
+  /** The "Mam w domu" card at the bottom (FR-015). */
+  atHome: ProductRow[];
   /** null when nothing is left to buy (FR-025). */
   shareText: string | null;
 }
@@ -78,7 +82,7 @@ function productRow(line: Extract<ShoppingLine, { kind: 'product' }>): ProductRo
     amountText,
     plannedText: direction === null ? null : `plan: ${plannedAmountText}`,
     direction,
-    amountLabel: `${product.name}: ${amountText}, ${compared}zmień ilość`,
+    amountLabel: `${product.name}: ${amountText}, ${compared}edytuj`,
     atHomeLabel: `Mam w domu: ${product.name}`,
     planned: line.planned,
     plannedAmountText,
@@ -127,8 +131,8 @@ export function shoppingPage(
     weekLabel: weekRangeLabel(weekStart),
     empty: isListEmpty(list),
     toBuy: list.toBuy.map(row),
-    done: list.done.map(row),
-    shareText: list.toBuy.length > 0 ? shareText(weekStart, list.toBuy) : null,
+    atHome: list.atHome.map(productRow),
+    shareText: leftToBuy(list).length > 0 ? shareText(weekStart, leftToBuy(list)) : null,
   };
 }
 

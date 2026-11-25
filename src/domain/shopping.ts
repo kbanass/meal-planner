@@ -32,8 +32,10 @@ export interface ExtraLine {
 export type ShoppingLine = ProductLine | ExtraLine;
 
 export interface ShoppingList {
-  toBuy: ShoppingLine[]; // neither ticked nor At Home, sorted (FR-009)
-  done: ShoppingLine[]; // ticked or At Home, sorted
+  /** Every Extra and every Product not At Home, ticked or not, sorted (FR-009). Ticks don't move items. */
+  toBuy: ShoppingLine[];
+  /** Products marked At Home, sorted (FR-015). */
+  atHome: ProductLine[];
 }
 
 export type StatePatch = Partial<Pick<ProductListState, 'ticked' | 'atHome' | 'adjustment'>>;
@@ -83,13 +85,22 @@ function compareLines(a: ShoppingLine, b: ShoppingLine): number {
   return compareNames(lineText(a), lineText(b)) || compareIds(lineId(a), lineId(b));
 }
 
-function isDone(line: ShoppingLine): boolean {
-  return line.kind === 'product' ? line.ticked || line.atHome : line.extra.ticked;
+function isAtHome(line: ShoppingLine): line is ProductLine {
+  return line.kind === 'product' && line.atHome;
+}
+
+function isTicked(line: ShoppingLine): boolean {
+  return line.kind === 'product' ? line.ticked : line.extra.ticked;
+}
+
+/** FR-026: what is still left to buy, the lines that are shared. */
+export function leftToBuy(list: ShoppingList): ShoppingLine[] {
+  return list.toBuy.filter((line) => !isTicked(line));
 }
 
 /**
  * The Week's list (FR-004, FR-009): one line per planned Product with a Product record, plus the
- * Extras, split into what is left to buy and what is done, each sorted by the text shown.
+ * Extras, split into the list itself and the Products At Home, each sorted by the text shown.
  */
 export function buildShoppingList(input: {
   products: readonly Product[];
@@ -119,12 +130,12 @@ export function buildShoppingList(input: {
   }
   for (const extra of input.extras) lines.push({ kind: 'extra', extra });
   lines.sort(compareLines);
-  return { toBuy: lines.filter((line) => !isDone(line)), done: lines.filter(isDone) };
+  return { toBuy: lines.filter((line) => !isAtHome(line)), atHome: lines.filter(isAtHome) };
 }
 
 /** FR-010: nothing planned and no Extras. */
 export function isListEmpty(list: ShoppingList): boolean {
-  return list.toBuy.length === 0 && list.done.length === 0;
+  return list.toBuy.length === 0 && list.atHome.length === 0;
 }
 
 /**

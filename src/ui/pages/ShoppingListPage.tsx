@@ -1,12 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Block, f7, Icon, List, Navbar, Page } from 'framework7-react';
+import { Block, BlockTitle, f7, Icon, List, Navbar, Page } from 'framework7-react';
 import { useRef, useState, type PointerEvent } from 'react';
 import { addExtra, saveAdjustment, shareList } from '../../app/shopping';
 import { addDays, weekRange, weekStartOf } from '../../domain/dates';
-import { AmountSheet } from '../components/AmountSheet';
+import { AmountSheet, type ProductEdit } from '../components/AmountSheet';
 import { ShoppingRow } from '../components/ShoppingRow';
 import { useDeps } from '../hooks/useDeps';
 import {
+  atHomeTitle,
   copiedToast,
   emptyMessage,
   extraPlaceholder,
@@ -38,7 +39,7 @@ export function ShoppingListPage() {
   const [sheetProductId, setSheetProductId] = useState<string | null>(null);
   const [sheetOpened, setSheetOpened] = useState(false);
   const sheetRow =
-    [...(model?.toBuy ?? []), ...(model?.done ?? [])].find(
+    [...(model?.toBuy ?? []), ...(model?.atHome ?? [])].find(
       (row): row is ProductRow => row.kind === 'product' && row.productId === sheetProductId,
     ) ?? null;
 
@@ -78,16 +79,21 @@ export function ShoppingListPage() {
     setSheetOpened(true);
   }
 
-  async function saveAmount(text: string): Promise<'invalid' | 'done'> {
+  async function saveEdit({ text, ticked, atHome }: ProductEdit): Promise<'invalid' | 'done'> {
     if (!sheetRow) return 'done';
+    const { productId } = sheetRow;
     const result = await saveAdjustment(deps, {
       weekStart,
-      productId: sheetRow.productId,
+      productId,
       text,
       filledText: sheetRow.fieldText,
       planned: sheetRow.planned,
     });
-    return result.kind === 'invalid' ? 'invalid' : 'done';
+    if (result.kind === 'invalid') return 'invalid';
+    if (ticked !== sheetRow.ticked || atHome !== sheetRow.atHome) {
+      await deps.shopping.updateProductState(weekStart, productId, { ticked, atHome });
+    }
+    return 'done';
   }
 
   function deleteExtra(row: ExtraRow) {
@@ -205,14 +211,20 @@ export function ShoppingListPage() {
             </ul>
           </List>
 
-          {model.done.length > 0 && (
-            <List strong inset dividersIos className="shopping-list is-done">
-              <ul>
-                {model.done.map((row) => (
-                  <ShoppingRow key={row.key} row={row} {...rowProps} />
-                ))}
-              </ul>
-            </List>
+          {model.atHome.length > 0 && (
+            <>
+              <BlockTitle className="shopping-at-home-title">
+                <Icon f7="house_fill" aria-hidden="true" />
+                {atHomeTitle}
+              </BlockTitle>
+              <List strong inset dividersIos className="shopping-list is-at-home-list" aria-label={atHomeTitle}>
+                <ul>
+                  {model.atHome.map((row) => (
+                    <ShoppingRow key={row.key} row={row} {...rowProps} />
+                  ))}
+                </ul>
+              </List>
+            </>
           )}
         </div>
       )}
@@ -221,7 +233,7 @@ export function ShoppingListPage() {
         row={sheetRow}
         opened={sheetOpened}
         onClose={() => setSheetOpened(false)}
-        onSave={saveAmount}
+        onSave={saveEdit}
       />
     </Page>
   );

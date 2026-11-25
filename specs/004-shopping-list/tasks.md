@@ -275,12 +275,12 @@ description: "Task list for the Shopping List"
   - Empty text on a record with an Adjustment and At Home → `cleared`, Adjustment removed, At Home kept.
   - `"abc"` → `invalid`, nothing written.
 - [X] T035 [P] [US4] Extend `tests/ui/shopping-vm.test.ts`:
-  - With an applying Adjustment {500, 400} on "ryż": `amountText` "500 g", `direction: 'more'`, `plannedText` "plan: 400 g", `amountLabel` "ryż: 500 g, więcej niż w planie (400 g), zmień ilość". {250, 400} → `'less'` and "mniej niż w planie".
-  - Without one (or dormant): `direction: null`, `plannedText: null`, `amountLabel` "ryż: 400 g, zmień ilość".
+  - With an applying Adjustment {500, 400} on "ryż": `amountText` "500 g", `direction: 'more'`, `plannedText` "plan: 400 g", `amountLabel` "ryż: 500 g, więcej niż w planie (400 g), edytuj". {250, 400} → `'less'` and "mniej niż w planie".
+  - Without one (or dormant): `direction: null`, `plannedText: null`, `amountLabel` "ryż: 400 g, edytuj".
   - `planned` is the unrounded Planned amount, `fieldText` is `adjustmentFieldText(line.amount, unit)`, `unitLabel` is "g" / "ml" / "szt." (`unitLabel` from `view-models/dish-form.ts`).
   - `amountErrorMessage` "Wpisz liczbę większą od zera." and `amountFooter` "Zostaw puste, aby wrócić do ilości z planu.".
 - [X] T036 [P] [US4] Extend `tests/ui/shopping-page.test.tsx`:
-  - **S4**: tap "ryż: 400 g, zmień ilość" → the sheet shows "W planie: 400 g" and the field "400". Type 500, "Zapisz" → "500 g", `.is-more`, "plan: 400 g".
+  - **S4**: tap "ryż: 400 g, edytuj" → the sheet shows "W planie: 400 g" and the field "400". Type 500, "Zapisz" → "500 g", `.is-more`, "plan: 400 g".
   - **S5**: type "abc", "Zapisz" → the error text is shown, the sheet stays open, nothing is stored.
   - **S6**: with the typed 500 g, add a Meal using rice → the row shows the new Planned amount, no `.is-more`, no "plan:" line.
   - US4-9: tick the row → "500 g" still shown.

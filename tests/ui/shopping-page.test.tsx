@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { Deps } from '../../src/app/deps';
 import type { Dish, Product, Unit } from '../../src/domain/types';
 import { ShoppingListPage } from '../../src/ui/pages/ShoppingListPage';
-import { emptyMessage, extraPlaceholder, shareFailedMessage } from '../../src/ui/view-models/shopping';
+import { atHomeTitle, emptyMessage, extraPlaceholder, shareFailedMessage } from '../../src/ui/view-models/shopping';
 import { dish } from '../fakes/dishes';
 import { RecordingTextSharer } from '../fakes/recording-text-sharer';
 import { drag } from './pointer';
@@ -59,11 +59,20 @@ async function seedRice(deps: Deps) {
 }
 
 function toBuyList(): HTMLElement | null {
-  return document.querySelector<HTMLElement>('.shopping-list:not(.is-done)');
+  return document.querySelector<HTMLElement>('.shopping-list:not(.is-at-home-list)');
 }
 
-function doneList(): HTMLElement | null {
-  return document.querySelector<HTMLElement>('.shopping-list.is-done');
+function atHomeList(): HTMLElement | null {
+  return document.querySelector<HTMLElement>('.shopping-list.is-at-home-list');
+}
+
+async function tick(name: string): Promise<void> {
+  await userEvent.click((await findRow(name)).querySelector('.icon-checkbox')!);
+}
+
+/** The edit sheet's toggle for "Kupione" or "Mam w domu". */
+function sheetToggle(sheet: HTMLElement, title: string): HTMLInputElement {
+  return within(sheet).getByText(title).closest('li')!.querySelector<HTMLInputElement>('input[type="checkbox"]')!;
 }
 
 /** Text without icons: icon fonts render the icon name as ligature text. */
@@ -168,22 +177,32 @@ describe('ShoppingListPage', () => {
   });
 
   describe('ticks (US2)', () => {
-    it('ticks by the box and unticks by the name (S2)', async () => {
+    it('ticks and unticks by the box, and the row stays in place (S2)', async () => {
       const deps = createTestDeps();
       await seedRice(deps);
       renderWithApp(<ShoppingListPage />, deps);
 
-      await userEvent.click((await findRow('cebula')).querySelector('.icon-checkbox')!);
+      await tick('cebula');
 
-      await waitFor(() => expect(rowTexts(doneList())).toEqual(['cebula 100 g']));
-      const ticked = row('cebula');
-      expect(ticked).toHaveClass('is-ticked');
-      expect(ticked).not.toHaveClass('is-at-home');
-      expect(ticked.querySelector('input')).toBeChecked();
+      await waitFor(() => expect(row('cebula')).toHaveClass('is-ticked'));
+      expect(rowTexts(toBuyList())).toEqual(['cebula 100 g', 'ryż 400 g']);
+      expect(row('cebula')).not.toHaveClass('is-at-home');
+      expect(row('cebula').querySelector('input')).toBeChecked();
+      expect(atHomeList()).toBeNull();
 
-      await userEvent.click(within(ticked).getByText('cebula'));
-      await waitFor(() => expect(rowTexts(toBuyList())).toEqual(['cebula 100 g', 'ryż 400 g']));
-      expect(doneList()).toBeNull();
+      await tick('cebula');
+      await waitFor(() => expect(row('cebula')).not.toHaveClass('is-ticked'));
+    });
+
+    it('opens the edit sheet, not the tick, when the name is tapped', async () => {
+      const deps = createTestDeps();
+      await seedRice(deps);
+      renderWithApp(<ShoppingListPage />, deps);
+
+      await userEvent.click(within(await findRow('ryż')).getByText('ryż'));
+
+      await waitFor(() => expect(document.querySelector('.amount-sheet.modal-in')).not.toBeNull());
+      expect(row('ryż')).not.toHaveClass('is-ticked');
     });
 
     it('keeps the tick when the plan changes, only in its Week (US2-5, US2-6)', async () => {
@@ -192,10 +211,10 @@ describe('ShoppingListPage', () => {
       await plan(deps, 'risotto', '2026-11-11');
       renderWithApp(<ShoppingListPage />, deps);
 
-      await userEvent.click(within(await findRow('ryż')).getByText('ryż'));
+      await tick('ryż');
       await waitFor(() => expect(row('ryż')).toHaveClass('is-ticked'));
       await plan(deps, 'risotto', '2026-11-06');
-      await waitFor(() => expect(rowTexts(doneList())).toEqual(['ryż 800 g']));
+      await waitFor(() => expect(rowTexts(toBuyList())).toContain('ryż 800 g'));
       expect(row('ryż')).toHaveClass('is-ticked');
 
       await userEvent.click(screen.getByRole('button', { name: 'Następny tydzień' }));
@@ -204,15 +223,15 @@ describe('ShoppingListPage', () => {
       expect(row('ryż')).not.toHaveClass('is-ticked');
     });
 
-    it('ticks an Extra', async () => {
+    it('ticks an Extra by its name, in place', async () => {
       const deps = createTestDeps();
       await deps.shopping.addExtra(WEEK, 'kawa');
       renderWithApp(<ShoppingListPage />, deps);
 
       await userEvent.click(within(await findRow('kawa')).getByText('kawa'));
 
-      await waitFor(() => expect(rowTexts(doneList())).toEqual(['kawa']));
-      expect(row('kawa')).toHaveClass('is-ticked');
+      await waitFor(() => expect(row('kawa')).toHaveClass('is-ticked'));
+      expect(rowTexts(toBuyList())).toEqual(['kawa']);
     });
   });
 
@@ -226,12 +245,16 @@ describe('ShoppingListPage', () => {
       expect(house).toHaveAttribute('aria-pressed', 'false');
       await userEvent.click(house);
 
-      await waitFor(() => expect(rowTexts(doneList())).toEqual(['ryż 400 g']));
+      await waitFor(() => expect(rowTexts(atHomeList())).toEqual(['ryż 400 g']));
+      expect(rowTexts(toBuyList())).toEqual(['cebula 100 g']);
+      expect(screen.getByText(atHomeTitle)).toBeInTheDocument();
       expect(row('ryż')).toHaveClass('is-at-home');
       expect(screen.getByRole('button', { name: 'Mam w domu: ryż' })).toHaveAttribute('aria-pressed', 'true');
 
       await userEvent.click(screen.getByRole('button', { name: 'Mam w domu: ryż' }));
       await waitFor(() => expect(rowTexts(toBuyList())).toEqual(['cebula 100 g', 'ryż 400 g']));
+      expect(atHomeList()).toBeNull();
+      expect(screen.queryByText(atHomeTitle)).toBeNull();
       expect(screen.getByRole('button', { name: 'Mam w domu: ryż' })).toHaveAttribute('aria-pressed', 'false');
     });
 
@@ -243,10 +266,10 @@ describe('ShoppingListPage', () => {
       await userEvent.click(await screen.findByRole('button', { name: 'Mam w domu: ryż' }));
       await waitFor(() => expect(row('ryż')).toHaveClass('is-at-home'));
       await plan(deps, 'risotto', '2026-11-06');
-      await waitFor(() => expect(rowTexts(doneList())).toEqual(['ryż 800 g']));
+      await waitFor(() => expect(rowTexts(atHomeList())).toEqual(['ryż 800 g']));
       expect(row('ryż')).toHaveClass('is-at-home');
 
-      await userEvent.click(within(row('ryż')).getByText('ryż'));
+      await tick('ryż');
       await waitFor(() => expect(row('ryż')).toHaveClass('is-ticked'));
       expect(row('ryż')).toHaveClass('is-at-home');
     });
@@ -266,7 +289,7 @@ describe('ShoppingListPage', () => {
       await seedRice(deps);
       renderWithApp(<ShoppingListPage />, deps);
 
-      const sheet = await openSheet('ryż: 400 g, zmień ilość');
+      const sheet = await openSheet('ryż: 400 g, edytuj');
       expect(within(sheet).getByText('W planie: 400 g')).toBeInTheDocument();
       expect(amountInput(sheet)).toHaveValue('400');
 
@@ -277,7 +300,7 @@ describe('ShoppingListPage', () => {
       await waitFor(() => expect(textOf(row('ryż').querySelector('.shopping-amount-text'))).toBe('500 g'));
       expect(row('ryż').querySelector('.shopping-amount')).toHaveClass('is-more');
       expect(within(row('ryż')).getByText('plan: 400 g')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'ryż: 500 g, więcej niż w planie (400 g), zmień ilość' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'ryż: 500 g, więcej niż w planie (400 g), edytuj' })).toBeInTheDocument();
     });
 
     it('keeps the sheet open on text that is not a number (S5)', async () => {
@@ -285,7 +308,7 @@ describe('ShoppingListPage', () => {
       await seedRice(deps);
       renderWithApp(<ShoppingListPage />, deps);
 
-      const sheet = await openSheet('ryż: 400 g, zmień ilość');
+      const sheet = await openSheet('ryż: 400 g, edytuj');
       await userEvent.clear(amountInput(sheet));
       await userEvent.type(amountInput(sheet), 'abc');
       await userEvent.click(within(sheet).getByText('Zapisz'));
@@ -302,13 +325,50 @@ describe('ShoppingListPage', () => {
       renderWithApp(<ShoppingListPage />, deps);
 
       await waitFor(() => expect(rowTexts(toBuyList())).toContain('ryż 500 g'));
-      await userEvent.click(within(row('ryż')).getByText('ryż'));
-      await waitFor(() => expect(rowTexts(doneList())).toEqual(['ryż 500 g']));
+      await tick('ryż');
+      await waitFor(() => expect(row('ryż')).toHaveClass('is-ticked'));
 
       await plan(deps, 'risotto', '2026-11-06');
-      await waitFor(() => expect(rowTexts(doneList())).toEqual(['ryż 800 g']));
+      await waitFor(() => expect(rowTexts(toBuyList())).toContain('ryż 800 g'));
       expect(row('ryż').querySelector('.shopping-amount')).not.toHaveClass('is-more');
       expect(within(row('ryż')).queryByText(/^plan:/)).toBeNull();
+    });
+  });
+
+  describe('edit sheet', () => {
+    it('marks At Home and ticks from the sheet on "Zapisz"', async () => {
+      const deps = createTestDeps();
+      await seedRice(deps);
+      renderWithApp(<ShoppingListPage />, deps);
+
+      const sheet = await openSheet('ryż: 400 g, edytuj');
+      expect(sheetToggle(sheet, 'Kupione')).not.toBeChecked();
+      expect(sheetToggle(sheet, 'Mam w domu')).not.toBeChecked();
+      await userEvent.click(sheetToggle(sheet, 'Kupione'));
+      await userEvent.click(sheetToggle(sheet, 'Mam w domu'));
+      expect(sheetToggle(sheet, 'Kupione')).toBeChecked();
+      expect(sheetToggle(sheet, 'Mam w domu')).toBeChecked();
+      // Nothing is written before "Zapisz".
+      expect(await deps.shopping.listProductStates(WEEK)).toEqual([]);
+      await userEvent.click(within(sheet).getByText('Zapisz'));
+
+      await waitFor(() => expect(rowTexts(atHomeList())).toEqual(['ryż 400 g']));
+      expect(row('ryż')).toHaveClass('is-ticked');
+    });
+
+    it('starts from the row as shown and writes nothing on "Anuluj"', async () => {
+      const deps = createTestDeps();
+      const { ryz } = await seedRice(deps);
+      await deps.shopping.updateProductState(WEEK, ryz.id, { atHome: true });
+      renderWithApp(<ShoppingListPage />, deps);
+
+      const sheet = await openSheet('ryż: 400 g, edytuj');
+      expect(sheetToggle(sheet, 'Mam w domu')).toBeChecked();
+      await userEvent.click(sheetToggle(sheet, 'Mam w domu'));
+      await userEvent.click(within(sheet).getByText('Anuluj'));
+
+      await waitFor(() => expect(sheet).not.toHaveClass('modal-in'));
+      expect(rowTexts(atHomeList())).toEqual(['ryż 400 g']);
     });
   });
 
@@ -362,6 +422,17 @@ describe('ShoppingListPage', () => {
 
       expect(sharer.texts).toEqual(['Lista zakupów 2–8 lis 2026\ncebula 100 g\nkawa\nryż 400 g']);
       expect(await screen.findByText('Skopiowano listę do schowka.')).toBeInTheDocument();
+    });
+
+    it('leaves out what is ticked', async () => {
+      const sharer = new RecordingTextSharer();
+      await renderShare(sharer);
+
+      await tick('cebula');
+      await waitFor(() => expect(row('cebula')).toHaveClass('is-ticked'));
+      await userEvent.click(screen.getByText('Udostępnij listę'));
+
+      expect(sharer.texts).toEqual(['Lista zakupów 2–8 lis 2026\nkawa\nryż 400 g']);
     });
 
     it('leaves out what is At Home (S3, share part)', async () => {

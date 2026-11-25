@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildShoppingList } from '../../src/domain/shopping';
+import { buildShoppingList, leftToBuy } from '../../src/domain/shopping';
 import type { Extra, Product, ProductListState } from '../../src/domain/types';
 import {
   amountErrorMessage,
@@ -77,7 +77,7 @@ describe('shoppingPage', () => {
     expect(productRow(model.toBuy, 'mleko')).toMatchObject({ productId: 'p-mleko', amountText: '1,1 l', ticked: false, atHome: false });
     expect(productRow(model.toBuy, 'jajka').amountText).toBe('3 szt.');
     expect(model.toBuy[1]).toEqual({ kind: 'extra', key: 'e:e1', id: 'e1', name: 'kawa', ticked: false });
-    expect(model.done).toEqual([]);
+    expect(model.atHome).toEqual([]);
   });
 
   it('is empty with no Meals and no Extras', () => {
@@ -86,9 +86,16 @@ describe('shoppingPage', () => {
     expect(model.shareText).toBeNull();
   });
 
-  it('names the At Home button and moves an At Home row to done (US3)', () => {
+  it('keeps a ticked row in place (FR-009)', () => {
+    const model = shoppingPage(WEEK, data({ states: [state('p-mleko', { ticked: true })] }))!;
+    expect(productRow(model.toBuy, 'mleko').ticked).toBe(true);
+    expect(model.atHome).toEqual([]);
+  });
+
+  it('names the At Home button and moves an At Home row to the Mam w domu card (US3)', () => {
     const model = shoppingPage(WEEK, data({ states: [state('p-ryz', { atHome: true })] }))!;
-    expect(productRow(model.done, 'ryż')).toMatchObject({ atHome: true, atHomeLabel: 'Mam w domu: ryż' });
+    expect(model.toBuy.map((r) => r.name)).not.toContain('ryż');
+    expect(productRow(model.atHome, 'ryż')).toMatchObject({ atHome: true, atHomeLabel: 'Mam w domu: ryż' });
   });
 
   it('shows an applying Adjustment as more or less than the plan (US4)', () => {
@@ -97,7 +104,7 @@ describe('shoppingPage', () => {
       amountText: '500 g',
       direction: 'more',
       plannedText: 'plan: 400 g',
-      amountLabel: 'ryż: 500 g, więcej niż w planie (400 g), zmień ilość',
+      amountLabel: 'ryż: 500 g, więcej niż w planie (400 g), edytuj',
       planned: 400,
       plannedAmountText: '400 g',
       fieldText: '500',
@@ -107,7 +114,7 @@ describe('shoppingPage', () => {
     const less = shoppingPage(WEEK, data({ states: [state('p-ryz', { adjustment: { amount: 250, plannedAmount: 400 } })] }))!;
     expect(productRow(less.toBuy, 'ryż')).toMatchObject({
       direction: 'less',
-      amountLabel: 'ryż: 250 g, mniej niż w planie (400 g), zmień ilość',
+      amountLabel: 'ryż: 250 g, mniej niż w planie (400 g), edytuj',
     });
   });
 
@@ -118,7 +125,7 @@ describe('shoppingPage', () => {
       'ryż',
     );
     for (const row of [plain, dormant]) {
-      expect(row).toMatchObject({ amountText: '400 g', direction: null, plannedText: null, amountLabel: 'ryż: 400 g, zmień ilość' });
+      expect(row).toMatchObject({ amountText: '400 g', direction: null, plannedText: null, amountLabel: 'ryż: 400 g, edytuj' });
     }
   });
 
@@ -158,7 +165,7 @@ describe('shareText', () => {
       extras: [{ id: 'e1', weekStart: week, text: 'papier toaletowy', ticked: false }],
     });
     // mleko: 500 (Kakao) + 600 (Owsianka at 4 Servings) = 1100 ml.
-    expect(shareText(week, list.toBuy)).toBe('Lista zakupów 16–22 lis 2026\nmleko 1,1 l\npapier toaletowy\nryż 500 g');
+    expect(shareText(week, leftToBuy(list))).toBe('Lista zakupów 16–22 lis 2026\nmleko 1,1 l\npapier toaletowy\nryż 500 g');
   });
 });
 

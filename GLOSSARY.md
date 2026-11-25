@@ -76,7 +76,7 @@ The amount to buy that the user typed for one Product on a Week's Shopping List,
 _Avoid_: Correction, override, pantry
 
 **At Home**:
-A mark on one Product on a Week's Shopping List saying the user already has it, so it needn't be bought. It has no amount. UI: the item is crossed out.
+A mark on one Product on a Week's Shopping List saying the user already has it, so it needn't be bought. It has no amount. UI: the item is dimmed and moves to the "Mam w domu" card at the bottom of the list.
 _Avoid_: Pantry, stock, inventory, have
 
 **Extra**:
