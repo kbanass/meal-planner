@@ -1,6 +1,8 @@
 import { getDevice } from 'framework7/lite-bundle';
-import { App, Link, Toolbar, ToolbarPane, View, Views } from 'framework7-react';
+import { App, f7ready, Link, Toolbar, ToolbarPane, View, Views } from 'framework7-react';
+import { useEffect } from 'react';
 import { dishesRoutes, settingsRoutes, shoppingRoutes, weekRoutes } from './routes';
+import { fixTabbarHighlight } from './tabbar-highlight';
 
 /**
  * The iOS style everywhere, desktop included; Android keeps Framework7's Android style (FR-041).
@@ -10,6 +12,19 @@ import { dishesRoutes, settingsRoutes, shoppingRoutes, weekRoutes } from './rout
 const THEME = getDevice().android ? 'md' : 'ios';
 
 export function AppShell() {
+  // The tabbar bubble's flick on a tap (see tabbar-highlight.ts).
+  useEffect(() => {
+    let undo: (() => void) | undefined;
+    let cancelled = false;
+    f7ready((app) => {
+      if (!cancelled) undo = fixTabbarHighlight(app);
+    });
+    return () => {
+      cancelled = true;
+      undo?.();
+    };
+  }, []);
+
   return (
     // `colors.primary` is Framework7's documented theme colour: links, icons, the tabbar and
     // dialogs use the app's green instead of iOS blue (FR-043).
@@ -21,7 +36,7 @@ export function AppShell() {
           <ToolbarPane>
             <Link tabLink="#view-week" tabLinkActive iconF7="calendar" text="Tydzień" />
             <Link tabLink="#view-dishes" iconF7="book" text="Dania" />
-            <Link tabLink="#view-shopping" iconF7="cart" text="Lista zakupów" />
+            <Link tabLink="#view-shopping" iconF7="cart" text="Zakupy" />
             <Link tabLink="#view-settings" iconF7="gear" text="Ustawienia" />
           </ToolbarPane>
         </Toolbar>

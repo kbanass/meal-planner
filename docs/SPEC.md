@@ -105,7 +105,7 @@ Editing a Meal:
 
 ## Screens
 
-Tabs: **Tydzień**, **Dania**, **Lista zakupów**, **Ustawienia**.
+Tabs: **Tydzień**, **Dania**, **Zakupy** (its page is titled "Lista zakupów"), **Ustawienia**.
 
 ### Mobile
 - **Tydzień:** one screen.

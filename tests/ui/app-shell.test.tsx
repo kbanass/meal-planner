@@ -32,7 +32,7 @@ describe('AppShell', () => {
     expect(tabLabels()).toEqual([
       'Tydzień',
       'Dania',
-      'Lista zakupów',
+      'Zakupy',
       'Ustawienia',
     ]);
   });
@@ -62,11 +62,11 @@ describe('AppShell', () => {
     expect(within(settings).queryByText(NOTICE)).not.toBeInTheDocument();
   });
 
-  it('switches to Lista zakupów when its tab is tapped', async () => {
+  it('switches to the Shopping List when the Zakupy tab is tapped', async () => {
     renderShell();
     const shopping = document.getElementById('view-shopping')!;
 
-    await userEvent.click(screen.getByText('Lista zakupów', { selector: '.tab-link *' }));
+    await userEvent.click(screen.getByText('Zakupy', { selector: '.tab-link *' }));
 
     expect(shopping).toHaveClass('tab-active');
     expect(document.getElementById('view-week')).not.toHaveClass('tab-active');
@@ -79,7 +79,7 @@ describe('AppShell', () => {
     const shopping = document.getElementById('view-shopping')!;
     const week = document.getElementById('view-week')!;
 
-    await userEvent.click(screen.getByText('Lista zakupów', { selector: '.tab-link *' }));
+    await userEvent.click(screen.getByText('Zakupy', { selector: '.tab-link *' }));
     await within(shopping).findByText('2–8 lis 2026');
     await userEvent.click(within(shopping).getByLabelText('Następny tydzień'));
     expect(await within(shopping).findByText('9–15 lis 2026')).toBeInTheDocument();
@@ -89,7 +89,7 @@ describe('AppShell', () => {
     expect(within(week).getByRole('heading', { level: 2, name: 'Listopad 2026' })).toBeInTheDocument();
     expect(within(week).getByRole('button', { name: 'Środa, 4 lis' })).toHaveAttribute('aria-pressed', 'true');
 
-    await userEvent.click(screen.getByText('Lista zakupów', { selector: '.tab-link *' }));
+    await userEvent.click(screen.getByText('Zakupy', { selector: '.tab-link *' }));
     await waitFor(() => expect(shopping).toHaveClass('tab-active'));
     expect(within(shopping).getByText('9–15 lis 2026')).toBeInTheDocument();
   });
