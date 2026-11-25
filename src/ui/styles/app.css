@@ -184,6 +184,30 @@ html {
     font-size: 10px;
     text-overflow: clip;
   }
+  /*
+   * The selected-tab bubble. Framework7 draws a capsule (fully round ends) inset 4 px into an
+   * equal quarter of the bar, so "Lista zakupów" reached into the curved ends and looked cut off.
+   * A rounded rectangle, 2 px from the sides, keeps the label on the flat part. Slots stay equal:
+   * Framework7's drag-to-select assumes it.
+   */
+  .ios .toolbar.tabbar .tab-link-highlight::before,
+  .ios .toolbar.tabbar .tab-link-highlight::after {
+    inset: 4px 2px;
+    border-radius: 22px;
+  }
+}
+/*
+ * Quicker bubble: Framework7 eases every move over 300 ms, so the bubble trailed the finger while
+ * dragging across the bar and slid on long after a tap. It now follows a drag almost at once and
+ * settles on the new tab in 180 ms.
+ */
+.ios .toolbar.tabbar .tab-link-highlight,
+.ios .toolbar.tabbar .tab-link-highlight::before,
+.ios .toolbar.tabbar .tab-link-highlight::after {
+  transition-duration: 180ms;
+}
+.ios .toolbar.tabbar .tab-link-highlight.tab-link-highlight-pressed {
+  transition-duration: 60ms;
 }
 
 /* Why a Produkty action is unavailable, shown under its label. */
