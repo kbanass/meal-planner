@@ -184,19 +184,6 @@ html {
     text-overflow: clip;
   }
 }
-/*
- * Quicker bubble: Framework7 eases every move over 300 ms, so the bubble trailed the finger while
- * dragging across the bar and slid on long after a tap. It now follows a drag almost at once and
- * settles on the new tab in 180 ms.
- */
-.ios .toolbar.tabbar .tab-link-highlight,
-.ios .toolbar.tabbar .tab-link-highlight::before,
-.ios .toolbar.tabbar .tab-link-highlight::after {
-  transition-duration: 180ms;
-}
-.ios .toolbar.tabbar .tab-link-highlight.tab-link-highlight-pressed {
-  transition-duration: 60ms;
-}
 
 /* Why a Produkty action is unavailable, shown under its label. */
 .actions-hint {
