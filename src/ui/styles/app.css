@@ -223,7 +223,8 @@ html {
   flex: none;
   display: flex;
   flex-direction: column;
-  width: 132px;
+  /* Wide enough for protein, fat and carbs on one line, even at 125,5 g each. */
+  width: 184px;
   padding: 0;
   overflow: hidden;
   border: 0;
@@ -820,15 +821,28 @@ html {
 }
 /* Calories on their own line, then protein, fat and carbs together on the next, so a long
    value never pushes one macro onto a line of its own. */
-.dish-card-totals .macro-totals-compact {
+.dish-card-totals .macro-totals-compact,
+.dish-picker-body .macro-totals-compact {
   display: grid;
   flex-basis: 100%;
   grid-template-columns: repeat(3, max-content);
   justify-content: start;
   gap: 4px 14px;
 }
-.dish-card-totals .macro-total-kcal {
+.dish-card-totals .macro-total-kcal,
+.dish-picker-body .macro-total-kcal {
   grid-column: 1 / -1;
+}
+/* The picker's tiles are narrow: the three macros share the line, a size smaller. */
+.dish-picker-body .macro-totals-compact {
+  justify-content: space-between;
+  column-gap: 4px;
+}
+.dish-picker-body .macro-total:not(.macro-total-kcal) {
+  font-size: 11px;
+}
+.dish-picker-body .macro-total:not(.macro-total-kcal) .macro-total-unit {
+  font-size: 10px;
 }
 .dish-card-per-serving {
   font-size: 11px;
