@@ -1,11 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Block, BlockTitle, f7, Icon, List, Navbar, Page } from 'framework7-react';
-import { useRef, useState, type PointerEvent } from 'react';
+import { useRef, useState } from 'react';
 import { addExtra, saveAdjustment, saveExtra, shareList } from '../../app/shopping';
 import { addDays, weekRange, weekStartOf } from '../../domain/dates';
 import { AmountSheet, type ProductEdit } from '../components/AmountSheet';
 import { ExtraSheet, type ExtraEdit } from '../components/ExtraSheet';
 import { ShoppingRow } from '../components/ShoppingRow';
+import { WeekCarousel } from '../components/WeekCarousel';
 import { useDeps } from '../hooks/useDeps';
 import {
   atHomeTitle,
@@ -13,14 +14,13 @@ import {
   emptyMessage,
   extraAmountPlaceholder,
   extraPlaceholder,
-  headerSwipeDelta,
+  listWeekFaces,
   shareFailedMessage,
   shoppingPage,
   type ExtraRow,
   type ProductRow,
   type ShoppingRow as Row,
 } from '../view-models/shopping';
-import { inEdgeZone } from '../view-models/week-track';
 
 /**
  * The Lista zakupów tab: the Shown Week's live Shopping List, with its own Week header
@@ -51,26 +51,10 @@ export function ShoppingListPage() {
   const sheetExtra =
     model?.toBuy.find((row): row is ExtraRow => row.kind === 'extra' && row.id === sheetExtraId) ?? null;
 
-  const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const [extraText, setExtraText] = useState('');
   const [extraAmount, setExtraAmount] = useState('');
   const extraInput = useRef<HTMLInputElement>(null);
   const extraAmountInput = useRef<HTMLInputElement>(null);
-
-  function onHeaderPointerDown(event: PointerEvent) {
-    // Starts at the screen edge belong to the system back swipe (research R6).
-    swipeStart.current = inEdgeZone(event.clientX, window.innerWidth)
-      ? null
-      : { x: event.clientX, y: event.clientY };
-  }
-
-  function onHeaderPointerUp(event: PointerEvent) {
-    const start = swipeStart.current;
-    swipeStart.current = null;
-    if (!start) return;
-    const delta = headerSwipeDelta(event.clientX - start.x, event.clientY - start.y);
-    if (delta !== 0) setWeekStart((current) => addDays(current, delta));
-  }
 
   function toggleTick(row: Row) {
     if (row.kind === 'product') {
@@ -150,44 +134,29 @@ export function ShoppingListPage() {
   return (
     <Page className="shopping-page">
       <Navbar title="Lista zakupów" />
+      <div className="page-wide">
+        {/* Rendered before the data loads, so the carousel never unmounts while the Week moves. */}
+        <section className="list-week-card">
+          <WeekCarousel
+            faces={listWeekFaces(weekStart)}
+            onMove={(days) => setWeekStart((current) => addDays(current, days))}
+            renderFace={(face) => <h2 className="list-week-label">{face.label}</h2>}
+            navClassName="list-week-nav"
+          />
+          {/* Always shown; dimmed and off when there is nothing to share (FR-025). */}
+          <button
+            type="button"
+            className="week-card-copy list-week-share"
+            disabled={!model?.shareText}
+            onClick={() => model?.shareText && share(model.shareText)}
+          >
+            <Icon f7="square_arrow_up" aria-hidden="true" />
+            <span>Udostępnij listę</span>
+          </button>
+        </section>
+      </div>
       {model && (
         <div className="page-wide">
-          <section
-            className="list-week-card"
-            onPointerDown={onHeaderPointerDown}
-            onPointerUp={onHeaderPointerUp}
-            onPointerCancel={() => (swipeStart.current = null)}
-          >
-            <div className="list-week-row">
-              <button
-                type="button"
-                className="round-button"
-                aria-label="Poprzedni tydzień"
-                onClick={() => setWeekStart((current) => addDays(current, -7))}
-              >
-                <Icon f7="arrow_left" aria-hidden="true" />
-              </button>
-              <h2 className="list-week-label">{model.weekLabel}</h2>
-              <button
-                type="button"
-                className="round-button"
-                aria-label="Następny tydzień"
-                onClick={() => setWeekStart((current) => addDays(current, 7))}
-              >
-                <Icon f7="arrow_right" aria-hidden="true" />
-              </button>
-            </div>
-            {model.shareText !== null && (
-              <button
-                type="button"
-                className="week-card-copy list-week-share"
-                onClick={() => share(model.shareText as string)}
-              >
-                <Icon f7="square_arrow_up" aria-hidden="true" />
-                <span>Udostępnij listę</span>
-              </button>
-            )}
-          </section>
 
           {model.empty && (
             <Block className="shopping-empty">

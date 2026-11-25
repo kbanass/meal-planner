@@ -33,10 +33,10 @@ In Tydzień, plan this Week: "Owsianka" Monday 1 Serving and Wednesday 3 Serving
 |---|---|---|---|
 | 1 | Open Lista zakupów | Header shows this Week's dates. Rows: cebula 1 szt., jajka 3 szt., mleko 1,1 l, płatki owsiane 200 g, ryż 400 g. Names read left to right; square checkboxes | US1-1–US1-3, US1-7, FR-008 |
 | 2 | In Tydzień swipe to next Week, return to Lista zakupów | The list still shows this Week | US1-11, FR-003 |
-| 3 | Tap → and ←, then swipe the header left and right | The label changes Week by Week. The next Week is empty: "Na ten tydzień nie ma nic do kupienia." and no share button | US1-10, FR-002, FR-010 |
-| 4 | Tap the checkbox of "cebula", then again | First tap: ticked and dimmed (not crossed out), and it stays in its place. Second tap: unticked | US2-1, US2-2, FR-009, FR-012 |
+| 3 | Tap → and ←, then swipe the header left and right, slowly and with a flick | The dates slide like the Week card's month (follow the finger, settle on a Week) while ← / → stay put. The next Week is empty: "Na ten tydzień nie ma nic do kupienia." and "Udostępnij listę" grey and disabled | US1-10, FR-002, FR-010, FR-025 |
+| 4 | Tap the checkbox of "cebula", then again | First tap: ticked and dimmed (not crossed out), and it stays in its place; no grey box flashes under it. Second tap: unticked | US2-1, US2-2, FR-009, FR-012 |
 | 5 | Tap the house on "ryż" | Dimmed, filled house, moved into a "Mam w domu" card (with a house in the heading) at the bottom. Tap again: back in the list; the card disappears | US3-1, US3-2, FR-015 |
-| 6 | Tap the name "ryż" | The edit sheet opens: "W planie: 400 g", "Ilość do kupienia (g)" filled with 400, "Kupione" and "Mam w domu" toggles off. The row is not ticked | FR-011, FR-017 |
+| 6 | Tap the name "ryż" | The caret sits after "400" when the field is tapped. The edit sheet opens: "W planie: 400 g", "Ilość do kupienia (g)" filled with 400, "Kupione" and "Mam w domu" toggles off. The row is not ticked | FR-011, FR-017 |
 | 7 | In the sheet type 500, Zapisz | Shows "500 g" in green with ↑ and "plan: 400 g" below | US4-1, US4-2 |
 | 8 | Same, type 250 | "250 g" in amber with ↓ | US4-3 |
 | 9 | Same, type 0, then "abc" | Saving blocked, field marked "Wpisz liczbę większą od zera.", sheet stays open | US4-7 |
@@ -46,7 +46,7 @@ In Tydzień, plan this Week: "Owsianka" Monday 1 Serving and Wednesday 3 Serving
 | 13 | Tap the name "kawa"; change it to "kawa ziarnista", the amount to "1 kg", turn on "Kupione", Zapisz | Row "kawa ziarnista 1 kg", ticked, in place. Clearing the name and saving shows "Wpisz nazwę." and keeps the sheet open | FR-022 |
 | 14 | Swipe "papier toaletowy" left, tap Usuń. Open another Extra, tap the red Usuń in its sheet | Gone at once, no question, both ways. The row swipe doesn't scroll the page sideways | US5-4, FR-023 |
 | 15 | Tick and mark items, close the app fully, turn on airplane mode, reopen | Same ticks, At Home marks, typed amounts and Extras with their amounts | US2-4, SC-007, FR-032 |
-| 16 | Tap "Udostępnij listę" on the iPhone, pick Notatki | The note starts "Lista zakupów {dates}" and holds only unticked, not-at-home lines, with typed amounts and Extra amounts ("kawa 2 opak.") | US6-1–US6-3, FR-026 |
+| 16 | Tap "Udostępnij listę" on the iPhone, pick Notatki | The note starts "Lista zakupów {dates}" and holds the unticked lines with typed amounts and Extra amounts ("kawa 2 opak."), then the At Home items as "ryż 300 g (mam w domu)" | US6-1–US6-3, FR-026 |
 | 17 | Close the share sheet without picking | Nothing happens | US6-5 |
 | 18 | Desktop Firefox: "Udostępnij listę" | Toast "Skopiowano listę do schowka." and the text is in the clipboard | US6-4 |
 | 19 | Produkty: merge a duplicate Product into "mleko" in a Week where only mleko was ticked and both planned | mleko unticked, with one summed amount | FR-028 |

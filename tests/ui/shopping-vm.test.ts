@@ -7,7 +7,7 @@ import {
   copiedToast,
   emptyMessage,
   extraPlaceholder,
-  headerSwipeDelta,
+  listWeekFaces,
   shareFailedMessage,
   shareText,
   shoppingPage,
@@ -148,7 +148,16 @@ describe('shoppingPage', () => {
     expect(productRow(model.toBuy, 'mleko')).toMatchObject({ fieldText: '1100', unitLabel: 'ml' });
   });
 
-  it('has no share text when every item is ticked or At Home (FR-025)', () => {
+  it('shares an At Home item marked as such (FR-026)', () => {
+    const model = shoppingPage(WEEK, {
+      ...data(),
+      meals: [meal({ id: 'm5', dishId: risotto.id })],
+      states: [state('p-ryz', { atHome: true })],
+    })!;
+    expect(model.shareText).toBe('Lista zakupów 2–8 lis 2026\nryż 400 g (mam w domu)');
+  });
+
+  it('has no share text when every item is ticked (FR-025)', () => {
     const model = shoppingPage(WEEK, {
       ...data(),
       meals: [meal({ id: 'm5', dishId: risotto.id })],
@@ -182,18 +191,22 @@ describe('shareText', () => {
     });
     // mleko: 500 (Kakao) + 600 (Owsianka at 4 Servings) = 1100 ml.
     expect(shareText(week, leftToBuy(list))).toBe('Lista zakupów 16–22 lis 2026\nkawa 2 opak.\nmleko 1,1 l\npapier toaletowy\nryż 500 g');
+    // jajka is At Home: it follows the list, marked (FR-026).
+    expect(shareText(week, leftToBuy(list), list.atHome)).toBe(
+      'Lista zakupów 16–22 lis 2026\nkawa 2 opak.\nmleko 1,1 l\npapier toaletowy\nryż 500 g\njajka 3 szt. (mam w domu)',
+    );
   });
 });
 
-describe('headerSwipeDelta', () => {
-  it.each([
-    [-49, 0, 0],
-    [-50, 0, 7],
-    [50, 0, -7],
-    [-60, 50, 0],
-    [0, 0, 0],
-  ] as const)('(%d, %d) → %d', (dx, dy, expected) => {
-    expect(headerSwipeDelta(dx, dy)).toBe(expected);
+describe('listWeekFaces', () => {
+  it('gives five Weeks around the Shown Week, only the middle one viewed', () => {
+    expect(listWeekFaces('2026-11-02')).toEqual([
+      { weekStart: '2026-10-19', offset: -2, isViewed: false, label: '19–25 paź 2026' },
+      { weekStart: '2026-10-26', offset: -1, isViewed: false, label: '26 paź – 1 lis 2026' },
+      { weekStart: '2026-11-02', offset: 0, isViewed: true, label: '2–8 lis 2026' },
+      { weekStart: '2026-11-09', offset: 1, isViewed: false, label: '9–15 lis 2026' },
+      { weekStart: '2026-11-16', offset: 2, isViewed: false, label: '16–22 lis 2026' },
+    ]);
   });
 });
 

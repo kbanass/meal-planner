@@ -1,10 +1,11 @@
-import { weekRange, weekRangeLabel } from '../../domain/dates';
+import { addDays, weekRange, weekRangeLabel } from '../../domain/dates';
 import {
   adjustmentDirection,
   adjustmentFieldText,
   buildShoppingList,
   isListEmpty,
   leftToBuy,
+  type ProductLine,
   type ShoppingLine,
 } from '../../domain/shopping';
 import type { Dish, Extra, IsoDate, Meal, Product, ProductListState } from '../../domain/types';
@@ -12,8 +13,10 @@ import { formatListAmount } from '../../domain/units';
 import { mealsInRange } from '../../domain/week';
 import { unitLabel } from './dish-form';
 import { indexDishes } from './week';
+import { FACE_OFFSETS, type FaceOffset } from './week-track';
 
 export const emptyMessage = 'Na ten tydzień nie ma nic do kupienia.';
+export const atHomeShareSuffix = '(mam w domu)';
 export const extraPlaceholder = 'Coś spoza planu…';
 export const extraAmountPlaceholder = 'Ilość (opcjonalnie)';
 export const extraNameLabel = 'Nazwa';
@@ -67,7 +70,7 @@ export interface ShoppingPageModel {
   toBuy: ShoppingRow[];
   /** The "Mam w domu" card at the bottom (FR-015). */
   atHome: ProductRow[];
-  /** null when nothing is left to buy (FR-025). */
+  /** null when nothing is left to buy and nothing is At Home: the share button is dimmed (FR-025). */
   shareText: string | null;
 }
 
@@ -113,14 +116,39 @@ function row(line: ShoppingLine): ShoppingRow {
   };
 }
 
-/** "Lista zakupów 16–22 lis 2026", then one line per item left to buy, in screen order (FR-026). */
-export function shareText(weekStart: IsoDate, toBuy: readonly ShoppingLine[]): string {
-  const lines = toBuy.map((line) =>
-    line.kind === 'product'
-      ? `${line.product.name} ${formatListAmount(line.amount, line.product.unit)}`
-      : [line.extra.text, line.extra.amount].filter(Boolean).join(' '),
-  );
+function shareLine(line: ShoppingLine): string {
+  return line.kind === 'product'
+    ? `${line.product.name} ${formatListAmount(line.amount, line.product.unit)}`
+    : [line.extra.text, line.extra.amount].filter(Boolean).join(' ');
+}
+
+/**
+ * "Lista zakupów 16–22 lis 2026", then one line per item left to buy, then the At Home Products
+ * marked "(mam w domu)", each in screen order (FR-026).
+ */
+export function shareText(
+  weekStart: IsoDate,
+  toBuy: readonly ShoppingLine[],
+  atHome: readonly ProductLine[] = [],
+): string {
+  const lines = [...toBuy.map(shareLine), ...atHome.map((line) => `${shareLine(line)} ${atHomeShareSuffix}`)];
   return [`Lista zakupów ${weekRangeLabel(weekStart)}`, ...lines].join('\n');
+}
+
+/** One face of the Shopping List's Week header: the Week's dates. */
+export interface ListWeekFace {
+  weekStart: IsoDate;
+  offset: FaceOffset;
+  isViewed: boolean;
+  label: string;
+}
+
+/** The header carousel's five faces around the Shown Week, offsets −2…2 (FR-002). */
+export function listWeekFaces(weekStart: IsoDate): ListWeekFace[] {
+  return FACE_OFFSETS.map((offset) => {
+    const start = addDays(weekStart, 7 * offset);
+    return { weekStart: start, offset, isViewed: offset === 0, label: weekRangeLabel(start) };
+  });
 }
 
 /** The Shopping List page, or null until every query has resolved (research R8). */
@@ -148,12 +176,11 @@ export function shoppingPage(
     empty: isListEmpty(list),
     toBuy: list.toBuy.map(row),
     atHome: list.atHome.map(productRow),
-    shareText: leftToBuy(list).length > 0 ? shareText(weekStart, leftToBuy(list)) : null,
+    // Something to buy, or something At Home, makes a list worth sharing (FR-025).
+    shareText:
+      leftToBuy(list).length > 0 || list.atHome.length > 0
+        ? shareText(weekStart, leftToBuy(list), list.atHome)
+        : null,
   };
 }
 
-/** A release on the Week header: at least 50 px, and clearly sideways (feature 002's rule, R6). */
-export function headerSwipeDelta(dx: number, dy: number): -7 | 0 | 7 {
-  if (Math.abs(dx) < 50 || Math.abs(dx) <= 1.5 * Math.abs(dy)) return 0;
-  return dx < 0 ? 7 : -7;
-}

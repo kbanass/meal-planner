@@ -7,7 +7,7 @@ import { ShoppingListPage } from '../../src/ui/pages/ShoppingListPage';
 import { atHomeTitle, emptyMessage, extraAmountPlaceholder, extraPlaceholder, shareFailedMessage } from '../../src/ui/view-models/shopping';
 import { dish } from '../fakes/dishes';
 import { RecordingTextSharer } from '../fakes/recording-text-sharer';
-import { drag } from './pointer';
+import { drag, setTrackWidth } from './pointer';
 import { createTestDeps, renderWithApp } from './render';
 
 const WEEK = '2026-11-02';
@@ -104,8 +104,9 @@ function findRow(name: string): Promise<HTMLElement> {
   return waitFor(() => row(name));
 }
 
+/** The viewed face's dates; the carousel also renders the two Weeks on each side. */
 function weekLabel(): string {
-  return document.querySelector('.list-week-label')?.textContent ?? '';
+  return document.querySelector('.week-face-viewed .list-week-label')?.textContent ?? '';
 }
 
 async function openSheet(label: string): Promise<HTMLElement> {
@@ -157,22 +158,24 @@ describe('ShoppingListPage', () => {
     await waitFor(() => expect(weekLabel()).toBe('9–15 lis 2026'));
     await waitFor(() => expect(rowTexts(toBuyList())).toEqual(['makaron 250 g']));
 
-    const header = document.querySelector('.list-week-card')!;
+    // The Week card's carousel: jsdom can't lay out, so give the track its width.
+    const track = document.querySelector('.list-week-card .week-track')!;
+    setTrackWidth(track, 360);
     // A start in the edge zone belongs to the system back swipe.
-    drag(header, { from: [10, 40], to: [200, 40], steps: 4, durationMs: 200 });
+    drag(track, { from: [10, 40], to: [200, 40], steps: 10, durationMs: 600 });
     expect(weekLabel()).toBe('9–15 lis 2026');
 
-    drag(header, { from: [100, 40], to: [260, 40], steps: 4, durationMs: 200 });
+    drag(track, { from: [100, 40], to: [300, 40], steps: 10, durationMs: 600 });
     await waitFor(() => expect(weekLabel()).toBe('2–8 lis 2026'));
     await waitFor(() => expect(rowTexts(toBuyList())).toEqual(['cebula 100 g', 'ryż 400 g']));
   });
 
-  it('shows the empty state with the Extra field and no share button (S11)', async () => {
+  it('shows the empty state with the Extra field and a dimmed share button (S11)', async () => {
     renderWithApp(<ShoppingListPage />);
 
     expect(await screen.findByText(emptyMessage)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(extraPlaceholder)).toBeInTheDocument();
-    expect(screen.queryByText('Udostępnij listę')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Udostępnij listę' })).toBeDisabled();
     expect(toBuyList()).toBeNull();
   });
 
@@ -527,7 +530,7 @@ describe('ShoppingListPage', () => {
       expect(sharer.texts).toEqual(['Lista zakupów 2–8 lis 2026\nkawa\nryż 400 g']);
     });
 
-    it('leaves out what is At Home (S3, share part)', async () => {
+    it('lists what is At Home last, marked "(mam w domu)" (S3, share part)', async () => {
       const sharer = new RecordingTextSharer();
       await renderShare(sharer);
 
@@ -535,7 +538,7 @@ describe('ShoppingListPage', () => {
       await waitFor(() => expect(row('ryż')).toHaveClass('is-at-home'));
       await userEvent.click(screen.getByText('Udostępnij listę'));
 
-      expect(sharer.texts).toEqual(['Lista zakupów 2–8 lis 2026\ncebula 100 g\nkawa']);
+      expect(sharer.texts).toEqual(['Lista zakupów 2–8 lis 2026\ncebula 100 g\nkawa\nryż 400 g (mam w domu)']);
     });
 
     it('does nothing when cancelled (S10)', async () => {

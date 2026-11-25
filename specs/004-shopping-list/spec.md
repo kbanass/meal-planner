@@ -190,7 +190,7 @@ The user taps "Udostępnij listę" and sends what is left to buy as plain text, 
 **The list**
 
 - **FR-001**: The Lista zakupów tab MUST show the Shopping List of the Shown Week, replacing the current placeholder.
-- **FR-002**: The tab MUST have its own Week header naming the Shown Week's dates (e.g. "16–22 lis 2026"), with ← / → buttons that show the previous and next Week. On phones, a horizontal swipe on the header MUST also change the Week: left for the next Week, right for the previous one, applied on release. The buttons stay visible on every screen size.
+- **FR-002**: The tab MUST have its own Week header naming the Shown Week's dates (e.g. "16–22 lis 2026"), with ← / → buttons that show the previous and next Week. The dates sit on the same carousel as the Week card (feature 003): on phones they follow the finger and settle on a Week, left for the next Week and right for the previous one, and the buttons slide them the same way. The buttons stay visible on every screen size.
 - **FR-003**: When the app starts, the Shown Week MUST be the Week containing today. While the app runs, the tab MUST keep its Shown Week when the user moves to other tabs and back. It MUST NOT follow or change the Week viewed in Tydzień.
 - **FR-004**: The list MUST contain one Product item for each Product with a Planned amount above zero in the Shown Week, and one line for each Extra of the Shown Week.
 - **FR-005**: The Planned amount of a Product MUST be the sum, over all Meals dated Monday to Sunday of the Shown Week, of that Product's Ingredient amount divided by the Meal's servings yield and multiplied by the Meal's Servings. For a Linked Meal the Ingredients and yield come from its Dish (including an Archived Dish); for a Detached Meal from its own copy.
@@ -236,8 +236,8 @@ The user taps "Udostępnij listę" and sends what is left to buy as plain text, 
 
 **Sharing**
 
-- **FR-025**: The tab MUST offer "Udostępnij listę" whenever the top part of the list has an unticked item (something still to buy).
-- **FR-026**: "Udostępnij listę" MUST produce plain text: a first line naming the list and the Shown Week's dates, then one line per unticked item in the top part of the list, in the order shown on screen. A Product item's line is its name and Amount to buy formatted as in FR-008, without the Planned amount; an Extra's line is its text, followed by its amount when it has one. Ticked and At Home items MUST NOT be included.
+- **FR-025**: "Udostępnij listę" MUST always be shown. It MUST be enabled when the list has an unticked item or an At Home item, and otherwise shown dimmed and disabled.
+- **FR-026**: "Udostępnij listę" MUST produce plain text: a first line naming the list and the Shown Week's dates, then one line per unticked item in the top part of the list, in the order shown on screen. A Product item's line is its name and Amount to buy formatted as in FR-008, without the Planned amount; an Extra's line is its text, followed by its amount when it has one. Then one line per At Home item, formatted the same way and followed by "(mam w domu)", e.g. "ryż 300 g (mam w domu)". Ticked items MUST NOT be included.
 - **FR-027**: The text MUST be passed to the device's share sheet where available. Otherwise it MUST be copied to the clipboard and a short message MUST confirm the copy. Cancelling the share sheet MUST NOT show an error.
 
 **Interaction with other features**

@@ -21,9 +21,9 @@ Inside `<div className="page-wide">` like every other page, so desktop uses the 
 
 1. **Navbar**: `Navbar title="Lista zakupów"`, like Ustawienia and Produkty.
 2. **Week header card** (`.list-week-card`, the Week card's look):
-   - **Row**: a round 44 px ← button (`arrow_left`, `aria-label` "Poprzedni tydzień"), the label `weekRangeLabel(weekStart)` centred ("16–22 lis 2026", 20 px, weight 700), and a → button (`arrow_right`, "Następny tydzień"). The buttons are visible on every screen size (FR-002).
-   - **Swipe**: the whole card has `touch-action: pan-y` and the pointer handlers of research R6.
-   - **"Udostępnij listę"**: a full-width text button under the row (`square_arrow_up` icon and the label), styled like "Skopiuj do następnego tygodnia". It is rendered only when something is left to buy: an unticked line in the list (FR-025).
+   - **Carousel**: `WeekCarousel` (`src/ui/components/WeekCarousel.tsx`), shared with the Week card's `WeekTrack`, with the faces of `listWeekFaces(weekStart)`. Each face is the label `weekRangeLabel` centred ("16–22 lis 2026", 20 px, weight 700). Swipes, flicks, motion blur and settling are the Week card's (feature 003's `useWeekTrackGesture`).
+   - **Buttons**: round 44 px ← ("Poprzedni tydzień") and → ("Następny tydzień") over the row's ends (`.list-week-nav`), outside the rail, so the dates slide between them. Visible on every screen size (FR-002).
+   - **"Udostępnij listę"**: a full-width text button under the row (`square_arrow_up` icon and the label), styled like "Skopiuj do następnego tygodnia". Always rendered; `disabled` and dimmed when `shareText` is null (FR-025).
 3. **Empty state**, when `isListEmpty`: `Block` with "Na ten tydzień nie ma nic do kupienia." (FR-010).
 4. **The list**: an inset list (`List strong inset dividersIos`, `.shopping-list`) of the `toBuy` rows. Ticked rows stay in their alphabetical place, dimmed. It is omitted when empty.
 5. **Add Extra**: an inset list with one row, a `<form>` of two lines: a filled text input with a leading "+" (placeholder "Coś spoza planu…", `enterkeyhint="next"`), then an optional amount input (placeholder "Ilość (opcjonalnie)", `enterkeyhint="done"`) beside a "Dodaj" button, disabled until a name is typed. Enter on the name moves to the amount; Enter on the amount or the button submits. After a successful add, both inputs are cleared and focus returns to the name, so several Extras can be typed in a row (FR-022). Shown in the empty state too.

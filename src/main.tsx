@@ -9,12 +9,14 @@ import { requestPersistentStorage } from './adapters/persist-storage';
 import { createDeps } from './app/deps';
 import { sweepOrphanPhotos } from './app/photos';
 import { AppShell } from './ui/App';
+import { installCaretAtEnd } from './ui/caret-at-end';
 import { DepsProvider } from './ui/hooks/useDeps';
 
 // eslint-disable-next-line react-hooks/rules-of-hooks -- Framework7 plugin registration, not a React hook
 Framework7.use(Framework7React);
 
 void requestPersistentStorage();
+installCaretAtEnd();
 
 const deps = createDeps();
 
