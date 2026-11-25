@@ -177,6 +177,13 @@ html {
   cursor: pointer;
 }
 
+/* The tabbar bubble keeps one curve through a tap. Framework7 eases the press with ease-out and
+   the release with ease, whose slow start made the bubble stall mid-way before speeding up again.
+   !important beats the timing Framework7 sets inline. See also src/ui/tabbar-highlight.ts. */
+.ios .toolbar.tabbar .tab-link-highlight {
+  transition-timing-function: ease-out !important;
+}
+
 /* Four tab labels on narrow phones: the 10 px label size native iOS tabbars use. */
 @media (max-width: 1023px) {
   .toolbar.tabbar .tabbar-label {
