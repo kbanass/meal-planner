@@ -15,6 +15,7 @@ import { indexDishes } from './week';
 
 export const emptyMessage = 'Na ten tydzień nie ma nic do kupienia.';
 export const extraPlaceholder = 'Coś spoza planu…';
+export const extraAmountPlaceholder = 'Ilość (opcjonalnie)';
 export const atHomeTitle = 'Mam w domu';
 export const amountErrorMessage = 'Wpisz liczbę większą od zera.';
 export const amountFooter = 'Zostaw puste, aby wrócić do ilości z planu.';
@@ -47,6 +48,8 @@ export interface ExtraRow {
   key: string;
   id: string;
   name: string;
+  /** The typed amount as written ("2 opak."), or null. */
+  amountText: string | null;
   ticked: boolean;
 }
 
@@ -94,7 +97,14 @@ function productRow(line: Extract<ShoppingLine, { kind: 'product' }>): ProductRo
 function row(line: ShoppingLine): ShoppingRow {
   if (line.kind === 'product') return productRow(line);
   const { extra } = line;
-  return { kind: 'extra', key: `e:${extra.id}`, id: extra.id, name: extra.text, ticked: extra.ticked };
+  return {
+    kind: 'extra',
+    key: `e:${extra.id}`,
+    id: extra.id,
+    name: extra.text,
+    amountText: extra.amount ?? null,
+    ticked: extra.ticked,
+  };
 }
 
 /** "Lista zakupów 16–22 lis 2026", then one line per item left to buy, in screen order (FR-026). */
@@ -102,7 +112,7 @@ export function shareText(weekStart: IsoDate, toBuy: readonly ShoppingLine[]): s
   const lines = toBuy.map((line) =>
     line.kind === 'product'
       ? `${line.product.name} ${formatListAmount(line.amount, line.product.unit)}`
-      : line.extra.text,
+      : [line.extra.text, line.extra.amount].filter(Boolean).join(' '),
   );
   return [`Lista zakupów ${weekRangeLabel(weekStart)}`, ...lines].join('\n');
 }

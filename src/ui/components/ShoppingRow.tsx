@@ -44,6 +44,11 @@ export function ShoppingRow({ row, onToggleTick, onToggleAtHome, onOpenAmount, o
       <li className={rowClass(row, ['swipeout'])}>
         <div className="swipeout-content shopping-row-inner">
           <Tick row={row} onToggle={() => onToggleTick(row)} withName />
+          {row.amountText && (
+            <span className="shopping-amount shopping-extra-amount">
+              <span className="shopping-amount-text">{row.amountText}</span>
+            </span>
+          )}
         </div>
         {/* No confirmation (FR-023). Not Framework7's `delete`: it removes the element itself. */}
         <SwipeoutActions right>

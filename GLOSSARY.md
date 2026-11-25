@@ -80,5 +80,5 @@ A mark on one Product on a Week's Shopping List saying the user already has it, 
 _Avoid_: Pantry, stock, inventory, have
 
 **Extra**:
-A free-text Shopping List entry that does not come from the plan, e.g. "papier toaletowy".
+A free-text Shopping List entry that does not come from the plan, e.g. "papier toaletowy", with an optional free-text amount such as "2 opak.".
 _Avoid_: Custom item, manual item

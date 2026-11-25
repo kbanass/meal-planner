@@ -26,7 +26,7 @@ Inside `<div className="page-wide">` like every other page, so desktop uses the 
    - **"Udostępnij listę"**: a full-width text button under the row (`square_arrow_up` icon and the label), styled like "Skopiuj do następnego tygodnia". It is rendered only when something is left to buy: an unticked line in the list (FR-025).
 3. **Empty state**, when `isListEmpty`: `Block` with "Na ten tydzień nie ma nic do kupienia." (FR-010).
 4. **The list**: an inset list (`List strong inset dividersIos`, `.shopping-list`) of the `toBuy` rows. Ticked rows stay in their alphabetical place, dimmed. It is omitted when empty.
-5. **Add Extra**: an inset list with one row, a `<form>` holding a filled text input with a leading "+" (placeholder "Coś spoza planu…", `enterkeyhint="done"`) and a "Dodaj" button. Enter or the button submits. After a successful add, the input is cleared and keeps focus, so several Extras can be typed in a row (FR-022). Shown in the empty state too.
+5. **Add Extra**: an inset list with one row, a `<form>` of two lines: a filled text input with a leading "+" (placeholder "Coś spoza planu…", `enterkeyhint="next"`), then an optional amount input (placeholder "Ilość (opcjonalnie)", `enterkeyhint="done"`) beside a "Dodaj" button, disabled until a name is typed. Enter on the name moves to the amount; Enter on the amount or the button submits. After a successful add, both inputs are cleared and focus returns to the name, so several Extras can be typed in a row (FR-022). Shown in the empty state too.
 6. **Mam w domu**: a `BlockTitle` "Mam w domu" with a `house_fill` icon, then a second inset list (`.shopping-list.is-at-home-list`) of the `atHome` rows. Both are omitted when no Product is At Home.
 
 ### Rows (research R7)

@@ -76,8 +76,13 @@ describe('shoppingPage', () => {
     ]);
     expect(productRow(model.toBuy, 'mleko')).toMatchObject({ productId: 'p-mleko', amountText: '1,1 l', ticked: false, atHome: false });
     expect(productRow(model.toBuy, 'jajka').amountText).toBe('3 szt.');
-    expect(model.toBuy[1]).toEqual({ kind: 'extra', key: 'e:e1', id: 'e1', name: 'kawa', ticked: false });
+    expect(model.toBuy[1]).toEqual({ kind: 'extra', key: 'e:e1', id: 'e1', name: 'kawa', amountText: null, ticked: false });
     expect(model.atHome).toEqual([]);
+  });
+
+  it('shows an Extra with its typed amount', () => {
+    const model = shoppingPage(WEEK, data({ extras: [{ id: 'e1', weekStart: WEEK, text: 'kawa', amount: '2 opak.', ticked: false }] }))!;
+    expect(model.toBuy.find((r) => r.kind === 'extra')).toMatchObject({ name: 'kawa', amountText: '2 opak.' });
   });
 
   it('is empty with no Meals and no Extras', () => {
@@ -162,10 +167,13 @@ describe('shareText', () => {
         { weekStart: week, productId: 'p-platki', ticked: true, atHome: false, adjustment: null },
         { weekStart: week, productId: 'p-jajka', ticked: false, atHome: true, adjustment: null },
       ],
-      extras: [{ id: 'e1', weekStart: week, text: 'papier toaletowy', ticked: false }],
+      extras: [
+        { id: 'e1', weekStart: week, text: 'papier toaletowy', ticked: false },
+        { id: 'e2', weekStart: week, text: 'kawa', amount: '2 opak.', ticked: false },
+      ],
     });
     // mleko: 500 (Kakao) + 600 (Owsianka at 4 Servings) = 1100 ml.
-    expect(shareText(week, leftToBuy(list))).toBe('Lista zakupów 16–22 lis 2026\nmleko 1,1 l\npapier toaletowy\nryż 500 g');
+    expect(shareText(week, leftToBuy(list))).toBe('Lista zakupów 16–22 lis 2026\nkawa 2 opak.\nmleko 1,1 l\npapier toaletowy\nryż 500 g');
   });
 });
 

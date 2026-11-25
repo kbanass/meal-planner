@@ -86,5 +86,7 @@ export interface Extra {
   id: string; // UUID
   weekStart: IsoDate; // the Week's Monday
   text: string; // normalizeName(input), non-empty
+  /** Free text such as "2 opak." or "1 kg", normalised like a name; absent when none was typed. */
+  amount?: string;
   ticked: boolean;
 }

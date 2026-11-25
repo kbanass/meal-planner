@@ -230,14 +230,14 @@ The user taps "Udostępnij listę" and sends what is left to buy as plain text, 
 
 **Extras**
 
-- **FR-022**: The tab MUST offer a field for adding an Extra to the Shown Week. Confirming it MUST add an Extra with the typed text, trimmed of leading and trailing spaces and with runs of inner spaces collapsed to one, and clear the field. Empty or whitespace-only text MUST NOT add anything.
+- **FR-022**: The tab MUST offer a field for adding an Extra to the Shown Week. Confirming it MUST add an Extra with the typed text, trimmed of leading and trailing spaces and with runs of inner spaces collapsed to one, and clear the field. The form MUST also offer an optional amount, free text such as "2 opak.", normalised the same way and shown on the right of the Extra's row; a blank amount stores none. Empty or whitespace-only text MUST NOT add anything.
 - **FR-023**: The user MUST be able to delete an Extra by swiping it. Deleting MUST NOT ask for confirmation.
 - **FR-024**: Extras MUST belong to one Week and MUST NOT be changed by plan changes or by "Skopiuj do następnego tygodnia". Extras have no amount, no Adjustment and no At Home mark.
 
 **Sharing**
 
 - **FR-025**: The tab MUST offer "Udostępnij listę" whenever the top part of the list has an unticked item (something still to buy).
-- **FR-026**: "Udostępnij listę" MUST produce plain text: a first line naming the list and the Shown Week's dates, then one line per unticked item in the top part of the list, in the order shown on screen. A Product item's line is its name and Amount to buy formatted as in FR-008, without the Planned amount; an Extra's line is its text. Ticked and At Home items MUST NOT be included.
+- **FR-026**: "Udostępnij listę" MUST produce plain text: a first line naming the list and the Shown Week's dates, then one line per unticked item in the top part of the list, in the order shown on screen. A Product item's line is its name and Amount to buy formatted as in FR-008, without the Planned amount; an Extra's line is its text, followed by its amount when it has one. Ticked and At Home items MUST NOT be included.
 - **FR-027**: The text MUST be passed to the device's share sheet where available. Otherwise it MUST be copied to the clipboard and a short message MUST confirm the copy. Cancelling the share sheet MUST NOT show an error.
 
 **Interaction with other features**

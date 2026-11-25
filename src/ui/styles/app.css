@@ -1034,7 +1034,7 @@ label.item-checkbox.shopping-tick > .icon-checkbox {
    dimmed until something is typed. The whole field is the tap target; focus draws a green ring. */
 .shopping-extra-row {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 10px;
   padding: 10px calc(12px + var(--f7-safe-area-right)) 10px calc(12px + var(--f7-safe-area-left));
 }
@@ -1092,8 +1092,23 @@ label.item-checkbox.shopping-tick > .icon-checkbox {
   cursor: pointer;
   transition: opacity 150ms;
 }
-.shopping-extra-row:has(input:placeholder-shown) .shopping-extra-add {
+/* In the form's column the name field keeps its height; only the amount field grows sideways. */
+.shopping-extra-row > .shopping-extra-input {
+  flex: none;
+}
+/* Second line: the optional amount and "Dodaj", which waits for a name. */
+.shopping-extra-second {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.shopping-extra-add:disabled {
   opacity: 0.4;
+  cursor: default;
+}
+/* An Extra's typed amount, shown like a Product's but not a button. */
+.shopping-extra-amount {
+  padding-left: 8px;
 }
 
 .amount-sheet-planned p {

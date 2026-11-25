@@ -10,6 +10,7 @@ import {
   atHomeTitle,
   copiedToast,
   emptyMessage,
+  extraAmountPlaceholder,
   extraPlaceholder,
   headerSwipeDelta,
   shareFailedMessage,
@@ -45,7 +46,9 @@ export function ShoppingListPage() {
 
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const [extraText, setExtraText] = useState('');
+  const [extraAmount, setExtraAmount] = useState('');
   const extraInput = useRef<HTMLInputElement>(null);
+  const extraAmountInput = useRef<HTMLInputElement>(null);
 
   function onHeaderPointerDown(event: PointerEvent) {
     // Starts at the screen edge belong to the system back swipe (research R6).
@@ -101,8 +104,11 @@ export function ShoppingListPage() {
   }
 
   async function submitExtra() {
-    if ((await addExtra(deps, weekStart, extraText)) === 'added') setExtraText('');
-    // Focus stays in the field, so several Extras can be typed in a row (FR-022).
+    if ((await addExtra(deps, weekStart, extraText, extraAmount)) === 'added') {
+      setExtraText('');
+      setExtraAmount('');
+    }
+    // Focus goes back to the name, so several Extras can be typed in a row (FR-022).
     extraInput.current?.focus();
   }
 
@@ -198,14 +204,34 @@ export function ShoppingListPage() {
                       type="text"
                       placeholder={extraPlaceholder}
                       aria-label={extraPlaceholder}
-                      enterKeyHint="done"
+                      enterKeyHint="next"
                       value={extraText}
                       onChange={(event) => setExtraText(event.target.value)}
+                      onKeyDown={(event) => {
+                        // Enter moves on to the amount; the form is sent from there or by "Dodaj".
+                        if (event.key === 'Enter' && extraText.trim() !== '') {
+                          event.preventDefault();
+                          extraAmountInput.current?.focus();
+                        }
+                      }}
                     />
                   </div>
-                  <button type="submit" className="shopping-extra-add">
-                    Dodaj
-                  </button>
+                  <div className="shopping-extra-second">
+                    <div className="shopping-extra-input shopping-extra-amount-input">
+                      <input
+                        ref={extraAmountInput}
+                        type="text"
+                        placeholder={extraAmountPlaceholder}
+                        aria-label={extraAmountPlaceholder}
+                        enterKeyHint="done"
+                        value={extraAmount}
+                        onChange={(event) => setExtraAmount(event.target.value)}
+                      />
+                    </div>
+                    <button type="submit" className="shopping-extra-add" disabled={extraText.trim() === ''}>
+                      Dodaj
+                    </button>
+                  </div>
                 </form>
               </li>
             </ul>

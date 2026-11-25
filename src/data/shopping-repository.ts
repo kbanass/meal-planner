@@ -9,8 +9,8 @@ export interface ShoppingRepository {
   listExtras(weekStart: IsoDate): Promise<Extra[]>;
   /** Tick, At Home or Adjustment for one Product in one Week (FR-013, FR-016, FR-018). */
   updateProductState(weekStart: IsoDate, productId: string, patch: StatePatch): Promise<void>;
-  /** null when the text normalises to '' (FR-022). */
-  addExtra(weekStart: IsoDate, text: string): Promise<Extra | null>;
+  /** null when the text normalises to '' (FR-022). A blank amount stores none. */
+  addExtra(weekStart: IsoDate, text: string, amount?: string): Promise<Extra | null>;
   /** No-op when the Extra is missing (deleted in another tab). */
   setExtraTicked(id: string, ticked: boolean): Promise<void>;
   /** No-op when the Extra is missing. */
@@ -31,10 +31,12 @@ export function createShoppingRepository(db: PlannerDb, ids: IdGenerator): Shopp
       });
     },
 
-    async addExtra(weekStart, text) {
+    async addExtra(weekStart, text, amount = '') {
       const normalized = normalizeName(text);
       if (normalized === '') return null;
       const extra: Extra = { id: ids.next(), weekStart, text: normalized, ticked: false };
+      const normalizedAmount = normalizeName(amount);
+      if (normalizedAmount !== '') extra.amount = normalizedAmount;
       await db.extras.add(extra);
       return extra;
     },

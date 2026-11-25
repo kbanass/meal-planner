@@ -31,6 +31,7 @@ export interface Extra {
   id: string;          // UUID
   weekStart: IsoDate;  // the Week's Monday
   text: string;        // normalizeName(input), non-empty
+  amount?: string;     // normalizeName(input) of the optional amount ("2 opak."); absent when blank
   ticked: boolean;
 }
 ```

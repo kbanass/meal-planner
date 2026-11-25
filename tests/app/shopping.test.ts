@@ -56,8 +56,13 @@ describe('addExtra', () => {
     expect((await shopping.listExtras(WEEK)).map((e) => e.text)).toEqual(['papier toaletowy']);
   });
 
-  it('adds nothing for blank text', async () => {
-    expect(await addExtra({ shopping }, WEEK, '  ')).toBe('empty');
+  it('stores the amount with it', async () => {
+    expect(await addExtra({ shopping }, WEEK, 'kawa', '2 opak.')).toBe('added');
+    expect(await shopping.listExtras(WEEK)).toMatchObject([{ text: 'kawa', amount: '2 opak.' }]);
+  });
+
+  it('adds nothing for blank text, even with an amount', async () => {
+    expect(await addExtra({ shopping }, WEEK, '  ', '2')).toBe('empty');
     expect(await db.extras.count()).toBe(0);
   });
 });

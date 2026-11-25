@@ -61,6 +61,14 @@ describe('ShoppingRepository Extras', () => {
     expect(await shopping.listExtras(WEEK)).toEqual([extra]);
   });
 
+  it('stores a normalised amount, and none when it is blank', async () => {
+    const withAmount = await shopping.addExtra(WEEK, 'kawa', '  2  opak. ');
+    const blank = await shopping.addExtra(WEEK, 'herbata', '   ');
+    expect(withAmount).toMatchObject({ text: 'kawa', amount: '2 opak.' });
+    expect(blank).not.toHaveProperty('amount');
+    expect(await db.extras.get(withAmount!.id)).toEqual(withAmount);
+  });
+
   it('stores two Extras with the same text as two records', async () => {
     const first = await shopping.addExtra(WEEK, 'kawa');
     const second = await shopping.addExtra(WEEK, 'kawa');

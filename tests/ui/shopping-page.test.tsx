@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { Deps } from '../../src/app/deps';
 import type { Dish, Product, Unit } from '../../src/domain/types';
 import { ShoppingListPage } from '../../src/ui/pages/ShoppingListPage';
-import { atHomeTitle, emptyMessage, extraPlaceholder, shareFailedMessage } from '../../src/ui/view-models/shopping';
+import { atHomeTitle, emptyMessage, extraAmountPlaceholder, extraPlaceholder, shareFailedMessage } from '../../src/ui/view-models/shopping';
 import { dish } from '../fakes/dishes';
 import { RecordingTextSharer } from '../fakes/recording-text-sharer';
 import { drag } from './pointer';
@@ -380,7 +380,11 @@ describe('ShoppingListPage', () => {
       await findRow('ryż');
 
       const input = screen.getByPlaceholderText(extraPlaceholder);
+      const amount = screen.getByPlaceholderText(extraAmountPlaceholder);
+      // Enter on the name moves to the amount; Enter there adds.
       await userEvent.type(input, 'kawa{Enter}');
+      expect(amount).toHaveFocus();
+      await userEvent.type(amount, '{Enter}');
 
       await waitFor(() => expect(rowTexts(toBuyList())).toEqual(['cebula 100 g', 'kawa', 'ryż 400 g']));
       expect(input).toHaveValue('');
@@ -389,6 +393,30 @@ describe('ShoppingListPage', () => {
       await userEvent.click(within(row('kawa')).getByText('Usuń'));
       await waitFor(() => expect(rowTexts(toBuyList())).toEqual(['cebula 100 g', 'ryż 400 g']));
       expect(document.querySelector('.dialog.modal-in')).toBeNull();
+    });
+
+    it('adds an Extra with an amount, shown on the row and shared', async () => {
+      const sharer = new RecordingTextSharer();
+      const deps = createTestDeps({ sharer });
+      renderWithApp(<ShoppingListPage />, deps);
+
+      await userEvent.type(await screen.findByPlaceholderText(extraPlaceholder), 'kawa');
+      await userEvent.type(screen.getByPlaceholderText(extraAmountPlaceholder), '2 opak.');
+      await userEvent.click(screen.getByRole('button', { name: 'Dodaj' }));
+
+      await waitFor(() => expect(rowTexts(toBuyList())).toEqual(['kawa 2 opak.']));
+      expect(screen.getByPlaceholderText(extraAmountPlaceholder)).toHaveValue('');
+      expect(await deps.shopping.listExtras(WEEK)).toMatchObject([{ text: 'kawa', amount: '2 opak.' }]);
+
+      await userEvent.click(screen.getByText('Udostępnij listę'));
+      expect(sharer.texts).toEqual(['Lista zakupów 2–8 lis 2026\nkawa 2 opak.']);
+    });
+
+    it('keeps "Dodaj" off until a name is typed', async () => {
+      renderWithApp(<ShoppingListPage />);
+      expect(await screen.findByRole('button', { name: 'Dodaj' })).toBeDisabled();
+      await userEvent.type(screen.getByPlaceholderText(extraPlaceholder), 'kawa');
+      expect(screen.getByRole('button', { name: 'Dodaj' })).toBeEnabled();
     });
 
     it('adds nothing for blank text (US5-2)', async () => {

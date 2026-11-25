@@ -34,8 +34,9 @@ export async function addExtra(
   deps: { shopping: ShoppingRepository },
   weekStart: IsoDate,
   text: string,
+  amount = '',
 ): Promise<'added' | 'empty'> {
-  return (await deps.shopping.addExtra(weekStart, text)) ? 'added' : 'empty';
+  return (await deps.shopping.addExtra(weekStart, text, amount)) ? 'added' : 'empty';
 }
 
 /** Shares what is left to buy (FR-025–FR-027). Call it with no await before it (research R5). */
