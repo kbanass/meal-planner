@@ -59,3 +59,34 @@ export interface DaySlots {
 export interface Settings {
   slotsPerDay: number; // whole number, 1–10, default 4
 }
+
+/**
+ * The amount to buy the user typed for one Product, and the Planned amount it was typed
+ * against. It applies only while the Planned amount is still that value (FR-020, research R2).
+ */
+export interface Adjustment {
+  amount: number; // > 0, roundTo2, in the Product's unit
+  plannedAmount: number; // > 0, roundTo2(Planned amount) when it was typed
+}
+
+/**
+ * Everything the user set for one Product on one Week's Shopping List. Stored only while at
+ * least one field is set (research R1).
+ */
+export interface ProductListState {
+  weekStart: IsoDate; // the Week's Monday
+  productId: string; // → Product.id
+  ticked: boolean; // bought
+  atHome: boolean; // At Home
+  adjustment: Adjustment | null;
+}
+
+/** A free-text Shopping List entry of one Week (glossary: Extra). */
+export interface Extra {
+  id: string; // UUID
+  weekStart: IsoDate; // the Week's Monday
+  text: string; // normalizeName(input), non-empty
+  /** Free text such as "2 opak." or "1 kg", normalised like a name; absent when none was typed. */
+  amount?: string;
+  ticked: boolean;
+}

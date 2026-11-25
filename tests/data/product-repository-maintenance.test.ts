@@ -3,7 +3,7 @@ import type { PlannerDb } from '../../src/data/db';
 import { createDishRepository, type DishRepository } from '../../src/data/dish-repository';
 import { createProductRepository, type ProductRepository } from '../../src/data/product-repository';
 import { countProductUsage } from '../../src/domain/products';
-import type { Dish, Ingredient, Meal, Product, Unit } from '../../src/domain/types';
+import type { Dish, Ingredient, Meal, Product, ProductListState, Unit } from '../../src/domain/types';
 import { FixedIdGenerator } from '../fakes/fixed-id-generator';
 import { createTestDb } from '../fakes/test-db';
 
@@ -219,5 +219,85 @@ describe('delete and changeUnit', () => {
 
     expect(await products.changeUnit(pomidor.id, 'kg' as Unit)).toEqual({ kind: 'invalid' });
     expect(await products.list()).toEqual([pomidor]);
+  });
+});
+
+describe('Shopping List records (FR-028–FR-030)', () => {
+  const W1 = '2026-11-02';
+  const W2 = '2026-11-09';
+  const typed = { amount: 500, plannedAmount: 400 };
+
+  function record(
+    weekStart: string,
+    productId: string,
+    fields: Partial<Pick<ProductListState, 'ticked' | 'atHome' | 'adjustment'>>,
+  ): ProductListState {
+    return { weekStart, productId, ticked: false, atHome: false, adjustment: null, ...fields };
+  }
+
+  async function linkedMeal(id: string, date: string, dishId: string): Promise<void> {
+    await db.meals.add({ id, date, slot: 1, position: 0, dishId, servings: 1, detached: null });
+  }
+
+  it('deletes every record of a deleted Product, in every Week', async () => {
+    const a = await product('a');
+    const b = await product('b');
+    await db.productListStates.bulkAdd([
+      record(W1, a.id, { ticked: true }),
+      record(W2, a.id, { atHome: true }),
+      record(W1, b.id, { ticked: true }),
+    ]);
+
+    expect(await products.delete(a.id)).toEqual({ kind: 'deleted' });
+
+    expect(await db.productListStates.toArray()).toEqual([record(W1, b.id, { ticked: true })]);
+  });
+
+  it('drops Adjustments on a unit change, keeping ticks and At Home', async () => {
+    const a = await product('a');
+    await db.productListStates.bulkAdd([
+      record(W1, a.id, { ticked: true, adjustment: typed }),
+      record(W2, a.id, { adjustment: typed }),
+      record('2026-11-16', a.id, { atHome: true }),
+    ]);
+
+    expect(await products.changeUnit(a.id, 'ml')).toEqual({ kind: 'changed' });
+
+    expect(await db.productListStates.toArray()).toEqual([
+      record(W1, a.id, { ticked: true }),
+      record('2026-11-16', a.id, { atHome: true }),
+    ]);
+  });
+
+  it('merges the records Week by Week', async () => {
+    const a = await product('a');
+    const b = await product('b');
+    await dish('d-a', [{ productId: a.id, amount: 100 }]);
+    await dish('d-b', [{ productId: b.id, amount: 100 }]);
+    await linkedMeal('m1', '2026-11-03', 'd-a');
+    await linkedMeal('m2', '2026-11-08', 'd-b');
+    await linkedMeal('m3', '2026-11-10', 'd-a');
+    await db.productListStates.bulkAdd([
+      // Week 1: both planned, only A ticked → B not ticked.
+      record(W1, a.id, { ticked: true, adjustment: typed }),
+      record(W1, b.id, { adjustment: typed }),
+      // Week 2: only A planned, A At Home → B At Home.
+      record(W2, a.id, { atHome: true, adjustment: typed }),
+    ]);
+
+    expect((await products.merge(a.id, b.id)).kind).toBe('merged');
+
+    expect(await db.productListStates.toArray()).toEqual([record(W2, b.id, { atHome: true })]);
+  });
+
+  it('writes nothing to the records when the units differ', async () => {
+    const a = await product('a');
+    const b = await product('b', 'ml');
+    await db.productListStates.bulkAdd([record(W1, a.id, { ticked: true }), record(W1, b.id, { adjustment: typed })]);
+    const before = await db.productListStates.toArray();
+
+    expect(await products.merge(a.id, b.id)).toEqual({ kind: 'unitMismatch' });
+
+    expect(await db.productListStates.toArray()).toEqual(before);
   });
 });

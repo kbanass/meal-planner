@@ -68,13 +68,17 @@ _Avoid_: Consumed, eaten, actual
 ## Shopping
 
 **Shopping List**:
-The Week's Ingredients summed across all Meals and recalculated live from the plan, with that Week's Adjustments and Extras applied on top. UI: "Lista zakupów".
+The Week's Ingredients summed across all Meals and recalculated live from the plan, with that Week's Adjustments, At Home marks and Extras applied on top. UI: "Lista zakupów".
 _Avoid_: Grocery list, cart
 
 **Adjustment**:
-A manual plus or minus amount applied to one Product on a Week's Shopping List, e.g. −500 g because some is already at home.
+The amount to buy that the user typed for one Product on a Week's Shopping List, in place of the amount the plan needs, e.g. 500 g where the plan needs 400 g. It applies only while the plan needs the same amount as when it was typed.
 _Avoid_: Correction, override, pantry
 
+**At Home**:
+A mark on one Product on a Week's Shopping List saying the user already has it, so it needn't be bought. It has no amount. UI: the item is dimmed and moves to the "Mam w domu" card at the bottom of the list.
+_Avoid_: Pantry, stock, inventory, have
+
 **Extra**:
-A free-text Shopping List entry that does not come from the plan, e.g. "papier toaletowy".
+A free-text Shopping List entry that does not come from the plan, e.g. "papier toaletowy", with an optional free-text amount such as "2 opak.".
 _Avoid_: Custom item, manual item

@@ -1,0 +1,111 @@
+import { beforeEach, describe, expect, it } from 'vitest';
+import type { PlannerDb } from '../../src/data/db';
+import { createShoppingRepository, type ShoppingRepository } from '../../src/data/shopping-repository';
+import { FixedIdGenerator } from '../fakes/fixed-id-generator';
+import { createTestDb } from '../fakes/test-db';
+
+const WEEK = '2026-11-02';
+const NEXT_WEEK = '2026-11-09';
+
+let db: PlannerDb;
+let shopping: ShoppingRepository;
+
+beforeEach(() => {
+  db = createTestDb();
+  shopping = createShoppingRepository(db, new FixedIdGenerator());
+});
+
+describe('ShoppingRepository product states', () => {
+  it('keeps no record after a tick and an untick', async () => {
+    await shopping.updateProductState(WEEK, 'p1', { ticked: true });
+    expect(await shopping.listProductStates(WEEK)).toEqual([
+      { weekStart: WEEK, productId: 'p1', ticked: true, atHome: false, adjustment: null },
+    ]);
+    await shopping.updateProductState(WEEK, 'p1', { ticked: false });
+    expect(await db.productListStates.count()).toBe(0);
+  });
+
+  it('holds a tick and At Home in one record, and keeps the tick when At Home is cleared', async () => {
+    await shopping.updateProductState(WEEK, 'p1', { ticked: true });
+    await shopping.updateProductState(WEEK, 'p1', { atHome: true });
+    expect(await shopping.listProductStates(WEEK)).toEqual([
+      { weekStart: WEEK, productId: 'p1', ticked: true, atHome: true, adjustment: null },
+    ]);
+    await shopping.updateProductState(WEEK, 'p1', { atHome: false });
+    expect(await shopping.listProductStates(WEEK)).toEqual([
+      { weekStart: WEEK, productId: 'p1', ticked: true, atHome: false, adjustment: null },
+    ]);
+  });
+
+  it('stores an Adjustment and deletes an Adjustment-only record when it is cleared', async () => {
+    await shopping.updateProductState(WEEK, 'p1', { adjustment: { amount: 500, plannedAmount: 400 } });
+    expect(await shopping.listProductStates(WEEK)).toEqual([
+      { weekStart: WEEK, productId: 'p1', ticked: false, atHome: false, adjustment: { amount: 500, plannedAmount: 400 } },
+    ]);
+    await shopping.updateProductState(WEEK, 'p1', { adjustment: null });
+    expect(await db.productListStates.count()).toBe(0);
+  });
+
+  it('lists only the asked Week', async () => {
+    await shopping.updateProductState(WEEK, 'p1', { ticked: true });
+    await shopping.addExtra(WEEK, 'kawa');
+    expect(await shopping.listProductStates(NEXT_WEEK)).toEqual([]);
+    expect(await shopping.listExtras(NEXT_WEEK)).toEqual([]);
+  });
+});
+
+describe('ShoppingRepository Extras', () => {
+  it('stores the normalised text, unticked', async () => {
+    const extra = await shopping.addExtra(WEEK, '  kawa ');
+    expect(extra).toEqual({ id: '00000000-0000-4000-8000-000000000001', weekStart: WEEK, text: 'kawa', ticked: false });
+    expect(await shopping.listExtras(WEEK)).toEqual([extra]);
+  });
+
+  it('stores a normalised amount, and none when it is blank', async () => {
+    const withAmount = await shopping.addExtra(WEEK, 'kawa', '  2  opak. ');
+    const blank = await shopping.addExtra(WEEK, 'herbata', '   ');
+    expect(withAmount).toMatchObject({ text: 'kawa', amount: '2 opak.' });
+    expect(blank).not.toHaveProperty('amount');
+    expect(await db.extras.get(withAmount!.id)).toEqual(withAmount);
+  });
+
+  it('updates text, amount and tick, normalised, and drops a blanked amount', async () => {
+    const extra = await shopping.addExtra(WEEK, 'kawa', '1');
+    expect(await shopping.updateExtra(extra!.id, { text: ' kawa  ziarnista ', amount: ' 2  opak. ', ticked: true })).toBe('saved');
+    expect(await db.extras.get(extra!.id)).toEqual({ ...extra, text: 'kawa ziarnista', amount: '2 opak.', ticked: true });
+
+    expect(await shopping.updateExtra(extra!.id, { text: 'kawa', amount: '  ', ticked: false })).toBe('saved');
+    expect(await db.extras.get(extra!.id)).toEqual({ id: extra!.id, weekStart: WEEK, text: 'kawa', ticked: false });
+  });
+
+  it('writes nothing for a blank text, and reports a missing Extra', async () => {
+    const extra = await shopping.addExtra(WEEK, 'kawa');
+    expect(await shopping.updateExtra(extra!.id, { text: '  ', amount: '2', ticked: true })).toBe('empty');
+    expect(await db.extras.get(extra!.id)).toEqual(extra);
+    expect(await shopping.updateExtra('missing', { text: 'kawa', amount: '', ticked: false })).toBe('missing');
+    expect(await db.extras.count()).toBe(1);
+  });
+
+  it('stores two Extras with the same text as two records', async () => {
+    const first = await shopping.addExtra(WEEK, 'kawa');
+    const second = await shopping.addExtra(WEEK, 'kawa');
+    expect(first?.id).not.toBe(second?.id);
+    expect(await db.extras.count()).toBe(2);
+  });
+
+  it('stores nothing for blank text', async () => {
+    expect(await shopping.addExtra(WEEK, '  ')).toBeNull();
+    expect(await db.extras.count()).toBe(0);
+  });
+
+  it('ticks and deletes, and ignores a missing id', async () => {
+    const extra = await shopping.addExtra(WEEK, 'kawa');
+    await shopping.setExtraTicked(extra!.id, true);
+    expect((await db.extras.get(extra!.id))?.ticked).toBe(true);
+    await shopping.deleteExtra(extra!.id);
+    expect(await db.extras.count()).toBe(0);
+    await expect(shopping.setExtraTicked('missing', true)).resolves.toBeUndefined();
+    await expect(shopping.deleteExtra('missing')).resolves.toBeUndefined();
+    expect(await db.extras.count()).toBe(0);
+  });
+});

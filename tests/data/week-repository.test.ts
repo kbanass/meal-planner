@@ -151,4 +151,22 @@ describe('replaceWeek', () => {
     expect(await week.listMeals(nextWeek)).toEqual(before.meals);
     expect(await week.listDaySlots(nextWeek)).toEqual(before.daySlots);
   });
+
+  it("leaves the target Week's Shopping List records and Extras alone (FR-031)", async () => {
+    const record = {
+      weekStart: '2026-11-09',
+      productId: 'p-1',
+      ticked: true,
+      atHome: true,
+      adjustment: { amount: 500, plannedAmount: 400 },
+    };
+    const extra = { id: 'e-1', weekStart: '2026-11-09', text: 'kawa', ticked: true };
+    await db.productListStates.add(record);
+    await db.extras.add(extra);
+
+    await week.replaceWeek('2026-11-09', { meals: [meal('m-new', '2026-11-11')], daySlots: [] });
+
+    expect(await db.productListStates.toArray()).toEqual([record]);
+    expect(await db.extras.toArray()).toEqual([extra]);
+  });
 });

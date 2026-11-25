@@ -1,5 +1,14 @@
 import Dexie, { type DexieOptions, type Table } from 'dexie';
-import type { DaySlots, Dish, Meal, Product, Settings } from '../domain/types';
+import type {
+  DaySlots,
+  Dish,
+  Extra,
+  IsoDate,
+  Meal,
+  Product,
+  ProductListState,
+  Settings,
+} from '../domain/types';
 
 /** `nameKey` is derived by the repository from `name`, never accepted from callers. */
 export type StoredProduct = Product & { nameKey: string };
@@ -14,6 +23,8 @@ export class PlannerDb extends Dexie {
   declare meals: Table<Meal, string>;
   declare daySlots: Table<DaySlots, string>;
   declare settings: Table<StoredSettings, string>;
+  declare productListStates: Table<ProductListState, [IsoDate, string]>;
+  declare extras: Table<Extra, string>;
 
   constructor(name: string, dexieOptions?: DexieOptions) {
     super(name, dexieOptions);
@@ -26,6 +37,11 @@ export class PlannerDb extends Dexie {
       meals: 'id, date, dishId',
       daySlots: 'date',
       settings: 'id',
+    });
+    // Version 3 only adds tables (feature 004), so no upgrade function is needed.
+    this.version(3).stores({
+      productListStates: '[weekStart+productId], weekStart, productId',
+      extras: 'id, weekStart',
     });
   }
 }

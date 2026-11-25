@@ -70,7 +70,28 @@ describe('AppShell', () => {
 
     expect(shopping).toHaveClass('tab-active');
     expect(document.getElementById('view-week')).not.toHaveClass('tab-active');
-    expect(await within(shopping).findByText(NOTICE)).toBeInTheDocument();
+    expect(await within(shopping).findByText('2–8 lis 2026')).toBeInTheDocument();
+    expect(within(shopping).queryByText(NOTICE)).not.toBeInTheDocument();
+  });
+
+  it('keeps each tab its own Week (FR-003, US1-11)', async () => {
+    renderShell();
+    const shopping = document.getElementById('view-shopping')!;
+    const week = document.getElementById('view-week')!;
+
+    await userEvent.click(screen.getByText('Lista zakupów', { selector: '.tab-link *' }));
+    await within(shopping).findByText('2–8 lis 2026');
+    await userEvent.click(within(shopping).getByLabelText('Następny tydzień'));
+    expect(await within(shopping).findByText('9–15 lis 2026')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByText('Tydzień', { selector: '.tab-link *' }));
+    await waitFor(() => expect(week).toHaveClass('tab-active'));
+    expect(within(week).getByRole('heading', { level: 2, name: 'Listopad 2026' })).toBeInTheDocument();
+    expect(within(week).getByRole('button', { name: 'Środa, 4 lis' })).toHaveAttribute('aria-pressed', 'true');
+
+    await userEvent.click(screen.getByText('Lista zakupów', { selector: '.tab-link *' }));
+    await waitFor(() => expect(shopping).toHaveClass('tab-active'));
+    expect(within(shopping).getByText('9–15 lis 2026')).toBeInTheDocument();
   });
 
   it('keeps the Week and the selected day when switching tabs (FR-007)', async () => {

@@ -1,16 +1,12 @@
 import type { Router } from 'framework7/types';
-import { PlaceholderPage } from './components/PlaceholderPage';
 import { DishFormPage } from './pages/DishFormPage';
 import { DishLibraryPage } from './pages/DishLibraryPage';
 import { ProductsPage } from './pages/ProductsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { ShoppingListPage } from './pages/ShoppingListPage';
 import { WeekPage } from './pages/WeekPage';
 
 type Routes = Router.RouteParameters[];
-
-function placeholder(title: string): Routes {
-  return [{ path: '/', component: PlaceholderPage, options: { props: { title } } }];
-}
 
 export const weekRoutes: Routes = [{ path: '/', component: WeekPage }];
 export const dishesRoutes: Routes = [
@@ -20,5 +16,5 @@ export const dishesRoutes: Routes = [
   { path: '/dishes/:dishId/', component: DishFormPage },
   { path: '/products/', component: ProductsPage },
 ];
-export const shoppingRoutes: Routes = placeholder('Lista zakupów');
+export const shoppingRoutes: Routes = [{ path: '/', component: ShoppingListPage }];
 export const settingsRoutes: Routes = [{ path: '/', component: SettingsPage }];
