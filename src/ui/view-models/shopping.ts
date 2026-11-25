@@ -13,7 +13,7 @@ import { unitLabel } from './dish-form';
 import { indexDishes } from './week';
 
 export const emptyMessage = 'Na ten tydzień nie ma nic do kupienia.';
-export const extraPlaceholder = 'Dodaj coś spoza planu…';
+export const extraPlaceholder = 'Coś spoza planu…';
 export const amountErrorMessage = 'Wpisz liczbę większą od zera.';
 export const amountFooter = 'Zostaw puste, aby wrócić do ilości z planu.';
 export const copiedToast = 'Skopiowano listę do schowka.';

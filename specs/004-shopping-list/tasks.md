@@ -311,14 +311,14 @@ description: "Task list for the Shopping List"
 
 - [X] T043 [P] [US5] Extend `tests/app/shopping.test.ts` with `addExtra`: `" papier  toaletowy "` → `'added'`, stored as `"papier toaletowy"`. `"  "` → `'empty'`, nothing stored.
 - [X] T044 [P] [US5] Extend `tests/ui/shopping-page.test.tsx`:
-  - **S7**: type "kawa" in the "Dodaj coś spoza planu…" field and press Enter → the row appears in alphabetical place, and the input is empty and focused. Tap "Usuń" in its swipeout → gone, with no dialog.
+  - **S7**: type "kawa" in the "Coś spoza planu…" field and press Enter → the row appears in alphabetical place, and the input is empty and focused. Tap "Usuń" in its swipeout → gone, with no dialog.
   - US5-2: Enter on an empty or spaces-only field adds nothing.
   - **S11** (US5 part): an empty Week still shows the Extra field.
 
 ### Implementation for User Story 5
 
 - [X] T045 [US5] Add `addExtra(deps: { shopping }, weekStart, text): Promise<'added' | 'empty'>` to `src/app/shopping.ts`. This makes T043 pass.
-- [X] T046 [US5] Add `extraPlaceholder` ("Dodaj coś spoza planu…") to `src/ui/view-models/shopping.ts`.
+- [X] T046 [US5] Add `extraPlaceholder` ("Coś spoza planu…") to `src/ui/view-models/shopping.ts`.
 - [X] T047 [US5] In `src/ui/pages/ShoppingListPage.tsx`, add the Add Extra block between the top list and the done list (also in the empty state): an inset list with one row holding a `<form>` with an outlined text input (`extraPlaceholder`, `enterkeyhint="done"`) and a "Dodaj" button. Submit calls `addExtra`; on `'added'` clear the input and keep focus (FR-022).
 - [X] T048 [US5] In `src/ui/components/ShoppingRow.tsx`, wrap Extra rows in Framework7's `swipeout` with one right-side `SwipeoutButton delete` labelled "Usuń" and no `confirmText`. Its `onDelete` calls `deps.shopping.deleteExtra(id)` from the page (FR-023). This makes T044 pass.
 - [X] T049 [P] [US5] Add the Extra form styles to `src/ui/styles/app.css` (input fills the row, "Dodaj" as a text button in the accent colour).

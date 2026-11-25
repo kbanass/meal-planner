@@ -177,7 +177,7 @@ describe('headerSwipeDelta', () => {
 describe('strings', () => {
   it('are the contract texts', () => {
     expect(emptyMessage).toBe('Na ten tydzień nie ma nic do kupienia.');
-    expect(extraPlaceholder).toBe('Dodaj coś spoza planu…');
+    expect(extraPlaceholder).toBe('Coś spoza planu…');
     expect(amountErrorMessage).toBe('Wpisz liczbę większą od zera.');
     expect(amountFooter).toBe('Zostaw puste, aby wrócić do ilości z planu.');
     expect(copiedToast).toBe('Skopiowano listę do schowka.');

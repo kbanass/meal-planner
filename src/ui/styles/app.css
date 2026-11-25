@@ -1007,36 +1007,70 @@ label.item-checkbox.shopping-tick > .icon-checkbox {
   text-decoration: line-through;
 }
 
-/* The Extra field: the input fills the row, "Dodaj" is a text button in the accent colour. */
+/* The Extra field: a soft filled field with a leading "+", and a green "Dodaj" pill that stays
+   dimmed until something is typed. The whole field is the tap target; focus draws a green ring. */
 .shopping-extra-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px calc(var(--f7-list-item-padding-horizontal) + var(--f7-safe-area-right)) 8px
-    calc(var(--f7-list-item-padding-horizontal) + var(--f7-safe-area-left));
+  gap: 10px;
+  padding: 10px calc(12px + var(--f7-safe-area-right)) 10px calc(12px + var(--f7-safe-area-left));
 }
 .shopping-extra-input {
+  display: flex;
   flex: 1;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  border-radius: 14px;
+  background: var(--planner-page-bg);
+  box-shadow: inset 0 0 0 1.5px transparent;
+  transition: box-shadow 150ms, background-color 150ms;
+}
+.shopping-extra-input:focus-within {
+  background: var(--planner-card-bg);
+  box-shadow: inset 0 0 0 1.5px var(--planner-accent);
+}
+.shopping-extra-input .icon {
+  flex: none;
+  font-size: 18px;
+  color: var(--planner-muted);
+}
+.shopping-extra-input:focus-within .icon {
+  color: var(--planner-accent);
 }
 .list.shopping-extra-form .shopping-extra-input input[type='text'] {
-  box-sizing: border-box;
-  width: 100%;
-  height: 40px;
-  padding: 0 12px;
-  border-radius: 10px;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--planner-text);
+  font-size: 17px;
+  outline: none;
+}
+.list.shopping-extra-form .shopping-extra-input input[type='text']::placeholder {
+  color: var(--planner-muted);
 }
 .shopping-extra-add {
   flex: none;
   width: auto;
-  min-height: 44px;
-  padding: 0 8px;
+  height: 44px;
+  padding: 0 18px;
   border: 0;
-  background: none;
-  color: var(--planner-accent);
+  border-radius: 14px;
+  background: var(--planner-accent);
+  color: #ffffff;
   font: inherit;
   font-weight: 600;
   cursor: pointer;
+  transition: opacity 150ms;
+}
+.shopping-extra-row:has(input:placeholder-shown) .shopping-extra-add {
+  opacity: 0.4;
 }
 
 .amount-sheet-planned p {

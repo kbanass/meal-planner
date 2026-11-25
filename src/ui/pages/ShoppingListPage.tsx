@@ -185,7 +185,8 @@ export function ShoppingListPage() {
                     void submitExtra();
                   }}
                 >
-                  <div className="item-input-wrap input-outline shopping-extra-input">
+                  <div className="shopping-extra-input">
+                    <Icon f7="plus" aria-hidden="true" />
                     <input
                       ref={extraInput}
                       type="text"

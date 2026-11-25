@@ -26,7 +26,7 @@ Inside `<div className="page-wide">` like every other page, so desktop uses the 
    - **"Udostępnij listę"**: a full-width text button under the row (`square_arrow_up` icon and the label), styled like "Skopiuj do następnego tygodnia". It is rendered only when the top part has lines (FR-025).
 3. **Empty state**, when `isListEmpty`: `Block` with "Na ten tydzień nie ma nic do kupienia." (FR-010).
 4. **To buy**: an inset list (`List strong inset dividersIos`, `.shopping-list`) of the `toBuy` rows. It is omitted when empty.
-5. **Add Extra**: an inset list with one row, a `<form>` holding an outlined text input (placeholder "Dodaj coś spoza planu…", `enterkeyhint="done"`) and a "Dodaj" button. Enter or the button submits. After a successful add, the input is cleared and keeps focus, so several Extras can be typed in a row (FR-022). Shown in the empty state too.
+5. **Add Extra**: an inset list with one row, a `<form>` holding a filled text input with a leading "+" (placeholder "Coś spoza planu…", `enterkeyhint="done"`) and a "Dodaj" button. Enter or the button submits. After a successful add, the input is cleared and keeps focus, so several Extras can be typed in a row (FR-022). Shown in the empty state too.
 6. **Done**: a second inset list (`.shopping-list.is-done`) of the `done` rows, with no title. It is omitted when empty.
 
 ### Rows (research R7)
