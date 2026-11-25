@@ -818,6 +818,18 @@ html {
   gap: 4px 8px;
   margin-top: 2px;
 }
+/* Calories on their own line, then protein, fat and carbs together on the next, so a long
+   value never pushes one macro onto a line of its own. */
+.dish-card-totals .macro-totals-compact {
+  display: grid;
+  flex-basis: 100%;
+  grid-template-columns: repeat(3, max-content);
+  justify-content: start;
+  gap: 4px 14px;
+}
+.dish-card-totals .macro-total-kcal {
+  grid-column: 1 / -1;
+}
 .dish-card-per-serving {
   font-size: 11px;
   font-weight: 600;
