@@ -368,7 +368,7 @@ description: "Task list for the Shopping List"
   - `dishes-N-photos-M` and `products-N` behave as before.
 - [X] T059 [P] Remove leftovers: `grep -rn "PlaceholderPage\|placeholder(" src tests` finds nothing related to tabs, and every string in [contracts/ui.md](contracts/ui.md) appears exactly once as a constant or inline in the page or components.
 - [ ] T060 Check every story at 375 pt with an iOS user agent and at ≥ 1024 px desktop width (FR-034, quickstart row 18): the page sits in the shared column, the amount sheet lines up with it, long names and Extras wrap, and the amount and house buttons stay tappable.
-- [ ] T061 Run the full [quickstart.md](quickstart.md) on an iPhone (rows 1–18), as the installed PWA and in a Safari tab, plus the SC-002 spot check with `?seed=weeks-52`. Check that a row swipe doesn't scroll the page sideways and the system back swipe still works. Record the results under "Results" in `quickstart.md`. If no device is available, record that and leave the task open (as with feature 001's Android check).
+- [ ] T061 Run the full [quickstart.md](quickstart.md) on an iPhone (rows 1–22), as the installed PWA and in a Safari tab, plus the SC-002 spot check with `?seed=weeks-52`. Check that a row swipe doesn't scroll the page sideways and the system back swipe still works. Record the results under "Results" in `quickstart.md`. If no device is available, record that and leave the task open (as with feature 001's Android check).
 - [X] T062 Final gate:
   - `npm run lint`, `npm run typecheck`, `npm run coverage` (100% on `src/domain/**`) and `npm run build` all pass.
   - `git diff main -- package.json package-lock.json` is empty (no new dependencies).
