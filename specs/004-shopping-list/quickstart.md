@@ -52,7 +52,7 @@ In Tydzień, plan this Week: "Owsianka" Monday 1 Serving and Wednesday 3 Serving
 | 19 | Produkty: merge a duplicate Product into "mleko" in a Week where only mleko was ticked and both planned | mleko unticked, with one summed amount | FR-028 |
 | 20 | "Skopiuj do następnego tygodnia", then open the next Week's list | Extras, ticks and At Home marks of the next Week unchanged | FR-031 |
 | 21 | Desktop browser ≥ 1024 px | The page sits in the centred column. Both edit sheets line up with it | FR-034 |
-| 22 | From the Lista zakupów tab, swipe from the left screen edge | The system back swipe works and does not change the Week | research R6 |
+| 22 | From the Zakupy tab, swipe from the left screen edge | The system back swipe works and does not change the Week | research R6 |
 
 ## Performance spot check
 

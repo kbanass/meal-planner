@@ -177,23 +177,11 @@ html {
   cursor: pointer;
 }
 
-/* Fit "Lista zakupów" in a four-tab bar on narrow phones: the 10 px label size native
-   iOS tabbars use. */
+/* Four tab labels on narrow phones: the 10 px label size native iOS tabbars use. */
 @media (max-width: 1023px) {
   .toolbar.tabbar .tabbar-label {
     font-size: 10px;
     text-overflow: clip;
-  }
-  /*
-   * The selected-tab bubble. Framework7 draws a capsule (fully round ends) inset 4 px into an
-   * equal quarter of the bar, so "Lista zakupów" reached into the curved ends and looked cut off.
-   * A rounded rectangle, 2 px from the sides, keeps the label on the flat part. Slots stay equal:
-   * Framework7's drag-to-select assumes it.
-   */
-  .ios .toolbar.tabbar .tab-link-highlight::before,
-  .ios .toolbar.tabbar .tab-link-highlight::after {
-    inset: 4px 2px;
-    border-radius: 22px;
   }
 }
 /*

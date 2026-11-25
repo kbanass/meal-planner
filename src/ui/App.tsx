@@ -21,7 +21,7 @@ export function AppShell() {
           <ToolbarPane>
             <Link tabLink="#view-week" tabLinkActive iconF7="calendar" text="Tydzień" />
             <Link tabLink="#view-dishes" iconF7="book" text="Dania" />
-            <Link tabLink="#view-shopping" iconF7="cart" text="Lista zakupów" />
+            <Link tabLink="#view-shopping" iconF7="cart" text="Zakupy" />
             <Link tabLink="#view-settings" iconF7="gear" text="Ustawienia" />
           </ToolbarPane>
         </Toolbar>

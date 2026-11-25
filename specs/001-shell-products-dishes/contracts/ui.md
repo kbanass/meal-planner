@@ -8,7 +8,7 @@ All user-facing text we write is Polish and inline (Principle I). Framework7's o
 |---|---|---|---|
 | 1 (default, FR-002) | Tydzień | `calendar` | Placeholder |
 | 2 | Dania | `book` | Dish library, then Produkty |
-| 3 | Lista zakupów | `cart` | Placeholder |
+| 3 | Zakupy (was "Lista zakupów", renamed to fit the bubble) | `cart` | Shopping List |
 | 4 | Ustawienia | `gear` | Placeholder |
 
 - Placeholder text (FR-003): title = the tab label, body = "Ten ekran pojawi się w kolejnej wersji."

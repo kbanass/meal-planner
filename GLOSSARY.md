@@ -68,7 +68,7 @@ _Avoid_: Consumed, eaten, actual
 ## Shopping
 
 **Shopping List**:
-The Week's Ingredients summed across all Meals and recalculated live from the plan, with that Week's Adjustments, At Home marks and Extras applied on top. UI: "Lista zakupów".
+The Week's Ingredients summed across all Meals and recalculated live from the plan, with that Week's Adjustments, At Home marks and Extras applied on top. UI: "Lista zakupów" (the page title; its tab is "Zakupy").
 _Avoid_: Grocery list, cart
 
 **Adjustment**:
