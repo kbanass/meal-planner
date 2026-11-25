@@ -207,7 +207,7 @@ The user taps "Udostępnij listę" and sends what is left to buy as plain text, 
 
 **Ticks**
 
-- **FR-011**: Each List item MUST have a tick control (a square checkbox) that ticks or unticks it with one tap. Tapping a Product item's name or amount MUST open its edit sheet instead (FR-017); tapping an Extra's text ticks it.
+- **FR-011**: Each List item MUST have a tick control (a square checkbox) that ticks or unticks it with one tap. Tapping an item's name or amount MUST open its edit sheet instead: a Product's (FR-017) or an Extra's (FR-022).
 - **FR-012**: A ticked item MUST show a filled tick and dimmed text, and stay in its place. It MUST NOT be crossed out.
 - **FR-013**: Ticks MUST be stored per Week: a Product item's tick belongs to that Product in that Week, and an Extra's tick to that Extra. Ticks MUST be kept when the plan changes.
 
@@ -230,7 +230,7 @@ The user taps "Udostępnij listę" and sends what is left to buy as plain text, 
 
 **Extras**
 
-- **FR-022**: The tab MUST offer a field for adding an Extra to the Shown Week. Confirming it MUST add an Extra with the typed text, trimmed of leading and trailing spaces and with runs of inner spaces collapsed to one, and clear the field. The form MUST also offer an optional amount, free text such as "2 opak.", normalised the same way and shown on the right of the Extra's row; a blank amount stores none. Empty or whitespace-only text MUST NOT add anything.
+- **FR-022**: The tab MUST offer a field for adding an Extra to the Shown Week. Confirming it MUST add an Extra with the typed text, trimmed of leading and trailing spaces and with runs of inner spaces collapsed to one, and clear the field. The form MUST also offer an optional amount, free text such as "2 opak.", normalised the same way and shown on the right of the Extra's row; a blank amount stores none. Empty or whitespace-only text MUST NOT add anything. Tapping an Extra opens its edit sheet: name, amount, a "Kupione" toggle and "Usuń"; "Zapisz" keeps the sheet open with "Wpisz nazwę." when the name is blank, and nothing but "Usuń" is written before "Zapisz".
 - **FR-023**: The user MUST be able to delete an Extra by swiping it. Deleting MUST NOT ask for confirmation.
 - **FR-024**: Extras MUST belong to one Week and MUST NOT be changed by plan changes or by "Skopiuj do następnego tygodnia". Extras have no amount, no Adjustment and no At Home mark.
 

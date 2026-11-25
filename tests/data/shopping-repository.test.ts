@@ -69,6 +69,23 @@ describe('ShoppingRepository Extras', () => {
     expect(await db.extras.get(withAmount!.id)).toEqual(withAmount);
   });
 
+  it('updates text, amount and tick, normalised, and drops a blanked amount', async () => {
+    const extra = await shopping.addExtra(WEEK, 'kawa', '1');
+    expect(await shopping.updateExtra(extra!.id, { text: ' kawa  ziarnista ', amount: ' 2  opak. ', ticked: true })).toBe('saved');
+    expect(await db.extras.get(extra!.id)).toEqual({ ...extra, text: 'kawa ziarnista', amount: '2 opak.', ticked: true });
+
+    expect(await shopping.updateExtra(extra!.id, { text: 'kawa', amount: '  ', ticked: false })).toBe('saved');
+    expect(await db.extras.get(extra!.id)).toEqual({ id: extra!.id, weekStart: WEEK, text: 'kawa', ticked: false });
+  });
+
+  it('writes nothing for a blank text, and reports a missing Extra', async () => {
+    const extra = await shopping.addExtra(WEEK, 'kawa');
+    expect(await shopping.updateExtra(extra!.id, { text: '  ', amount: '2', ticked: true })).toBe('empty');
+    expect(await db.extras.get(extra!.id)).toEqual(extra);
+    expect(await shopping.updateExtra('missing', { text: 'kawa', amount: '', ticked: false })).toBe('missing');
+    expect(await db.extras.count()).toBe(1);
+  });
+
   it('stores two Extras with the same text as two records', async () => {
     const first = await shopping.addExtra(WEEK, 'kawa');
     const second = await shopping.addExtra(WEEK, 'kawa');

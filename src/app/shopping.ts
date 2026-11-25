@@ -39,6 +39,16 @@ export async function addExtra(
   return (await deps.shopping.addExtra(weekStart, text, amount)) ? 'added' : 'empty';
 }
 
+/** Saves the Extra edit sheet. Blank text is 'invalid' and keeps the sheet open. */
+export async function saveExtra(
+  deps: { shopping: ShoppingRepository },
+  id: string,
+  edit: { text: string; amount: string; ticked: boolean },
+): Promise<'saved' | 'invalid'> {
+  // A missing Extra (deleted in another tab) has nothing left to save; the sheet just closes.
+  return (await deps.shopping.updateExtra(id, edit)) === 'empty' ? 'invalid' : 'saved';
+}
+
 /** Shares what is left to buy (FR-025–FR-027). Call it with no await before it (research R5). */
 export function shareList(
   deps: { sharer: TextSharer },

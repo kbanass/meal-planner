@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { addExtra, saveAdjustment } from '../../src/app/shopping';
+import { addExtra, saveAdjustment, saveExtra } from '../../src/app/shopping';
 import type { PlannerDb } from '../../src/data/db';
 import { createShoppingRepository, type ShoppingRepository } from '../../src/data/shopping-repository';
 import { FixedIdGenerator } from '../fakes/fixed-id-generator';
@@ -63,6 +63,25 @@ describe('addExtra', () => {
 
   it('adds nothing for blank text, even with an amount', async () => {
     expect(await addExtra({ shopping }, WEEK, '  ', '2')).toBe('empty');
+    expect(await db.extras.count()).toBe(0);
+  });
+});
+
+describe('saveExtra', () => {
+  it('saves the edit', async () => {
+    const extra = await shopping.addExtra(WEEK, 'kawa');
+    expect(await saveExtra({ shopping }, extra!.id, { text: 'herbata', amount: '2', ticked: true })).toBe('saved');
+    expect(await shopping.listExtras(WEEK)).toMatchObject([{ text: 'herbata', amount: '2', ticked: true }]);
+  });
+
+  it('is invalid for blank text and writes nothing', async () => {
+    const extra = await shopping.addExtra(WEEK, 'kawa');
+    expect(await saveExtra({ shopping }, extra!.id, { text: ' ', amount: '', ticked: false })).toBe('invalid');
+    expect(await shopping.listExtras(WEEK)).toEqual([extra]);
+  });
+
+  it('just closes for an Extra deleted meanwhile', async () => {
+    expect(await saveExtra({ shopping }, 'missing', { text: 'kawa', amount: '', ticked: false })).toBe('saved');
     expect(await db.extras.count()).toBe(0);
   });
 });

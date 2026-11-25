@@ -6,6 +6,7 @@ interface ShoppingRowProps {
   onToggleTick(row: Row): void;
   onToggleAtHome(row: ProductRow): void;
   onOpenAmount(row: ProductRow): void;
+  onOpenExtra(row: ExtraRow): void;
   onDelete(row: ExtraRow): void;
 }
 
@@ -20,35 +21,35 @@ function rowClass(row: Row, extra: string[] = []): string {
     .join(' ');
 }
 
-/**
- * The tick: Framework7's checkbox (FR-011). An Extra has nothing to edit, so its name sits in
- * the label and ticks too; a Product's name opens the edit sheet instead.
- */
-function Tick({ row, onToggle, withName }: { row: Row; onToggle(): void; withName: boolean }) {
+/** The tick: Framework7's checkbox alone (FR-011); the name opens the row's edit sheet. */
+function Tick({ row, onToggle }: { row: Row; onToggle(): void }) {
   return (
     <label className="item-checkbox shopping-tick">
-      <input type="checkbox" checked={row.ticked} onChange={onToggle} aria-label={withName ? undefined : row.name} />
+      <input type="checkbox" checked={row.ticked} onChange={onToggle} aria-label={row.name} />
       <i className="icon icon-checkbox" />
-      {withName && <span className="shopping-name">{row.name}</span>}
     </label>
   );
 }
 
 /**
  * One Shopping List row (contracts/ui.md "Rows", research R7). A Product row has the tick, the
- * amount button and the At Home button; an Extra row has the tick and a swipe-to-delete.
+ * name-and-amount button and the At Home button; an Extra row has the tick, its name-and-amount
+ * button and a swipe-to-delete.
  */
-export function ShoppingRow({ row, onToggleTick, onToggleAtHome, onOpenAmount, onDelete }: ShoppingRowProps) {
+export function ShoppingRow({ row, onToggleTick, onToggleAtHome, onOpenAmount, onOpenExtra, onDelete }: ShoppingRowProps) {
   if (row.kind === 'extra') {
     return (
       <li className={rowClass(row, ['swipeout'])}>
         <div className="swipeout-content shopping-row-inner">
-          <Tick row={row} onToggle={() => onToggleTick(row)} withName />
-          {row.amountText && (
-            <span className="shopping-amount shopping-extra-amount">
-              <span className="shopping-amount-text">{row.amountText}</span>
-            </span>
-          )}
+          <Tick row={row} onToggle={() => onToggleTick(row)} />
+          <button type="button" className="shopping-open" aria-label={row.openLabel} onClick={() => onOpenExtra(row)}>
+            <span className="shopping-name">{row.name}</span>
+            {row.amountText && (
+              <span className="shopping-amount">
+                <span className="shopping-amount-text">{row.amountText}</span>
+              </span>
+            )}
+          </button>
         </div>
         {/* No confirmation (FR-023). Not Framework7's `delete`: it removes the element itself. */}
         <SwipeoutActions right>
@@ -64,7 +65,7 @@ export function ShoppingRow({ row, onToggleTick, onToggleAtHome, onOpenAmount, o
   return (
     <li className={rowClass(row)}>
       <div className="shopping-row-inner">
-        <Tick row={row} onToggle={() => onToggleTick(row)} withName={false} />
+        <Tick row={row} onToggle={() => onToggleTick(row)} />
         {/* The name and the amount together open the edit sheet (FR-017). */}
         <button type="button" className="shopping-open" aria-label={row.amountLabel} onClick={() => onOpenAmount(row)}>
           <span className="shopping-name">{row.name}</span>

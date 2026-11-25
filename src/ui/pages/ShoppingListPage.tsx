@@ -1,9 +1,10 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Block, BlockTitle, f7, Icon, List, Navbar, Page } from 'framework7-react';
 import { useRef, useState, type PointerEvent } from 'react';
-import { addExtra, saveAdjustment, shareList } from '../../app/shopping';
+import { addExtra, saveAdjustment, saveExtra, shareList } from '../../app/shopping';
 import { addDays, weekRange, weekStartOf } from '../../domain/dates';
 import { AmountSheet, type ProductEdit } from '../components/AmountSheet';
+import { ExtraSheet, type ExtraEdit } from '../components/ExtraSheet';
 import { ShoppingRow } from '../components/ShoppingRow';
 import { useDeps } from '../hooks/useDeps';
 import {
@@ -43,6 +44,12 @@ export function ShoppingListPage() {
     [...(model?.toBuy ?? []), ...(model?.atHome ?? [])].find(
       (row): row is ProductRow => row.kind === 'product' && row.productId === sheetProductId,
     ) ?? null;
+
+  // The Extra edit sheet, looked up the same way.
+  const [sheetExtraId, setSheetExtraId] = useState<string | null>(null);
+  const [extraSheetOpened, setExtraSheetOpened] = useState(false);
+  const sheetExtra =
+    model?.toBuy.find((row): row is ExtraRow => row.kind === 'extra' && row.id === sheetExtraId) ?? null;
 
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const [extraText, setExtraText] = useState('');
@@ -99,6 +106,16 @@ export function ShoppingListPage() {
     return 'done';
   }
 
+  function openExtra(row: ExtraRow) {
+    setSheetExtraId(row.id);
+    setExtraSheetOpened(true);
+  }
+
+  async function saveExtraEdit(edit: ExtraEdit): Promise<'invalid' | 'done'> {
+    if (!sheetExtra) return 'done';
+    return (await saveExtra(deps, sheetExtra.id, edit)) === 'invalid' ? 'invalid' : 'done';
+  }
+
   function deleteExtra(row: ExtraRow) {
     void deps.shopping.deleteExtra(row.id);
   }
@@ -126,6 +143,7 @@ export function ShoppingListPage() {
     onToggleTick: toggleTick,
     onToggleAtHome: toggleAtHome,
     onOpenAmount: openAmount,
+    onOpenExtra: openExtra,
     onDelete: deleteExtra,
   };
 
@@ -260,6 +278,13 @@ export function ShoppingListPage() {
         opened={sheetOpened}
         onClose={() => setSheetOpened(false)}
         onSave={saveEdit}
+      />
+      <ExtraSheet
+        row={sheetExtra}
+        opened={extraSheetOpened}
+        onClose={() => setExtraSheetOpened(false)}
+        onSave={saveExtraEdit}
+        onDelete={deleteExtra}
       />
     </Page>
   );

@@ -922,11 +922,6 @@ label.item-checkbox.shopping-tick {
   padding: 8px 12px 8px 0;
   cursor: pointer;
 }
-/* An Extra's label holds the name, so it takes the row. */
-.shopping-row.swipeout label.item-checkbox.shopping-tick {
-  flex: 1;
-  padding-right: 0;
-}
 /* Square, not iOS's round list checkbox, which reads as a radio button. */
 .shopping-tick {
   --f7-checkbox-border-radius: 6px;
@@ -1106,10 +1101,7 @@ label.item-checkbox.shopping-tick > .icon-checkbox {
   opacity: 0.4;
   cursor: default;
 }
-/* An Extra's typed amount, shown like a Product's but not a button. */
-.shopping-extra-amount {
-  padding-left: 8px;
-}
+
 
 .amount-sheet-planned p {
   margin: 0;

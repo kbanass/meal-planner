@@ -223,12 +223,12 @@ describe('ShoppingListPage', () => {
       expect(row('ryż')).not.toHaveClass('is-ticked');
     });
 
-    it('ticks an Extra by its name, in place', async () => {
+    it('ticks an Extra by its box, in place', async () => {
       const deps = createTestDeps();
       await deps.shopping.addExtra(WEEK, 'kawa');
       renderWithApp(<ShoppingListPage />, deps);
 
-      await userEvent.click(within(await findRow('kawa')).getByText('kawa'));
+      await tick('kawa');
 
       await waitFor(() => expect(row('kawa')).toHaveClass('is-ticked'));
       expect(rowTexts(toBuyList())).toEqual(['kawa']);
@@ -369,6 +369,70 @@ describe('ShoppingListPage', () => {
 
       await waitFor(() => expect(sheet).not.toHaveClass('modal-in'));
       expect(rowTexts(atHomeList())).toEqual(['ryż 400 g']);
+    });
+  });
+
+  describe('Extra edit sheet', () => {
+    function extraSheet(): Promise<HTMLElement> {
+      return waitFor(() => {
+        const open = document.querySelector<HTMLElement>('.extra-sheet.modal-in');
+        if (!open) throw new Error('Extra sheet not open');
+        return open;
+      });
+    }
+
+    it('opens from the name and saves name, amount and tick on "Zapisz"', async () => {
+      const deps = createTestDeps();
+      await deps.shopping.addExtra(WEEK, 'kawa', '1');
+      renderWithApp(<ShoppingListPage />, deps);
+
+      await userEvent.click(await screen.findByRole('button', { name: 'kawa: 1, edytuj' }));
+      const sheet = await extraSheet();
+      const name = sheet.querySelector<HTMLInputElement>('#extra-name')!;
+      const amount = sheet.querySelector<HTMLInputElement>('#extra-amount')!;
+      expect(name).toHaveValue('kawa');
+      expect(amount).toHaveValue('1');
+      expect(row('kawa')).not.toHaveClass('is-ticked');
+
+      await userEvent.clear(name);
+      await userEvent.type(name, 'kawa ziarnista');
+      await userEvent.clear(amount);
+      await userEvent.type(amount, '2 opak.');
+      await userEvent.click(sheetToggle(sheet, 'Kupione'));
+      expect(await deps.shopping.listExtras(WEEK)).toMatchObject([{ text: 'kawa', amount: '1', ticked: false }]);
+      await userEvent.click(within(sheet).getByText('Zapisz'));
+
+      await waitFor(() => expect(rowTexts(toBuyList())).toEqual(['kawa ziarnista 2 opak.']));
+      expect(row('kawa ziarnista')).toHaveClass('is-ticked');
+      await waitFor(() => expect(sheet).not.toHaveClass('modal-in'));
+    });
+
+    it('keeps the sheet open on a blank name', async () => {
+      const deps = createTestDeps();
+      await deps.shopping.addExtra(WEEK, 'kawa');
+      renderWithApp(<ShoppingListPage />, deps);
+
+      await userEvent.click(await screen.findByRole('button', { name: 'kawa, edytuj' }));
+      const sheet = await extraSheet();
+      await userEvent.clear(sheet.querySelector<HTMLInputElement>('#extra-name')!);
+      await userEvent.click(within(sheet).getByText('Zapisz'));
+
+      expect(await within(sheet).findByText('Wpisz nazwę.')).toBeInTheDocument();
+      expect(sheet).toHaveClass('modal-in');
+      expect(await deps.shopping.listExtras(WEEK)).toMatchObject([{ text: 'kawa' }]);
+    });
+
+    it('deletes with "Usuń" in the sheet', async () => {
+      const deps = createTestDeps();
+      await deps.shopping.addExtra(WEEK, 'kawa');
+      renderWithApp(<ShoppingListPage />, deps);
+
+      await userEvent.click(await screen.findByRole('button', { name: 'kawa, edytuj' }));
+      const sheet = await extraSheet();
+      await userEvent.click(within(sheet).getByText('Usuń'));
+
+      await waitFor(() => expect(toBuyList()).toBeNull());
+      expect(await deps.shopping.listExtras(WEEK)).toEqual([]);
     });
   });
 

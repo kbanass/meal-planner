@@ -43,7 +43,7 @@ Accessible names:
 - Name and amount: "{name}: {amount}, edytuj". With an Adjustment: "{name}: {amount}, więcej niż w planie ({planned}), edytuj" or "mniej niż w planie".
 - At Home: "Mam w domu: {name}".
 
-**Extra row**: an Extra has nothing to edit, so its tick label holds its text too and a tap on either ticks it. No amount and no At Home button. It is wrapped in Framework7's `swipeout`, with one right-side red `SwipeoutButton close` labelled "Usuń" that deletes the Extra, and no confirmation (FR-023).
+**Extra row**: the same tick and a `button.shopping-open` holding the text and, when it has one, the typed amount (accessible name "{text}: {amount}, edytuj" or "{text}, edytuj"), which opens the Extra edit sheet. No At Home button. It is wrapped in Framework7's `swipeout`, with one right-side red `SwipeoutButton close` labelled "Usuń" that deletes the Extra, and no confirmation (FR-023).
 
 **Looks** (CSS in `src/ui/styles/app.css`, tokens on `:root` like the existing ones):
 
@@ -69,6 +69,15 @@ A Framework7 `Sheet` (`backdrop`, `swipeToClose`, `height: auto`), rendered once
   - an inset list with two toggles, "Kupione" and "Mam w domu", set from the row when the sheet opens
 - **Save**: calls `saveAdjustment`. `invalid` keeps the sheet open, with the field marked "Wpisz liczbę większą od zera." (FR-019), and writes nothing. Otherwise a changed tick or At Home is written too, and the sheet closes. "Anuluj" writes nothing.
 - The line's `planned` value is read from the live model at save time, so a plan change while the sheet is open is respected.
+
+## Extra edit sheet (`src/ui/components/ExtraSheet.tsx`)
+
+Opened by tapping an Extra row's text or amount. Same Sheet and toolbar as the Product edit sheet (title: the Extra's text).
+
+- outlined inputs "Nazwa" and "Ilość (opcjonalnie)" (placeholder "np. 2 opak."), filled from the row; Enter in either saves
+- an inset list with the "Kupione" toggle
+- a red `ListButton` "Usuń", which deletes at once, with no confirmation (FR-023), and closes the sheet
+- **Save**: `saveExtra`. A blank name keeps the sheet open with "Wpisz nazwę." and writes nothing; otherwise the sheet closes. "Anuluj" writes nothing.
 
 ## View model (`src/ui/view-models/shopping.ts`)
 

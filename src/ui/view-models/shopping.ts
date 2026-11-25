@@ -16,6 +16,9 @@ import { indexDishes } from './week';
 export const emptyMessage = 'Na ten tydzień nie ma nic do kupienia.';
 export const extraPlaceholder = 'Coś spoza planu…';
 export const extraAmountPlaceholder = 'Ilość (opcjonalnie)';
+export const extraNameLabel = 'Nazwa';
+export const extraAmountLabel = 'Ilość (opcjonalnie)';
+export const extraNameError = 'Wpisz nazwę.';
 export const atHomeTitle = 'Mam w domu';
 export const amountErrorMessage = 'Wpisz liczbę większą od zera.';
 export const amountFooter = 'Zostaw puste, aby wrócić do ilości z planu.';
@@ -51,6 +54,8 @@ export interface ExtraRow {
   /** The typed amount as written ("2 opak."), or null. */
   amountText: string | null;
   ticked: boolean;
+  /** "kawa: 2 opak., edytuj", the name of the button that opens the edit sheet. */
+  openLabel: string;
 }
 
 export type ShoppingRow = ProductRow | ExtraRow;
@@ -104,6 +109,7 @@ function row(line: ShoppingLine): ShoppingRow {
     name: extra.text,
     amountText: extra.amount ?? null,
     ticked: extra.ticked,
+    openLabel: `${extra.text}${extra.amount ? `: ${extra.amount}` : ''}, edytuj`,
   };
 }
 

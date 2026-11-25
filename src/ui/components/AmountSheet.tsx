@@ -1,19 +1,7 @@
 import { Block, BlockFooter, Link, List, ListInput, ListItem, PageContent, Sheet, Toolbar } from 'framework7-react';
 import { useState } from 'react';
 import { amountErrorMessage, amountFooter, type ProductRow } from '../view-models/shopping';
-
-/**
- * Framework7's toggle markup with a React-controlled input. framework7-react's <Toggle> gives
- * React a no-op onChange, so React resets a controlled `checked` before its own listener runs.
- */
-function MarkToggle({ checked, onChange, label }: { checked: boolean; onChange(value: boolean): void; label: string }) {
-  return (
-    <label className="toggle" slot="after">
-      <input type="checkbox" aria-label={label} checked={checked} onChange={(event) => onChange(event.target.checked)} />
-      <span className="toggle-icon" />
-    </label>
-  );
-}
+import { MarkToggle } from './MarkToggle';
 
 export interface ProductEdit {
   text: string;

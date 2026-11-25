@@ -13,6 +13,11 @@ export interface ShoppingRepository {
   addExtra(weekStart: IsoDate, text: string, amount?: string): Promise<Extra | null>;
   /** No-op when the Extra is missing (deleted in another tab). */
   setExtraTicked(id: string, ticked: boolean): Promise<void>;
+  /**
+   * Replaces an Extra's text, amount and tick, normalised like `addExtra`. 'empty' (and nothing
+   * written) when the text normalises to ''; 'missing' when the Extra is gone.
+   */
+  updateExtra(id: string, edit: { text: string; amount: string; ticked: boolean }): Promise<'saved' | 'empty' | 'missing'>;
   /** No-op when the Extra is missing. */
   deleteExtra(id: string): Promise<void>;
 }
@@ -43,6 +48,20 @@ export function createShoppingRepository(db: PlannerDb, ids: IdGenerator): Shopp
 
     async setExtraTicked(id, ticked) {
       await db.extras.update(id, { ticked });
+    },
+
+    updateExtra(id, edit) {
+      return db.transaction('rw', db.extras, async () => {
+        const text = normalizeName(edit.text);
+        if (text === '') return 'empty';
+        const current = await db.extras.get(id);
+        if (!current) return 'missing';
+        const next: Extra = { id, weekStart: current.weekStart, text, ticked: edit.ticked };
+        const amount = normalizeName(edit.amount);
+        if (amount !== '') next.amount = amount;
+        await db.extras.put(next);
+        return 'saved';
+      });
     },
 
     async deleteExtra(id) {

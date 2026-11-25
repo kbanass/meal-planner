@@ -93,7 +93,7 @@ Editing a Meal:
 - A per-Week layer on top:
   - **At Home**: a house button on each Product item marks it as already at home, with no amount. The item is dimmed and moves to a "Mam w domu" card at the bottom.
   - **Adjustments**: tap an item's amount → type the amount to buy instead (e.g. 500 g where the plan needs 400 g). The item shows the typed amount, styled as more or less than planned, with the planned amount below it. When the plan later needs a different amount of that Product, the typed amount is dropped and the item shows the plan's amount again.
-  - **Extras**: free-text items with an optional free-text amount ("2 opak."), no unit.
+  - **Extras**: free-text items with an optional free-text amount ("2 opak."), no unit. Tapping one opens an edit sheet for its name, amount and tick, with "Usuń".
   - Checked state ("bought") for each item: a square tick and dimmed text, not crossed out. Ticking doesn't move the item. Tapping a Product item opens an edit sheet with its amount and the "Kupione" and "Mam w domu" toggles.
 - Plan changes update the sums immediately. Extras, checks and At Home marks are kept. Adjustments are kept only for Products whose planned amount didn't change.
 - Display:

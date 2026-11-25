@@ -76,13 +76,21 @@ describe('shoppingPage', () => {
     ]);
     expect(productRow(model.toBuy, 'mleko')).toMatchObject({ productId: 'p-mleko', amountText: '1,1 l', ticked: false, atHome: false });
     expect(productRow(model.toBuy, 'jajka').amountText).toBe('3 szt.');
-    expect(model.toBuy[1]).toEqual({ kind: 'extra', key: 'e:e1', id: 'e1', name: 'kawa', amountText: null, ticked: false });
+    expect(model.toBuy[1]).toEqual({
+      kind: 'extra',
+      key: 'e:e1',
+      id: 'e1',
+      name: 'kawa',
+      amountText: null,
+      ticked: false,
+      openLabel: 'kawa, edytuj',
+    });
     expect(model.atHome).toEqual([]);
   });
 
   it('shows an Extra with its typed amount', () => {
     const model = shoppingPage(WEEK, data({ extras: [{ id: 'e1', weekStart: WEEK, text: 'kawa', amount: '2 opak.', ticked: false }] }))!;
-    expect(model.toBuy.find((r) => r.kind === 'extra')).toMatchObject({ name: 'kawa', amountText: '2 opak.' });
+    expect(model.toBuy.find((r) => r.kind === 'extra')).toMatchObject({ name: 'kawa', amountText: '2 opak.', openLabel: 'kawa: 2 opak., edytuj' });
   });
 
   it('is empty with no Meals and no Extras', () => {
